@@ -24,6 +24,9 @@ class MockDataChannel extends RTCDataChannel {
   late StreamController<RTCDataChannelState> stateChangeStreamController;
   MockDataChannel(this._id, this._label) {
     stateChangeStreamController = StreamController<RTCDataChannelState>.broadcast();
+    // The base class declares this as a bare `late` field, reading it before
+    // assignment throws LateInitializationError
+    stateChangeStream = stateChangeStreamController.stream;
   }
 
   @override

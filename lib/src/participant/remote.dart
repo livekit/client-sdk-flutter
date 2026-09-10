@@ -61,11 +61,11 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     required String identity,
     required String name,
   }) : super(
-          room: room,
-          sid: sid,
-          identity: identity,
-          name: name,
-        );
+         room: room,
+         sid: sid,
+         identity: identity,
+         name: name,
+       );
 
   /// Creates a fully initialized RemoteParticipant without emitting events.
   ///
@@ -245,11 +245,13 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     await pub.updateSubscriptionAllowed(true);
     addTrackPublication(pub);
 
-    [events, room.events].emit(TrackSubscribedEvent(
-      participant: this,
-      track: track,
-      publication: pub,
-    ));
+    [events, room.events].emit(
+      TrackSubscribedEvent(
+        participant: this,
+        track: track,
+        publication: pub,
+      ),
+    );
 
     await track.start();
   }
@@ -301,18 +303,22 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
     // if has track
     if (track != null) {
       await track.stop();
-      [events, room.events].emit(TrackUnsubscribedEvent(
-        participant: this,
-        track: track,
-        publication: pub,
-      ));
+      [events, room.events].emit(
+        TrackUnsubscribedEvent(
+          participant: this,
+          track: track,
+          publication: pub,
+        ),
+      );
     }
 
     if (notify) {
-      [events, room.events].emit(TrackUnpublishedEvent(
-        participant: this,
-        publication: pub,
-      ));
+      [events, room.events].emit(
+        TrackUnpublishedEvent(
+          participant: this,
+          publication: pub,
+        ),
+      );
     }
 
     await pub.dispose();
@@ -327,7 +333,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
 
   @internal
   lk_models.ParticipantTracks participantTracks() => lk_models.ParticipantTracks(
-        participantSid: sid,
-        trackSids: trackPublications.values.map((e) => e.sid),
-      );
+    participantSid: sid,
+    trackSids: trackPublications.values.map((e) => e.sid),
+  );
 }

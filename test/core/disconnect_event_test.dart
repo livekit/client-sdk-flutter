@@ -40,8 +40,10 @@ void main() {
   });
 
   test('emits exactly one disconnected event when pinning fails on initial connect', () async {
-    container.wsConnector.connectError =
-        CertificatePinningException('Certificate pin mismatch', host: 'www.example.com');
+    container.wsConnector.connectError = CertificatePinningException(
+      'Certificate pin mismatch',
+      host: 'www.example.com',
+    );
 
     final disconnectedEvents = <RoomDisconnectedEvent>[];
     container.room.events.listen((event) {
@@ -99,8 +101,10 @@ void main() {
       }
     });
 
-    container.wsConnector.connectError =
-        CertificatePinningException('Certificate pin mismatch', host: 'www.example.com');
+    container.wsConnector.connectError = CertificatePinningException(
+      'Certificate pin mismatch',
+      host: 'www.example.com',
+    );
     container.engine.fullReconnectOnNext = true;
     await container.engine.attemptReconnect(ClientDisconnectReason.reconnectRetry);
 

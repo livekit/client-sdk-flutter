@@ -150,12 +150,14 @@ class AudioFrameCaptureWeb implements AudioFrameCapture {
         bytes = float32ToInt16Bytes(srcFloat32, channels, outChannels, frames);
       }
 
-      controller.add(AudioFrame(
-        sampleRate: actualSampleRate,
-        channels: outChannels,
-        data: bytes,
-        format: _targetFormat,
-      ));
+      controller.add(
+        AudioFrame(
+          sampleRate: actualSampleRate,
+          channels: outChannels,
+          data: bytes,
+          format: _targetFormat,
+        ),
+      );
     } catch (e) {
       logger.warning('[AudioFrameCapture] Error processing worklet frame: $e');
     }

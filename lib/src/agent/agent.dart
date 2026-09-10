@@ -143,7 +143,8 @@ class Agent extends ChangeNotifier {
     final RemoteAudioTrack? nextAudioTrack = _resolveAudioTrack(participant);
     final RemoteVideoTrack? nextAvatarTrack = _resolveAvatarVideoTrack(participant);
 
-    final bool shouldNotify = _state != _AgentLifecycle.connected ||
+    final bool shouldNotify =
+        _state != _AgentLifecycle.connected ||
         _agentState != nextAgentState ||
         !identical(_audioTrack, nextAudioTrack) ||
         !identical(_avatarVideoTrack, nextAvatarTrack) ||
@@ -220,9 +221,9 @@ enum AgentFailure {
 
   /// A human-readable error message.
   String get message => switch (this) {
-        AgentFailure.timeout => 'Agent did not connect',
-        AgentFailure.left => 'Agent left the room unexpectedly',
-      };
+    AgentFailure.timeout => 'Agent did not connect',
+    AgentFailure.left => 'Agent left the room unexpectedly',
+  };
 }
 
 enum _AgentLifecycle {

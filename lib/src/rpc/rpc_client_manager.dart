@@ -160,16 +160,18 @@ class RpcClientManager {
       throw RpcError(code: RpcError.sendFailed, message: 'No local participant');
     }
 
-    final writer = await local.streamText(StreamTextOptions(
-      topic: kRpcRequestTopic,
-      destinationIdentities: [destinationIdentity],
-      attributes: {
-        kRpcAttrRequestId: requestId,
-        kRpcAttrMethod: method,
-        kRpcAttrResponseTimeoutMs: responseTimeout.inMilliseconds.toString(),
-        kRpcAttrVersion: kRpcRequestVersionV2,
-      },
-    ));
+    final writer = await local.streamText(
+      StreamTextOptions(
+        topic: kRpcRequestTopic,
+        destinationIdentities: [destinationIdentity],
+        attributes: {
+          kRpcAttrRequestId: requestId,
+          kRpcAttrMethod: method,
+          kRpcAttrResponseTimeoutMs: responseTimeout.inMilliseconds.toString(),
+          kRpcAttrVersion: kRpcRequestVersionV2,
+        },
+      ),
+    );
     await writer.write(payload);
     await writer.close();
   }
@@ -218,8 +220,10 @@ class RpcClientManager {
     if (senderIdentity != pending.destinationIdentity) {
       // Identity spoof / cross-talk guard. Do NOT resolve; leave pending entry intact
       // so the legitimate response (or timeout) can still complete it.
-      logger.warning('v2 RPC response sender "$senderIdentity" does not match expected destination '
-          '"${pending.destinationIdentity}" for request $requestId; ignoring');
+      logger.warning(
+        'v2 RPC response sender "$senderIdentity" does not match expected destination '
+        '"${pending.destinationIdentity}" for request $requestId; ignoring',
+      );
       return;
     }
 

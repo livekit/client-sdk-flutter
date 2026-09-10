@@ -56,15 +56,17 @@ void main() {
     final backupPin = certificateSpkiSha256Pin(backupCertificate);
     final secondBackupPin = certificateSpkiSha256Pin(secondBackupCertificate);
 
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['*.livekit.cloud'],
-          primaryPins: [primaryPin],
-          backupPins: [backupPin, secondBackupPin],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['*.livekit.cloud'],
+            primaryPins: [primaryPin],
+            backupPins: [backupPin, secondBackupPin],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -93,18 +95,20 @@ void main() {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final backupCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
     final otherCertificate = _certificate(_subjectPublicKeyInfo([9, 10, 11, 12]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['*'],
-          primaryPins: [certificateSpkiSha256Pin(certificate)],
-        ),
-        CertificatePinningRule(
-          hosts: const ['livekit.example.com'],
-          backupPins: [certificateSpkiSha256Pin(backupCertificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['*'],
+            primaryPins: [certificateSpkiSha256Pin(certificate)],
+          ),
+          CertificatePinningRule(
+            hosts: const ['livekit.example.com'],
+            backupPins: [certificateSpkiSha256Pin(backupCertificate)],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -125,18 +129,20 @@ void main() {
   test('enforces each configured check type for matching rules', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final otherCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['livekit.example.com'],
-          pinnedLeafCertificates: [CertificateBytes.der(certificate)],
-        ),
-        CertificatePinningRule(
-          hosts: const ['*.example.com'],
-          primaryPins: [certificateSpkiSha256Pin(otherCertificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['livekit.example.com'],
+            pinnedLeafCertificates: [CertificateBytes.der(certificate)],
+          ),
+          CertificatePinningRule(
+            hosts: const ['*.example.com'],
+            primaryPins: [certificateSpkiSha256Pin(otherCertificate)],
+          ),
+        ],
+      ),
+    );
 
     // passes the exact leaf check but fails the SPKI check
     expect(
@@ -158,18 +164,20 @@ void main() {
 
   test('accepts certificates that satisfy every configured check type', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['livekit.example.com'],
-          pinnedLeafCertificates: [CertificateBytes.der(certificate)],
-        ),
-        CertificatePinningRule(
-          hosts: const ['*.example.com'],
-          primaryPins: [certificateSpkiSha256Pin(certificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['livekit.example.com'],
+            pinnedLeafCertificates: [CertificateBytes.der(certificate)],
+          ),
+          CertificatePinningRule(
+            hosts: const ['*.example.com'],
+            primaryPins: [certificateSpkiSha256Pin(certificate)],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -183,14 +191,16 @@ void main() {
   test('rejects pin mismatches', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final otherCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['livekit.example.com'],
-          primaryPins: [certificateSpkiSha256Pin(certificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['livekit.example.com'],
+            primaryPins: [certificateSpkiSha256Pin(certificate)],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -203,14 +213,16 @@ void main() {
 
   test('ignores hosts without a matching rule', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
-    final validator = CertificatePinValidator(const CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: ['livekit.example.com'],
-          primaryPins: ['sha256/not-a-real-pin'],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      const CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: ['livekit.example.com'],
+            primaryPins: ['sha256/not-a-real-pin'],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -223,14 +235,16 @@ void main() {
 
   test('wildcard hosts match only a single label', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['*.livekit.cloud'],
-          primaryPins: [certificateSpkiSha256Pin(certificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['*.livekit.cloud'],
+            primaryPins: [certificateSpkiSha256Pin(certificate)],
+          ),
+        ],
+      ),
+    );
 
     expect(
       () => validator.validatePeerCertificate(
@@ -251,14 +265,16 @@ void main() {
   test('multi-label wildcard hosts match any depth', () {
     final certificate = _certificate(_subjectPublicKeyInfo([1, 2, 3, 4]));
     final mismatchedCertificate = _certificate(_subjectPublicKeyInfo([5, 6, 7, 8]));
-    final validator = CertificatePinValidator(CertificatePinningOptions(
-      rules: [
-        CertificatePinningRule(
-          hosts: const ['**.livekit.cloud'],
-          primaryPins: [certificateSpkiSha256Pin(certificate)],
-        ),
-      ],
-    ));
+    final validator = CertificatePinValidator(
+      CertificatePinningOptions(
+        rules: [
+          CertificatePinningRule(
+            hosts: const ['**.livekit.cloud'],
+            primaryPins: [certificateSpkiSha256Pin(certificate)],
+          ),
+        ],
+      ),
+    );
 
     // matches one label deep
     expect(
@@ -343,7 +359,8 @@ List<int> _certificate(List<int> subjectPublicKeyInfo) {
   ]);
 }
 
-List<int> _realCertificateDer() => base64Decode('''
+List<int> _realCertificateDer() => base64Decode(
+  '''
 MIIDxzCCAq+gAwIBAgIUGhRL7309IUNTm6hvItsQIT62H2gwDQYJKoZIhvcNAQEL
 BQAwVzELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAkNBMRAwDgYDVQQKDAdMaXZlS2l0
 MQ0wCwYDVQQLDARUZXN0MRowGAYDVQQDDBFMaXZlS2l0IFRlc3QgQ0EgNjAeFw0y
@@ -366,12 +383,13 @@ CxyX1bjWBvpPpwVVVtz9Ydrp5Uvmzd4IrtYJRz/Ty62y2YKmqEVmsfBqBvdxbF5R
 jOt2XQ4kR0oSVkU+KyVyGtMhNjjQnWjJOuVpo/rdhtEKz4/9B4ofKYgoaeATqoQg
 Jioy3puXYIMud+Y=
 '''
-    .replaceAll(RegExp(r'\s'), ''));
+      .replaceAll(RegExp(r'\s'), ''),
+);
 
 List<int> _subjectPublicKeyInfo(List<int> publicKeyBytes) => _sequence([
-      ..._sequence(const []),
-      ..._bitString(publicKeyBytes),
-    ]);
+  ..._sequence(const []),
+  ..._bitString(publicKeyBytes),
+]);
 
 List<int> _explicitVersion() => _element(0xa0, _integer(2));
 
@@ -382,10 +400,10 @@ List<int> _sequence(List<int> value) => _element(0x30, value);
 List<int> _bitString(List<int> value) => _element(0x03, [0, ...value]);
 
 List<int> _element(int tag, List<int> value) => [
-      tag,
-      ..._length(value.length),
-      ...value,
-    ];
+  tag,
+  ..._length(value.length),
+  ...value,
+];
 
 List<int> _length(int length) {
   if (length < 0x80) {

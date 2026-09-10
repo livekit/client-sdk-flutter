@@ -4,7 +4,7 @@ Flutter client SDK for LiveKit (`livekit_client` on pub.dev), built on top of `f
 
 ## Commands
 
-Requires Dart >= 3.6 / Flutter >= 3.27.
+Requires Dart >= 3.10 / Flutter >= 3.38 (floor set by stable native assets support).
 
 ```sh
 flutter pub get

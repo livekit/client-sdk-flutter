@@ -174,7 +174,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return packet.participantSid;
     }
     logger.fine(
-        'Reliable packet missing participant SID (identity: ${packet.participantIdentity}), skipping dedupe handling');
+      'Reliable packet missing participant SID (identity: ${packet.participantIdentity}), skipping dedupe handling',
+    );
     return null;
   }
 
@@ -197,9 +198,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     SignalClient? signalClient,
     PeerConnectionCreate? peerConnectionCreate,
     E2EEManager? e2eeManager,
-  })  : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
-        _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection,
-        _e2eeManager = e2eeManager {
+  }) : signalClient = signalClient ?? SignalClient(LiveKitWebSocket.connect),
+       _peerConnectionCreate = peerConnectionCreate ?? rtc.createPeerConnection,
+       _e2eeManager = e2eeManager {
     if (kDebugMode) {
       // log all EngineEvents
       events.listen((event) => logger.fine('[EngineEvent] $objectId $event'));
@@ -251,8 +252,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
         duration: this.connectOptions.timeouts.connection,
-        onTimeout: () => throw ConnectException('Timed out waiting for SignalJoinResponseEvent',
-            reason: ConnectionErrorReason.Timeout),
+        onTimeout: () => throw ConnectException(
+          'Timed out waiting for SignalJoinResponseEvent',
+          reason: ConnectionErrorReason.Timeout,
+        ),
       );
 
       logger.fine('Waiting for engine to connect...');
@@ -262,7 +265,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         filter: (event) => event.isPrimary && event.state.isConnected(),
         duration: this.connectOptions.timeouts.connection,
         onTimeout: () => throw MediaConnectException(
-            'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity'),
+          'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
+        ),
       );
       events.emit(const EngineConnectedEvent());
     } catch (error) {
@@ -272,11 +276,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // attemptReconnect owns disconnect emission, emitting here as well
       // would produce two events for one failure
       if (!_isReconnecting && !_attemptingReconnect) {
-        events.emit(EngineDisconnectedEvent(
-          reason: error is CertificatePinningException
-              ? DisconnectReason.signalingConnectionFailure
-              : DisconnectReason.joinFailure,
-        ));
+        events.emit(
+          EngineDisconnectedEvent(
+            reason: error is CertificatePinningException
+                ? DisconnectReason.signalingConnectionFailure
+                : DisconnectReason.joinFailure,
+          ),
+        );
       }
       rethrow;
     }
@@ -473,11 +479,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     // Buffer reliable packets for potential resending
     if (reliability == Reliability.reliable) {
-      _reliableMessageBuffer.push(BufferedDataPacket(
-        packet: packet,
-        message: message,
-        sequence: packet.sequence,
-      ));
+      _reliableMessageBuffer.push(
+        BufferedDataPacket(
+          packet: packet,
+          message: message,
+          sequence: packet.sequence,
+        ),
+      );
     }
 
     // Don't send during reconnection, but keep message buffered for resending
@@ -527,19 +535,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _publisherConnectionCompleter = completer;
 
     unawaited(
-      _publisherEnsureConnected().then((_) {
-        if (!completer.isCompleted) {
-          completer.complete();
-        }
-      }, onError: (Object error, StackTrace stackTrace) {
-        if (!completer.isCompleted) {
-          completer.completeError(error, stackTrace);
-        }
-      }).whenComplete(() {
-        if (identical(_publisherConnectionCompleter, completer)) {
-          _publisherConnectionCompleter = null;
-        }
-      }),
+      _publisherEnsureConnected()
+          .then(
+            (_) {
+              if (!completer.isCompleted) {
+                completer.complete();
+              }
+            },
+            onError: (Object error, StackTrace stackTrace) {
+              if (!completer.isCompleted) {
+                completer.completeError(error, stackTrace);
+              }
+            },
+          )
+          .whenComplete(() {
+            if (identical(_publisherConnectionCompleter, completer)) {
+              _publisherConnectionCompleter = null;
+            }
+          }),
     );
 
     return completer.future;
@@ -548,8 +561,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void _resetPublisherConnection() {
     final completer = _publisherConnectionCompleter;
     if (completer != null && !completer.isCompleted) {
-      completer
-          .completeError(ConnectException('Publisher connection reset', reason: ConnectionErrorReason.InternalError));
+      completer.completeError(
+        ConnectException('Publisher connection reset', reason: ConnectionErrorReason.InternalError),
+      );
     }
     _publisherConnectionCompleter = null;
   }
@@ -560,7 +574,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           lk_models.DataPacket_Value.metrics,
           lk_models.DataPacket_Value.speaker,
           lk_models.DataPacket_Value.transcription,
-          lk_models.DataPacket_Value.encryptedPacket
+          lk_models.DataPacket_Value.encryptedPacket,
         ].contains(packet.whichValue()) ==
         false) {
       switch (packet.whichValue()) {
@@ -606,9 +620,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  Future<RTCConfiguration> _buildRtcConfiguration(
-      {required lk_models.ClientConfigSetting serverResponseForceRelay,
-      required List<RTCIceServer> serverProvidedIceServers}) async {
+  Future<RTCConfiguration> _buildRtcConfiguration({
+    required lk_models.ClientConfigSetting serverResponseForceRelay,
+    required List<RTCIceServer> serverProvidedIceServers,
+  }) async {
     // RTCConfiguration? config;
     RTCConfiguration rtcConfiguration = connectOptions.rtcConfiguration;
 
@@ -633,10 +648,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
-    publisher =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
-    subscriber =
-        await Transport.create(_peerConnectionCreate, rtcConfig: rtcConfiguration, connectOptions: connectOptions);
+    publisher = await Transport.create(
+      _peerConnectionCreate,
+      rtcConfig: rtcConfiguration,
+      connectOptions: connectOptions,
+    );
+    subscriber = await Transport.create(
+      _peerConnectionCreate,
+      rtcConfig: rtcConfiguration,
+      connectOptions: connectOptions,
+    );
 
     publisher?.pc.onIceCandidate = (rtc.RTCIceCandidate candidate) {
       logger.fine('publisher onIceCandidate');
@@ -673,10 +694,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     subscriber?.pc.onConnectionState = (state) async {
-      events.emit(EngineSubscriberPeerStateUpdatedEvent(
-        state: state,
-        isPrimary: _subscriberPrimary,
-      ));
+      events.emit(
+        EngineSubscriberPeerStateUpdatedEvent(
+          state: state,
+          isPrimary: _subscriberPrimary,
+        ),
+      );
       logger.fine('subscriber connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
         await handleReconnect(
@@ -690,14 +713,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if ([
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
-        rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected
+        rtc.RTCPeerConnectionState.RTCPeerConnectionStateDisconnected,
       ].contains(state)) {
         _resetPublisherConnection();
       }
-      events.emit(EnginePublisherPeerStateUpdatedEvent(
-        state: state,
-        isPrimary: !_subscriberPrimary,
-      ));
+      events.emit(
+        EnginePublisherPeerStateUpdatedEvent(
+          state: state,
+          isPrimary: !_subscriberPrimary,
+        ),
+      );
       logger.fine('publisher connectionState: $state');
       if (state.isDisconnected() || state.isFailed()) {
         await handleReconnect(
@@ -733,11 +758,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         final receiver = event.receiver;
         events.once<EngineConnectedEvent>((event) async {
           Timer(const Duration(milliseconds: 10), () {
-            events.emit(EngineTrackAddedEvent(
-              track: track,
-              stream: stream,
-              receiver: receiver,
-            ));
+            events.emit(
+              EngineTrackAddedEvent(
+                track: track,
+                stream: stream,
+                receiver: receiver,
+              ),
+            );
           });
         });
         return;
@@ -748,11 +775,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
 
-      events.emit(EngineTrackAddedEvent(
-        track: event.track,
-        stream: stream,
-        receiver: event.receiver,
-      ));
+      events.emit(
+        EngineTrackAddedEvent(
+          track: event.track,
+          stream: stream,
+          receiver: event.receiver,
+        ),
+      );
     };
 
     // doesn't get called reliably, doesn't work on mac
@@ -768,11 +797,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ..maxRetransmits = 0;
       _lossyDCPub = await publisher?.pc.createDataChannel(_lossyDCLabel, lossyInit);
       _lossyDCPub?.onMessage = _onDCMessage;
-      _lossyDCPub?.stateChangeStream.listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+      _lossyDCPub?.stateChangeStream.listen(
+        (state) => events.emit(
+          PublisherDataChannelStateUpdatedEvent(
             isPrimary: !_subscriberPrimary,
             state: state,
             type: Reliability.lossy,
-          )));
+          ),
+        ),
+      );
       // _onDCStateUpdated(Reliability.lossy, state)
       _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _lossyDCPub?.onBufferedAmountLow = (_) {
@@ -788,11 +821,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ..ordered = true;
       _reliableDCPub = await publisher?.pc.createDataChannel(_reliableDCLabel, reliableInit);
       _reliableDCPub?.onMessage = _onDCMessage;
-      _reliableDCPub?.stateChangeStream.listen((state) => events.emit(PublisherDataChannelStateUpdatedEvent(
+      _reliableDCPub?.stateChangeStream.listen(
+        (state) => events.emit(
+          PublisherDataChannelStateUpdatedEvent(
             isPrimary: !_subscriberPrimary,
             state: state,
             type: Reliability.reliable,
-          )));
+          ),
+        ),
+      );
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _reliableDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.reliable] =
@@ -809,23 +846,29 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Server opened DC label: ${dc.label}');
         _reliableDCSub = dc;
         _reliableDCSub?.onMessage = _onDCMessage;
-        _reliableDCSub?.stateChangeStream.listen((state) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.reliable,
-                ))));
+        _reliableDCSub?.stateChangeStream.listen(
+          (state) => events.emit(
+            SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.reliable,
+            ),
+          ),
+        );
         break;
       case _lossyDCLabel:
         logger.fine('Server opened DC label: ${dc.label}');
         _lossyDCSub = dc;
         _lossyDCSub?.onMessage = _onDCMessage;
-        _lossyDCSub?.stateChangeStream.listen((event) =>
-            _reliableDCPub?.stateChangeStream.listen((state) => events.emit(SubscriberDataChannelStateUpdatedEvent(
-                  isPrimary: _subscriberPrimary,
-                  state: state,
-                  type: Reliability.lossy,
-                ))));
+        _lossyDCSub?.stateChangeStream.listen(
+          (state) => events.emit(
+            SubscriberDataChannelStateUpdatedEvent(
+              isPrimary: _subscriberPrimary,
+              state: state,
+              type: Reliability.lossy,
+            ),
+          ),
+        );
         break;
       default:
         logger.warning('Unknown DC label: ${dc.label}');
@@ -877,8 +920,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           final sequence = dp.sequence;
           final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
           if (sequence <= lastReceived) {
-            logger.fine('Ignoring duplicate or out-of-order packet: '
-                'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey');
+            logger.fine(
+              'Ignoring duplicate or out-of-order packet: '
+              'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey',
+            );
             return;
           }
           _reliableReceivedState.set(participantKey, sequence);
@@ -902,8 +947,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           final sequence = dp.sequence;
           final lastReceived = _reliableReceivedState.get(participantKey) ?? 0;
           if (sequence <= lastReceived) {
-            logger.fine('Ignoring duplicate or out-of-order packet: '
-                'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey');
+            logger.fine(
+              'Ignoring duplicate or out-of-order packet: '
+              'sequence=$sequence, lastReceived=$lastReceived, participantSid=$participantKey',
+            );
             return;
           }
           _reliableReceivedState.set(participantKey, sequence);
@@ -919,46 +966,60 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void _emitDataPacket(lk_models.DataPacket dp, {EncryptionType encryptionType = EncryptionType.kNone}) {
     if (dp.whichValue() == lk_models.DataPacket_Value.speaker) {
       // Speaker packet
-      events.emit(EngineActiveSpeakersUpdateEvent(
-        speakers: dp.speaker.speakers,
-      ));
+      events.emit(
+        EngineActiveSpeakersUpdateEvent(
+          speakers: dp.speaker.speakers,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.user) {
       // User packet
-      events.emit(EngineDataPacketReceivedEvent(
-        packet: dp.user,
-        kind: dp.kind,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineDataPacketReceivedEvent(
+          packet: dp.user,
+          kind: dp.kind,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.transcription) {
       // Transcription packet
-      events.emit(EngineTranscriptionReceivedEvent(
-        transcription: dp.transcription,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineTranscriptionReceivedEvent(
+          transcription: dp.transcription,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.sipDtmf) {
       // SIP DTMF packet
-      events.emit(EngineSipDtmfReceivedEvent(
-        dtmf: dp.sipDtmf,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineSipDtmfReceivedEvent(
+          dtmf: dp.sipDtmf,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcRequest) {
       // RPC Request
-      events.emit(EngineRPCRequestReceivedEvent(
-        request: dp.rpcRequest,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineRPCRequestReceivedEvent(
+          request: dp.rpcRequest,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcResponse) {
       // RPC Response
-      events.emit(EngineRPCResponseReceivedEvent(
-        response: dp.rpcResponse,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineRPCResponseReceivedEvent(
+          response: dp.rpcResponse,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.rpcAck) {
       // RPC Ack
-      events.emit(EngineRPCAckReceivedEvent(
-        ack: dp.rpcAck,
-        identity: dp.participantIdentity,
-      ));
+      events.emit(
+        EngineRPCAckReceivedEvent(
+          ack: dp.rpcAck,
+          identity: dp.participantIdentity,
+        ),
+      );
     } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader) {
       // Data Stream Header
       events.emit(
@@ -1014,9 +1075,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _isClosed = true;
       await cleanUp();
 
-      events.emit(EngineDisconnectedEvent(
-        reason: DisconnectReason.reconnectAttemptsExceeded,
-      ));
+      events.emit(
+        EngineDisconnectedEvent(
+          reason: DisconnectReason.reconnectAttemptsExceeded,
+        ),
+      );
       return;
     }
 
@@ -1026,11 +1089,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       delay += math.Random().nextInt(1000);
     }
 
-    events.emit(EngineAttemptReconnectEvent(
-      attempt: _reconnectAttempts + 1,
-      maxAttempts: _reconnectCount,
-      nextRetryDelaysInMs: delay,
-    ));
+    events.emit(
+      EngineAttemptReconnectEvent(
+        attempt: _reconnectAttempts + 1,
+        maxAttempts: _reconnectCount,
+        nextRetryDelaysInMs: delay,
+      ),
+    );
 
     _clearReconnectTimeout();
     if (token != null && _regionUrlProvider != null) {
@@ -1079,8 +1144,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           duration: connectOptions.timeouts.connection * 10,
           filter: (event) => !event.state.contains(ConnectivityResult.none),
           onTimeout: () => throw ConnectException(
-              'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent',
-              reason: ConnectionErrorReason.Timeout),
+            'attemptReconnect: Timed out waiting for SignalConnectivityChangedEvent',
+            reason: ConnectionErrorReason.Timeout,
+          ),
         );
       }
 
@@ -1117,11 +1183,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         // drops the event while fullReconnectOnNext is still true and
         // cleanUp() is what resets it
         await cleanUp();
-        events.emit(EngineDisconnectedEvent(
-          reason: e is CertificatePinningException
-              ? DisconnectReason.signalingConnectionFailure
-              : DisconnectReason.disconnected,
-        ));
+        events.emit(
+          EngineDisconnectedEvent(
+            reason: e is CertificatePinningException
+                ? DisconnectReason.signalingConnectionFailure
+                : DisconnectReason.disconnected,
+          ),
+        );
       }
     } finally {
       _attemptingReconnect = false;
@@ -1150,17 +1218,21 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     await events.waitFor<SignalReconnectedEvent>(
       duration: connectOptions.timeouts.connection,
-      onTimeout: () => throw ConnectException('resumeConnection: Timed out waiting for SignalReconnectedEvent',
-          reason: ConnectionErrorReason.Timeout),
+      onTimeout: () => throw ConnectException(
+        'resumeConnection: Timed out waiting for SignalReconnectedEvent',
+        reason: ConnectionErrorReason.Timeout,
+      ),
     );
 
     logger.fine('resumeConnection: reason: ${reason.name}');
 
     if (_hasPublished) {
       logger.fine('resumeConnection: negotiating publisher...');
-      await publisher!.createAndSendOffer(const RTCOfferOptions(
-        iceRestart: true,
-      ));
+      await publisher!.createAndSendOffer(
+        const RTCOfferOptions(
+          iceRestart: true,
+        ),
+      );
     }
 
     final isConnected = (await primary?.pc.getConnectionState())?.isConnected() ?? false;
@@ -1283,9 +1355,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   void _setUpEngineListeners() => events.on<SignalReconnectedEvent>((event) async {
-        // send queued requests if engine re-connected
-        signalClient.sendQueuedRequests();
-      });
+    // send queued requests if engine re-connected
+    signalClient.sendQueuedRequests();
+  });
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
@@ -1300,14 +1372,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       _clientConfiguration = event.response.clientConfiguration;
 
-      logger.fine('onConnected subscriberPrimary: ${_subscriberPrimary}, '
-          'serverVersion: ${event.response.serverVersion}, '
-          'iceServers: ${event.response.iceServers}, '
-          'forceRelay: ${event.response.clientConfiguration.forceRelay}');
+      logger.fine(
+        'onConnected subscriberPrimary: ${_subscriberPrimary}, '
+        'serverVersion: ${event.response.serverVersion}, '
+        'iceServers: ${event.response.iceServers}, '
+        'forceRelay: ${event.response.clientConfiguration.forceRelay}',
+      );
 
       final rtcConfiguration = await _buildRtcConfiguration(
-          serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
-          serverProvidedIceServers: _serverProvidedIceServers);
+        serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
+        serverProvidedIceServers: _serverProvidedIceServers,
+      );
 
       if (publisher == null && subscriber == null) {
         await _createPeerConnections(rtcConfiguration);
@@ -1333,14 +1408,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       _clientConfiguration = event.response.clientConfiguration;
 
-      logger.fine('Handle ReconnectResponse: '
-          'iceServers: ${event.response.iceServers}, '
-          'forceRelay: ${event.response.clientConfiguration.forceRelay}, '
-          'lastMessageSeq: ${event.response.lastMessageSeq}');
+      logger.fine(
+        'Handle ReconnectResponse: '
+        'iceServers: ${event.response.iceServers}, '
+        'forceRelay: ${event.response.clientConfiguration.forceRelay}, '
+        'lastMessageSeq: ${event.response.lastMessageSeq}',
+      );
 
       final rtcConfiguration = await _buildRtcConfiguration(
-          serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
-          serverProvidedIceServers: _serverProvidedIceServers);
+        serverResponseForceRelay: event.response.clientConfiguration.forceRelay,
+        serverProvidedIceServers: _serverProvidedIceServers,
+      );
 
       await publisher?.pc.setConfiguration(rtcConfiguration.toMap());
       await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
@@ -1372,8 +1450,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
-        await handleReconnect(ClientDisconnectReason.signal,
-            reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED);
+        await handleReconnect(
+          ClientDisconnectReason.signal,
+          reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED,
+        );
       }
       // signalingConnectionFailure is intentionally not relayed as
       // EngineDisconnectedEvent here. The signal client emits it while the
@@ -1387,8 +1467,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
       final signalingState = await subscriber!.pc.getSignalingState();
-      logger.fine('[$objectId] Received server offer(type: ${event.sd.type}, '
-          '$signalingState)');
+      logger.fine(
+        '[$objectId] Received server offer(type: ${event.sd.type}, '
+        '$signalingState)',
+      );
       logger.finer('sdp: ${event.sd.sdp}');
 
       await subscriber!.setRemoteDescription(event.sd);
@@ -1424,9 +1506,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     })
     ..on<SignalLocalTrackSubscribedEvent>((event) async {
-      events.emit(EngineLocalTrackSubscribedEvent(
-        trackSid: event.trackSid,
-      ));
+      events.emit(
+        EngineLocalTrackSubscribedEvent(
+          trackSid: event.trackSid,
+        ),
+      );
     })
     ..on<SignalTokenUpdatedEvent>((event) {
       logger.fine('Server refreshed the token');

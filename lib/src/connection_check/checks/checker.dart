@@ -144,10 +144,10 @@ abstract class Checker extends Disposable with EventsEmittable<CheckerEvent> {
     this.token, {
     CheckerOptions? options,
     Room? room,
-  })  : options = options ?? CheckerOptions(),
-        connectOptions = options?.connectOptions,
-        _ownsRoom = room == null,
-        room = room ?? Room(roomOptions: options?.roomOptions ?? const RoomOptions()) {
+  }) : options = options ?? CheckerOptions(),
+       connectOptions = options?.connectOptions,
+       _ownsRoom = room == null,
+       room = room ?? Room(roomOptions: options?.roomOptions ?? const RoomOptions()) {
     onDispose(() async {
       await events.dispose();
       if (_ownsRoom) {
@@ -356,10 +356,10 @@ abstract class Checker extends Disposable with EventsEmittable<CheckerEvent> {
 
   /// The current snapshot of this check.
   CheckInfo getInfo() => CheckInfo(
-        name: name,
-        description: description,
-        status: status,
-        logs: List.unmodifiable(logs),
-        data: data,
-      );
+    name: name,
+    description: description,
+    status: status,
+    logs: List.unmodifiable(logs),
+    data: data,
+  );
 }

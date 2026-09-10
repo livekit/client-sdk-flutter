@@ -78,7 +78,8 @@ class StreamTextOptions {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(topic: $topic, destinationIdentities: $destinationIdentities, '
       'streamId: $streamId, totalSize: $totalSize, type: $type, version: $version, '
       'replyToStreamId: $replyToStreamId, attachedStreamIds: $attachedStreamIds)';
@@ -106,7 +107,8 @@ class StreamBytesOptions {
   });
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(name: $name, mimeType: $mimeType, topic: $topic, destinationIdentities: $destinationIdentities, '
       'attributes: $attributes, streamId: $streamId, totalSize: $totalSize, encryptionType: $encryptionType)';
 }
@@ -190,18 +192,19 @@ class ByteStreamInfo extends BaseStreamInfo {
     required String sendingParticipantIdentity,
     EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
-          id: id,
-          mimeType: mimeType,
-          topic: topic,
-          timestamp: timestamp,
-          size: size,
-          attributes: attributes,
-          sendingParticipantIdentity: sendingParticipantIdentity,
-          encryptionType: encryptionType,
-        );
+         id: id,
+         mimeType: mimeType,
+         topic: topic,
+         timestamp: timestamp,
+         size: size,
+         attributes: attributes,
+         sendingParticipantIdentity: sendingParticipantIdentity,
+         encryptionType: encryptionType,
+       );
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(name: $name, id: $id, mimeType: $mimeType, topic: $topic, '
       'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }
@@ -274,18 +277,19 @@ class TextStreamInfo extends BaseStreamInfo {
     required String sendingParticipantIdentity,
     EncryptionType encryptionType = EncryptionType.kNone,
   }) : super(
-          id: id,
-          mimeType: mimeType,
-          topic: topic,
-          timestamp: timestamp,
-          size: size,
-          attributes: attributes,
-          encryptionType: encryptionType,
-          sendingParticipantIdentity: sendingParticipantIdentity,
-        );
+         id: id,
+         mimeType: mimeType,
+         topic: topic,
+         timestamp: timestamp,
+         size: size,
+         attributes: attributes,
+         encryptionType: encryptionType,
+         sendingParticipantIdentity: sendingParticipantIdentity,
+       );
 
   @override
-  String toString() => '${runtimeType}'
+  String toString() =>
+      '${runtimeType}'
       '(id: $id, mimeType: $mimeType, topic: $topic, '
       'timestamp: $timestamp, size: $size, attributes: $attributes)';
 }

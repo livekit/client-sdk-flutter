@@ -37,11 +37,11 @@ class ParticipantPermissions {
 
 extension ParticipantPermissionExt on lk_models.ParticipantPermission {
   ParticipantPermissions toLKType() => ParticipantPermissions(
-        canSubscribe: canSubscribe,
-        canPublish: canPublish,
-        canPublishData: canPublishData,
-        hidden: hidden,
-        canUpdateMetadata: canUpdateMetadata,
-        canPublishSources: canPublishSources,
-      );
+    canSubscribe: canSubscribe,
+    canPublish: canPublish,
+    canPublishData: canPublishData,
+    hidden: hidden,
+    canUpdateMetadata: canUpdateMetadata,
+    canPublishSources: canPublishSources,
+  );
 }

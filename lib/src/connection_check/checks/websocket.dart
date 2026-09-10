@@ -47,8 +47,10 @@ class WebSocketCheck extends Checker {
         final regionUrl = await regionProvider.getNextBestRegionUrl();
         if (regionUrl != null) {
           joinRes = await signalJoin(regionUrl);
-          appendMessage('Fallback to region worked. To avoid initial connections failing, '
-              'ensure you\'re calling room.prepareConnection() ahead of time');
+          appendMessage(
+            'Fallback to region worked. To avoid initial connections failing, '
+            'ensure you\'re calling room.prepareConnection() ahead of time',
+          );
         }
       }
     }
@@ -60,8 +62,10 @@ class WebSocketCheck extends Checker {
         appendMessage('LiveKit Cloud: ${joinRes.serverInfo.region}');
       }
     } else {
-      appendError('Websocket connection could not be established'
-          '${lastError != null ? ': ${messageFor(lastError)}' : ''}');
+      appendError(
+        'Websocket connection could not be established'
+        '${lastError != null ? ': ${messageFor(lastError)}' : ''}',
+      );
     }
   }
 }

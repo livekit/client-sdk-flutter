@@ -186,8 +186,13 @@ class ParticipantKeyHandler {
 
   Future<void> setKey(Uint8List key, {int keyIndex = 0}) async {
     final keyMaterial = await worker.crypto.subtle
-        .importKey('raw', key.toJS, {'name': 'PBKDF2'.toJS}.jsify() as JSAny, false,
-            ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>)
+        .importKey(
+          'raw',
+          key.toJS,
+          {'name': 'PBKDF2'.toJS}.jsify() as JSAny,
+          false,
+          ['deriveBits', 'deriveKey'].jsify() as JSArray<JSString>,
+        )
         .toDart;
 
     final keySet = await deriveKeys(

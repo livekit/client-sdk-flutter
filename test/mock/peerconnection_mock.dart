@@ -167,8 +167,11 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack? track, RTCRtpMediaType? kind, RTCRtpTransceiverInit? init}) {
+  Future<RTCRtpTransceiver> addTransceiver({
+    MediaStreamTrack? track,
+    RTCRtpMediaType? kind,
+    RTCRtpTransceiverInit? init,
+  }) {
     // TODO: implement addTransceiver
     throw UnimplementedError();
   }
@@ -288,9 +291,10 @@ a=rtpmap:32 MPV/90000
     throw UnimplementedError();
   }
 
-  static Future<RTCPeerConnection> create(Map<String, dynamic> configuration,
-          [Map<String, dynamic>? constraints]) async =>
-      MockPeerConnection();
+  static Future<RTCPeerConnection> create(
+    Map<String, dynamic> configuration, [
+    Map<String, dynamic>? constraints,
+  ]) async => MockPeerConnection();
 
   @override
   // TODO: implement restartIce

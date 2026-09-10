@@ -95,19 +95,23 @@ class E2EEDataPacketCryptor {
     frameTrailer.setInt8(1, keyIndex);
 
     try {
-      final cipherText = await worker.crypto.subtle
-          .encrypt(
-            {
-              'name': 'AES-GCM',
-              'iv': iv,
-            }.jsify() as web.AlgorithmIdentifier,
-            secretKey,
-            data.toJS,
-          )
-          .toDart as JSArrayBuffer;
+      final cipherText =
+          await worker.crypto.subtle
+                  .encrypt(
+                    {
+                          'name': 'AES-GCM',
+                          'iv': iv,
+                        }.jsify()
+                        as web.AlgorithmIdentifier,
+                    secretKey,
+                    data.toJS,
+                  )
+                  .toDart
+              as JSArrayBuffer;
 
       logger.finer(
-          'encodeFunction: encrypted buffer: ${data.length}, cipherText: ${cipherText.toDart.asUint8List().length}');
+        'encodeFunction: encrypted buffer: ${data.length}, cipherText: ${cipherText.toDart.asUint8List().length}',
+      );
 
       return EncryptedPacket(
         data: cipherText.toDart.asUint8List(),
@@ -140,7 +144,8 @@ class E2EEDataPacketCryptor {
       initialKeySet = keyHandler.getKeySet(initialKeyIndex);
 
       logger.finer(
-          'decodeFunction: start decrypting data packet length ${payload.length}, ivLength $ivLength, keyIndex $keyIndex, iv $iv');
+        'decodeFunction: start decrypting data packet length ${payload.length}, ivLength $ivLength, keyIndex $keyIndex, iv $iv',
+      );
 
       /// missingKey flow:
       /// tries to decrypt once, fails, tries to ratchet once and decrypt again,
@@ -154,17 +159,20 @@ class E2EEDataPacketCryptor {
       var currentkeySet = initialKeySet;
 
       Future<void> decryptFrameInternal() async {
-        decrypted = ((await worker.crypto.subtle
-                .decrypt(
-                  {
-                    'name': 'AES-GCM',
-                    'iv': iv,
-                  }.jsify() as web.AlgorithmIdentifier,
-                  currentkeySet.encryptionKey,
-                  payload.toJS,
-                )
-                .toDart) as JSArrayBuffer)
-            .toDart;
+        decrypted =
+            ((await worker.crypto.subtle
+                        .decrypt(
+                          {
+                                'name': 'AES-GCM',
+                                'iv': iv,
+                              }.jsify()
+                              as web.AlgorithmIdentifier,
+                          currentkeySet.encryptionKey,
+                          payload.toJS,
+                        )
+                        .toDart)
+                    as JSArrayBuffer)
+                .toDart;
         logger.finer('decodeFunction::decryptFrameInternal: decrypted: ${decrypted!.asUint8List().length}');
 
         if (decrypted == null) {
@@ -207,7 +215,8 @@ class E2EEDataPacketCryptor {
       keyHandler.decryptionSuccess();
 
       logger.finer(
-          'decodeFunction: decryption success, buffer length ${payload.length}, decrypted: ${decrypted!.asUint8List().length}');
+        'decodeFunction: decryption success, buffer length ${payload.length}, decrypted: ${decrypted!.asUint8List().length}',
+      );
 
       return decrypted!.asUint8List();
     } catch (e) {

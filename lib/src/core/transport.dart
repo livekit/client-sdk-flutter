@@ -55,8 +55,8 @@ class TrackBitrateInfo {
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
-typedef PeerConnectionCreate = Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration,
-    [Map<String, dynamic> constraints]);
+typedef PeerConnectionCreate =
+    Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
 
 /// a wrapper around PeerConnection
 class Transport extends Disposable {
@@ -104,8 +104,11 @@ class Transport extends Disposable {
     });
   }
 
-  static Future<Transport> create(PeerConnectionCreate peerConnectionCreate,
-      {RTCConfiguration? rtcConfig, required ConnectOptions connectOptions}) async {
+  static Future<Transport> create(
+    PeerConnectionCreate peerConnectionCreate, {
+    RTCConfiguration? rtcConfig,
+    required ConnectOptions connectOptions,
+  }) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());

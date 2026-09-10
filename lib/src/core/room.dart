@@ -161,10 +161,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // getter would surprise SDK consumers — filter them out here.
   @internal
   Map<String, TextStreamHandler> get textStreamHandlers => Map.fromEntries(
-        _textStreamHandlers.entries.where(
-          (e) => e.key != kRpcRequestTopic && e.key != kRpcResponseTopic,
-        ),
-      );
+    _textStreamHandlers.entries.where(
+      (e) => e.key != kRpcRequestTopic && e.key != kRpcResponseTopic,
+    ),
+  );
 
   @internal
   Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
@@ -174,11 +174,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ConnectOptions connectOptions = const ConnectOptions(),
     RoomOptions roomOptions = const RoomOptions(),
     Engine? engine,
-  }) : engine = engine ??
-            Engine(
-              connectOptions: connectOptions,
-              roomOptions: roomOptions,
-            ) {
+  }) : engine =
+           engine ??
+           Engine(
+             connectOptions: connectOptions,
+             roomOptions: roomOptions,
+           ) {
     //
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
@@ -277,8 +278,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     var effectiveRoomOptions = roomOptions ?? this.roomOptions;
     if (lkPlatformIs(PlatformType.web) &&
         (effectiveRoomOptions.networkOptions.certificatePinning?.isEnabled ?? false)) {
-      throw UnsupportedError('Certificate pinning is not supported on Flutter web, '
-          'remove certificatePinning from NetworkOptions when targeting web');
+      throw UnsupportedError(
+        'Certificate pinning is not supported on Flutter web, '
+        'remove certificatePinning from NetworkOptions when targeting web',
+      );
     }
     connectOptions ??= ConnectOptions();
     _pendingTrackQueue.updateTtl(connectOptions.timeouts.subscribe);
@@ -326,11 +329,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // trigger the first fetch without waiting for a response
       // if initial connection fails, this will speed up picking regional url
       // on subsequent runs
-      unawaited(_regionUrlProvider?.fetchRegionSettings().then((settings) {
-        _regionUrlProvider?.setServerReportedRegions(settings);
-      }).catchError((e) {
-        logger.warning('could not fetch region settings $e');
-      }));
+      unawaited(
+        _regionUrlProvider
+            ?.fetchRegionSettings()
+            .then((settings) {
+              _regionUrlProvider?.setServerReportedRegions(settings);
+            })
+            .catchError((e) {
+              logger.warning('could not fetch region settings $e');
+            }),
+      );
     }
 
     // Bridge a legacy RoomOptions speaker preference into the process-wide
@@ -401,8 +409,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<SignalSubscribedQualityUpdatedEvent>((event) async {
       // Dynacast is off or is unsupported
       if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
-        logger.fine('Received subscribed quality update'
-            ' but Dynacast is off or server version is not supported.');
+        logger.fine(
+          'Received subscribed quality update'
+          ' but Dynacast is off or server version is not supported.',
+        );
         return;
       }
       // Find the publication
@@ -425,15 +435,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       } else if (event.subscribedQualities.isNotEmpty) {
         final videoTrack = publication.track as LocalVideoTrack;
-        await videoTrack.setPublishingLayers(videoTrack, event.subscribedQualities,
-            isSVC: isSVCCodec(videoTrack.codec ?? ''));
+        await videoTrack.setPublishingLayers(
+          videoTrack,
+          event.subscribedQualities,
+          isSVC: isSVCCodec(videoTrack.codec ?? ''),
+        );
       }
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
-      logger.fine('SignalSubscriptionPermissionUpdateEvent '
-          'participantSid:${event.participantSid} '
-          'trackSid:${event.trackSid} '
-          'allowed:${event.allowed}');
+      logger.fine(
+        'SignalSubscriptionPermissionUpdateEvent '
+        'participantSid:${event.participantSid} '
+        'trackSid:${event.trackSid} '
+        'allowed:${event.allowed}',
+      );
 
       // find participant
       final participant = _remoteParticipants.bySid[event.participantSid];
@@ -447,11 +462,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       //
       await publication.updateSubscriptionAllowed(event.allowed);
-      emitWhenConnected(TrackSubscriptionPermissionChangedEvent(
-        participant: participant,
-        publication: publication,
-        state: publication.subscriptionState,
-      ));
+      emitWhenConnected(
+        TrackSubscriptionPermissionChangedEvent(
+          participant: participant,
+          publication: publication,
+          state: publication.subscriptionState,
+        ),
+      );
     })
     ..on<SignalRoomUpdateEvent>((event) async => _applyRoomUpdate(event.room))
     ..on<SignalRemoteMuteTrackEvent>((event) async {
@@ -480,8 +497,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
 
-      logger.fine('[Engine] Received JoinResponse, '
-          'serverVersion: ${event.response.serverVersion}');
+      logger.fine(
+        '[Engine] Received JoinResponse, '
+        'serverVersion: ${event.response.serverVersion}',
+      );
 
       _localParticipant ??= await LocalParticipant.createFromInfo(
         room: this,
@@ -512,11 +531,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         // Only enable microphone if preconnect buffer is not active
         if (audioEnabled && !preConnectAudioBuffer.isRecording) {
           if (audio.track != null) {
-            await _localParticipant!.publishAudioTrack(audio.track as LocalAudioTrack,
-                publishOptions: roomOptions.defaultAudioPublishOptions);
+            await _localParticipant!.publishAudioTrack(
+              audio.track as LocalAudioTrack,
+              publishOptions: roomOptions.defaultAudioPublishOptions,
+            );
           } else {
-            await _localParticipant!
-                .setMicrophoneEnabled(true, audioCaptureOptions: roomOptions.defaultAudioCaptureOptions);
+            await _localParticipant!.setMicrophoneEnabled(
+              true,
+              audioCaptureOptions: roomOptions.defaultAudioCaptureOptions,
+            );
           }
         }
 
@@ -524,11 +547,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         final bool videoEnabled = video.enabled == true || video.track != null;
         if (videoEnabled) {
           if (video.track != null) {
-            await _localParticipant!.publishVideoTrack(video.track as LocalVideoTrack,
-                publishOptions: roomOptions.defaultVideoPublishOptions);
+            await _localParticipant!.publishVideoTrack(
+              video.track as LocalVideoTrack,
+              publishOptions: roomOptions.defaultVideoPublishOptions,
+            );
           } else {
-            await _localParticipant!
-                .setCameraEnabled(true, cameraCaptureOptions: roomOptions.defaultCameraCaptureOptions);
+            await _localParticipant!.setCameraEnabled(
+              true,
+              cameraCaptureOptions: roomOptions.defaultCameraCaptureOptions,
+            );
           }
         }
 
@@ -536,18 +563,24 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         final bool screenEnabled = screen.enabled == true || screen.track != null;
         if (screenEnabled) {
           if (screen.track != null) {
-            await _localParticipant!.publishVideoTrack(screen.track as LocalVideoTrack,
-                publishOptions: roomOptions.defaultVideoPublishOptions);
+            await _localParticipant!.publishVideoTrack(
+              screen.track as LocalVideoTrack,
+              publishOptions: roomOptions.defaultVideoPublishOptions,
+            );
           } else {
-            await _localParticipant!
-                .setScreenShareEnabled(true, screenShareCaptureOptions: roomOptions.defaultScreenShareCaptureOptions);
+            await _localParticipant!.setScreenShareEnabled(
+              true,
+              screenShareCaptureOptions: roomOptions.defaultScreenShareCaptureOptions,
+            );
           }
         }
       }
 
       for (final info in event.response.otherParticipants) {
-        logger.fine('Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
-            'tracks:${info.tracks.map((e) => e.sid)}');
+        logger.fine(
+          'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
+          'tracks:${info.tracks.map((e) => e.sid)}',
+        );
         await _getOrCreateRemoteParticipant(info);
       }
 
@@ -608,11 +641,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _sendSyncState();
     })
     ..on<EngineAttemptReconnectEvent>((event) async {
-      events.emit(RoomAttemptReconnectEvent(
-        attempt: event.attempt,
-        maxAttemptsRetry: event.maxAttempts,
-        nextRetryDelaysInMs: event.nextRetryDelaysInMs,
-      ));
+      events.emit(
+        RoomAttemptReconnectEvent(
+          attempt: event.attempt,
+          maxAttemptsRetry: event.maxAttempts,
+          nextRetryDelaysInMs: event.nextRetryDelaysInMs,
+        ),
+      );
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
@@ -858,30 +893,30 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   Future<void> _flushPendingTracks({RemoteParticipant? participant}) => _pendingTrackQueue.flush(
-        isConnected: connectionState == ConnectionState.connected,
-        participantSid: participant?.sid,
-        subscriber: (pending) async {
-          final target = participant ?? _remoteParticipants.bySid[pending.participantSid];
-          if (target == null) return false;
-          try {
-            await target.addSubscribedMediaTrack(
-              pending.track,
-              pending.stream,
-              pending.trackSid,
-              receiver: pending.receiver,
-              audioOutputOptions: roomOptions.defaultAudioOutputOptions,
-            );
-            return true;
-          } on TrackSubscriptionExceptionEvent catch (event) {
-            logger.severe('Track subscription failed during flush: ${event}');
-            events.emit(event);
-            return true;
-          } catch (exception) {
-            logger.warning('Unknown exception during pending track flush: ${exception}');
-            return false;
-          }
-        },
-      );
+    isConnected: connectionState == ConnectionState.connected,
+    participantSid: participant?.sid,
+    subscriber: (pending) async {
+      final target = participant ?? _remoteParticipants.bySid[pending.participantSid];
+      if (target == null) return false;
+      try {
+        await target.addSubscribedMediaTrack(
+          pending.track,
+          pending.stream,
+          pending.trackSid,
+          receiver: pending.receiver,
+          audioOutputOptions: roomOptions.defaultAudioOutputOptions,
+        );
+        return true;
+      } on TrackSubscriptionExceptionEvent catch (event) {
+        logger.severe('Track subscription failed during flush: ${event}');
+        events.emit(event);
+        return true;
+      } catch (exception) {
+        logger.warning('Unknown exception during pending track flush: ${exception}');
+        return false;
+      }
+    },
+  );
 
   // from data channel
   // updates are sent only when there's a change to speaker ordering
@@ -890,7 +925,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
-      if (localParticipant != null) localParticipant!.sid: localParticipant!,
+      ?localParticipant?.sid: ?localParticipant,
       ..._remoteParticipants.bySid,
     };
 
@@ -945,11 +980,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (trackPublication == null) continue;
       // update the stream state
       await trackPublication.updateStreamState(update.state.toLKType());
-      emitWhenConnected(TrackStreamStateUpdatedEvent(
-        participant: participant,
-        publication: trackPublication,
-        streamState: update.state.toLKType(),
-      ));
+      emitWhenConnected(
+        TrackStreamStateUpdatedEvent(
+          participant: participant,
+          publication: trackPublication,
+          streamState: update.state.toLKType(),
+        ),
+      );
     }
   }
 
@@ -1196,11 +1233,12 @@ extension RoomDebugMethods on Room {
       return;
     }
     engine.signalClient.sendSimulateScenario(
-        speakerUpdate: speakerUpdate,
-        nodeFailure: nodeFailure,
-        migration: migration,
-        serverLeave: serverLeave,
-        switchCandidate: switchCandidate);
+      speakerUpdate: speakerUpdate,
+      nodeFailure: nodeFailure,
+      migration: migration,
+      serverLeave: serverLeave,
+      switchCandidate: switchCandidate,
+    );
   }
 }
 
@@ -1448,7 +1486,10 @@ extension DataStreamRoomMethods on Room {
 
   @internal
   Future<void> handleStreamHeader(
-      lk_models.DataStream_Header streamHeader, String participantIdentity, EncryptionType encryptionType) async {
+    lk_models.DataStream_Header streamHeader,
+    String participantIdentity,
+    EncryptionType encryptionType,
+  ) async {
     if (streamHeader.hasByteHeader()) {
       final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
 

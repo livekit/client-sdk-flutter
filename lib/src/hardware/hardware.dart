@@ -52,11 +52,13 @@ class MediaDevice {
 class Hardware {
   Hardware._internal() {
     rtc.navigator.mediaDevices.ondevicechange = _onDeviceChange;
-    unawaited(enumerateDevices().then((devices) {
-      selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
-      selectedAudioOutput ??= devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
-      selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
-    }));
+    unawaited(
+      enumerateDevices().then((devices) {
+        selectedAudioInput ??= devices.firstWhereOrNull((element) => element.kind == 'audioinput');
+        selectedAudioOutput ??= devices.firstWhereOrNull((element) => element.kind == 'audiooutput');
+        selectedVideoInput ??= devices.firstWhereOrNull((element) => element.kind == 'videoinput');
+      }),
+    );
   }
 
   static final Hardware instance = Hardware._internal();
@@ -159,7 +161,7 @@ class Hardware {
         constraints['deviceId'] = device.deviceId;
       } else {
         constraints['optional'] = [
-          {'sourceId': device.deviceId}
+          {'sourceId': device.deviceId},
         ];
       }
     }

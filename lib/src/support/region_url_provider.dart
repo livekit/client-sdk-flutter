@@ -76,8 +76,13 @@ class RegionUrlProvider {
     if (regionSettingsResponse.statusCode == 200) {
       final mapData = json.decode(regionSettingsResponse.body);
       final regions = (mapData['regions'] as List<dynamic>)
-          .map((region) => lk_models.RegionInfo(
-              distance: Int64(int.parse(region['distance'])), region: region['region'], url: region['url']))
+          .map(
+            (region) => lk_models.RegionInfo(
+              distance: Int64(int.parse(region['distance'])),
+              region: region['region'],
+              url: region['url'],
+            ),
+          )
           .toList();
       final regionSettings = lk_models.RegionSettings(
         regions: regions,
@@ -86,11 +91,12 @@ class RegionUrlProvider {
       return regionSettings;
     } else {
       throw ConnectException(
-          'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
-          reason: regionSettingsResponse.statusCode == 401
-              ? ConnectionErrorReason.NotAllowed
-              : ConnectionErrorReason.InternalError,
-          statusCode: regionSettingsResponse.statusCode);
+        'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
+        reason: regionSettingsResponse.statusCode == 401
+            ? ConnectionErrorReason.NotAllowed
+            : ConnectionErrorReason.InternalError,
+        statusCode: regionSettingsResponse.statusCode,
+      );
     }
   }
 
@@ -106,16 +112,16 @@ class RegionUrlProvider {
 
 extension RegionInfoExtension on lk_models.RegionInfo {
   lk_models.RegionInfo fromJson(Map<String, dynamic> json) => lk_models.RegionInfo(
-        region: json['region'],
-        url: json['url'],
-        distance: json['distance'],
-      );
+    region: json['region'],
+    url: json['url'],
+    distance: json['distance'],
+  );
 }
 
 extension RegionSettingsExtension on lk_models.RegionSettings {
   lk_models.RegionSettings fromJson(Map<String, dynamic> json) => lk_models.RegionSettings(
-        regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
-      );
+    regions: json['regions'].map((region) => lk_models.RegionInfo.fromJson(region)).toList(),
+  );
 }
 
 bool isCloudUrl(Uri uri) {

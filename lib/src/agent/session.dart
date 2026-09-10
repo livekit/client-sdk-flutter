@@ -66,9 +66,9 @@ class Session extends DisposableChangeNotifier {
     required SessionOptions options,
     List<MessageSender>? senders,
     List<MessageReceiver>? receivers,
-  })  : _tokenSourceConfiguration = tokenSourceConfiguration,
-        _options = options,
-        room = options.room {
+  }) : _tokenSourceConfiguration = tokenSourceConfiguration,
+       _options = options,
+       room = options.room {
     _agent.addListener(notifyListeners);
 
     final textMessageSender = TextMessageSender(room: room);
@@ -160,9 +160,9 @@ class Session extends DisposableChangeNotifier {
   ConnectionState _connectionState = ConnectionState.disconnected;
 
   bool get isConnected => switch (_connectionState) {
-        ConnectionState.connecting || ConnectionState.connected || ConnectionState.reconnecting => true,
-        ConnectionState.disconnected => false,
-      };
+    ConnectionState.connecting || ConnectionState.connected || ConnectionState.reconnecting => true,
+    ConnectionState.disconnected => false,
+  };
 
   final LinkedHashMap<String, ReceivedMessage> _messages = LinkedHashMap();
   UnmodifiableListView<ReceivedMessage> _messagesView = UnmodifiableListView<ReceivedMessage>(const []);
@@ -285,7 +285,9 @@ class Session extends DisposableChangeNotifier {
     _messages
       ..clear()
       ..addEntries(
-        messages.sorted((a, b) => a.timestamp.compareTo(b.timestamp)).map(
+        messages
+            .sorted((a, b) => a.timestamp.compareTo(b.timestamp))
+            .map(
               (message) => MapEntry(message.id, message),
             ),
       );
@@ -407,10 +409,10 @@ class SessionError {
   final Object cause;
 
   String get message => switch (kind) {
-        SessionErrorKind.connection => 'Connection failed: ${cause}',
-        SessionErrorKind.sender => 'Message sender failed: ${cause}',
-        SessionErrorKind.receiver => 'Message receiver failed: ${cause}',
-      };
+    SessionErrorKind.connection => 'Connection failed: ${cause}',
+    SessionErrorKind.sender => 'Message sender failed: ${cause}',
+    SessionErrorKind.receiver => 'Message receiver failed: ${cause}',
+  };
 
   static SessionError connection(Object cause) => SessionError._(SessionErrorKind.connection, cause);
 

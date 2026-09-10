@@ -1,4 +1,5 @@
 #!/usr/bin/env dart
+
 /*
  * Copyright 2025 LiveKit
  *
@@ -230,16 +231,16 @@ String generateChangelogEntry(SemanticVersion version, List<Change> changes) {
   buffer.writeln();
 
   String prefixFor(ChangeKind kind) => switch (kind) {
-        ChangeKind.added => 'Added',
-        ChangeKind.changed => 'Changed',
-        ChangeKind.fixed => 'Fixed',
-        ChangeKind.refactor => 'Refactor',
-        ChangeKind.performance => 'Performance',
-        ChangeKind.security => 'Security',
-        ChangeKind.deprecated => 'Deprecated',
-        ChangeKind.removed => 'Removed',
-        ChangeKind.docs => 'Docs',
-      };
+    ChangeKind.added => 'Added',
+    ChangeKind.changed => 'Changed',
+    ChangeKind.fixed => 'Fixed',
+    ChangeKind.refactor => 'Refactor',
+    ChangeKind.performance => 'Performance',
+    ChangeKind.security => 'Security',
+    ChangeKind.deprecated => 'Deprecated',
+    ChangeKind.removed => 'Removed',
+    ChangeKind.docs => 'Docs',
+  };
 
   for (final kind in ChangeKind.values) {
     for (final change in changes.where((c) => c.kind == kind)) {

@@ -117,8 +117,8 @@ class CachingTokenSource implements TokenSourceConfigurable {
     this._wrapped, {
     TokenStore? store,
     TokenValidator? validator,
-  })  : _store = store ?? InMemoryTokenStore(),
-        _validator = validator ?? _defaultValidator;
+  }) : _store = store ?? InMemoryTokenStore(),
+       _validator = validator ?? _defaultValidator;
 
   @override
   Future<TokenSourceResponse> fetch(TokenRequestOptions options) async {
@@ -135,13 +135,13 @@ class CachingTokenSource implements TokenSourceConfigurable {
       final cached = await _store.retrieve();
       if (cached != null && cached.options == options && _validator(cached.options, cached.response)) {
         completer.complete(cached.response);
-        return resultFuture;
+        return await resultFuture;
       }
 
       final response = await _wrapped.fetch(options);
       await _store.store(options, response);
       completer.complete(response);
-      return resultFuture;
+      return await resultFuture;
     } catch (e, stackTrace) {
       completer.completeError(e, stackTrace);
       rethrow;
@@ -175,10 +175,9 @@ extension CachedTokenSource on TokenSourceConfigurable {
   CachingTokenSource cached({
     TokenStore? store,
     TokenValidator? validator,
-  }) =>
-      CachingTokenSource(
-        this,
-        store: store,
-        validator: validator,
-      );
+  }) => CachingTokenSource(
+    this,
+    store: store,
+    validator: validator,
+  );
 }

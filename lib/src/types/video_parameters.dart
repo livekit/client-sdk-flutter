@@ -63,10 +63,10 @@ class VideoParameters implements Comparable<VideoParameters> {
   // https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
   //
   Map<String, dynamic> toMediaConstraintsMap() => <String, dynamic>{
-        'width': dimensions.width,
-        'height': dimensions.height,
-        'frameRate': encoding?.maxFramerate ?? 30,
-      };
+    'width': dimensions.width,
+    'height': dimensions.height,
+    'frameRate': encoding?.maxFramerate ?? 30,
+  };
 }
 
 extension VideoParametersPresets on VideoParameters {

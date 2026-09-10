@@ -47,9 +47,11 @@ class AudioAnalyserOptions {
 
 web.AudioContext? getNewAudioContext() {
   if (web.window.hasProperty('AudioContext'.toJS).isDefinedAndNotNull) {
-    return web.AudioContext(web.AudioContextOptions(
-      latencyHint: 'interactive'.toJS,
-    ));
+    return web.AudioContext(
+      web.AudioContextOptions(
+        latencyHint: 'interactive'.toJS,
+      ),
+    );
   }
   return null;
 }
@@ -67,7 +69,8 @@ AudioAnalyser? createAudioAnalyser(
   }
   final streamTrack = opts.cloneTrack == true ? track.mediaStreamTrack.clone() : track.mediaStreamTrack;
   final mediaStreamSource = audioContext.createMediaStreamSource(
-      MediaStreamWeb(web.MediaStream([(streamTrack as MediaStreamTrackWeb).jsTrack].toJS), '').jsStream);
+    MediaStreamWeb(web.MediaStream([(streamTrack as MediaStreamTrackWeb).jsTrack].toJS), '').jsStream,
+  );
   final analyser = audioContext.createAnalyser();
   analyser.minDecibels = opts.minDecibels ?? -100;
   analyser.maxDecibels = opts.maxDecibels ?? -80;

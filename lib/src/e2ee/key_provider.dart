@@ -76,13 +76,14 @@ class BaseKeyProvider implements KeyProvider {
     bool? discardFrameWhenCryptorNotReady,
   }) async {
     final rtc.KeyProviderOptions options = rtc.KeyProviderOptions(
-        sharedKey: sharedKey,
-        ratchetSalt: Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
-        ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
-        uncryptedMagicBytes: Uint8List.fromList((uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
-        failureTolerance: failureTolerance ?? defaultFailureTolerance,
-        keyRingSize: keyRingSize ?? defaultKeyRingSize,
-        discardFrameWhenCryptorNotReady: defaultDiscardFrameWhenCryptorNotReady);
+      sharedKey: sharedKey,
+      ratchetSalt: Uint8List.fromList((ratchetSalt ?? defaultRatchetSalt).codeUnits),
+      ratchetWindowSize: ratchetWindowSize ?? defaultRatchetWindowSize,
+      uncryptedMagicBytes: Uint8List.fromList((uncryptedMagicBytes ?? defaultMagicBytes).codeUnits),
+      failureTolerance: failureTolerance ?? defaultFailureTolerance,
+      keyRingSize: keyRingSize ?? defaultKeyRingSize,
+      discardFrameWhenCryptorNotReady: discardFrameWhenCryptorNotReady ?? defaultDiscardFrameWhenCryptorNotReady,
+    );
     final keyProvider = await rtc.frameCryptorFactory.createDefaultKeyProvider(options);
     return BaseKeyProvider(keyProvider, options);
   }

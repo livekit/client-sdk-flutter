@@ -124,14 +124,18 @@ void main() {
 
       final cachingSource = CachingTokenSource(mockSource);
 
-      await cachingSource.fetch(const TokenRequestOptions(
-        participantAttributes: {'key1': 'value1'},
-      ));
+      await cachingSource.fetch(
+        const TokenRequestOptions(
+          participantAttributes: {'key1': 'value1'},
+        ),
+      );
       expect(fetchCount, 1);
 
-      await cachingSource.fetch(const TokenRequestOptions(
-        participantAttributes: {'key1': 'value2'},
-      ));
+      await cachingSource.fetch(
+        const TokenRequestOptions(
+          participantAttributes: {'key1': 'value2'},
+        ),
+      );
       expect(fetchCount, 2);
     });
 

@@ -96,15 +96,19 @@ class _CertificatePinningConnectionFactory {
     }
     final rules = _validator.rulesForHost(url.host).where((rule) => rule.isEnabled).toList(growable: false);
     if (rules.isEmpty) {
-      logger.warning('Certificate pinning is enabled but no rule matches host ${url.host}, '
-          'this connection uses platform trust only');
+      logger.warning(
+        'Certificate pinning is enabled but no rule matches host ${url.host}, '
+        'this connection uses platform trust only',
+      );
     }
     return rules;
   }
 
   io.SecurityContext? _securityContextFor(List<CertificatePinningRule> rules) {
-    final trustedCertificates =
-        rules.where((rule) => rule.hasTrustedCertificates).expand((rule) => rule.trustedCertificates).toList();
+    final trustedCertificates = rules
+        .where((rule) => rule.hasTrustedCertificates)
+        .expand((rule) => rule.trustedCertificates)
+        .toList();
     if (trustedCertificates.isEmpty) {
       return null;
     }

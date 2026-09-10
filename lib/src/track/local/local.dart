@@ -16,10 +16,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../audio/audio_engine_error.dart';
 import '../../audio/audio_frame_capture.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
@@ -27,6 +29,7 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
+import '../../support/native.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -173,12 +176,12 @@ abstract class LocalTrack extends Track {
   TrackProcessor? get processor => _processor;
 
   LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
-      : super(
-          kind,
-          source,
-          mediaStream,
-          mediaStreamTrack,
-        ) {
+    : super(
+        kind,
+        source,
+        mediaStream,
+        mediaStreamTrack,
+      ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');
       events.emit(TrackEndedEvent(track: this));
@@ -249,10 +252,24 @@ abstract class LocalTrack extends Track {
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
-              ? (options).captureScreenAudio
-              : false,
+          ? (options).captureScreenAudio
+          : false,
       'video': options is VideoCaptureOptions ? options.toMediaConstraintsMap() : false,
     };
+
+    if (options is AudioCaptureOptions && lkPlatformIsApple()) {
+      // The WebRTC audio device only checks microphone permission and fails
+      // when it is missing, so the SDK requests it before opening the mic. On
+      // iOS this fails fast while the app is not in the foreground instead of
+      // suspending getUserMedia (and the publish queue behind it) on a prompt
+      // the system cannot show yet.
+      try {
+        await Native.ensureMicrophoneAccess();
+      } on PlatformException catch (error) {
+        throw audioEngineExceptionFrom(error) ??
+            TrackCreateException(error.message ?? 'Microphone permission is not granted');
+      }
+    }
 
     final rtc.MediaStream stream;
     if (options is ScreenShareCaptureOptions) {
@@ -329,10 +346,12 @@ abstract class LocalTrack extends Track {
     await start();
 
     // notify so VideoView can re-compute mirror mode if necessary
-    events.emit(LocalTrackOptionsUpdatedEvent(
-      track: this,
-      options: currentOptions,
-    ));
+    events.emit(
+      LocalTrackOptionsUpdatedEvent(
+        track: this,
+        options: currentOptions,
+      ),
+    );
   }
 
   Future<void> setProcessor(TrackProcessor? processor) async {

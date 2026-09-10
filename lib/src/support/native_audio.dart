@@ -17,38 +17,38 @@ import 'value_or_absent.dart';
 
 extension AppleAudioCategoryExt on AppleAudioCategory {
   String toStringValue() => switch (this) {
-        AppleAudioCategory.soloAmbient => 'soloAmbient',
-        AppleAudioCategory.playback => 'playback',
-        AppleAudioCategory.record => 'record',
-        AppleAudioCategory.playAndRecord => 'playAndRecord',
-        AppleAudioCategory.multiRoute => 'multiRoute',
-      };
+    AppleAudioCategory.soloAmbient => 'soloAmbient',
+    AppleAudioCategory.playback => 'playback',
+    AppleAudioCategory.record => 'record',
+    AppleAudioCategory.playAndRecord => 'playAndRecord',
+    AppleAudioCategory.multiRoute => 'multiRoute',
+  };
 }
 
 extension AppleAudioCategoryOptionExt on AppleAudioCategoryOption {
   String toStringValue() => switch (this) {
-        AppleAudioCategoryOption.mixWithOthers => 'mixWithOthers',
-        AppleAudioCategoryOption.duckOthers => 'duckOthers',
-        AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers => 'interruptSpokenAudioAndMixWithOthers',
-        AppleAudioCategoryOption.allowBluetooth => 'allowBluetooth',
-        AppleAudioCategoryOption.allowBluetoothA2DP => 'allowBluetoothA2DP',
-        AppleAudioCategoryOption.allowAirPlay => 'allowAirPlay',
-        AppleAudioCategoryOption.defaultToSpeaker => 'defaultToSpeaker',
-      };
+    AppleAudioCategoryOption.mixWithOthers => 'mixWithOthers',
+    AppleAudioCategoryOption.duckOthers => 'duckOthers',
+    AppleAudioCategoryOption.interruptSpokenAudioAndMixWithOthers => 'interruptSpokenAudioAndMixWithOthers',
+    AppleAudioCategoryOption.allowBluetooth => 'allowBluetooth',
+    AppleAudioCategoryOption.allowBluetoothA2DP => 'allowBluetoothA2DP',
+    AppleAudioCategoryOption.allowAirPlay => 'allowAirPlay',
+    AppleAudioCategoryOption.defaultToSpeaker => 'defaultToSpeaker',
+  };
 }
 
 extension AppleAudioModeExt on AppleAudioMode {
   String toStringValue() => switch (this) {
-        AppleAudioMode.default_ => 'default',
-        AppleAudioMode.gameChat => 'gameChat',
-        AppleAudioMode.measurement => 'measurement',
-        AppleAudioMode.moviePlayback => 'moviePlayback',
-        AppleAudioMode.spokenAudio => 'spokenAudio',
-        AppleAudioMode.videoChat => 'videoChat',
-        AppleAudioMode.videoRecording => 'videoRecording',
-        AppleAudioMode.voiceChat => 'voiceChat',
-        AppleAudioMode.voicePrompt => 'voicePrompt',
-      };
+    AppleAudioMode.default_ => 'default',
+    AppleAudioMode.gameChat => 'gameChat',
+    AppleAudioMode.measurement => 'measurement',
+    AppleAudioMode.moviePlayback => 'moviePlayback',
+    AppleAudioMode.spokenAudio => 'spokenAudio',
+    AppleAudioMode.videoChat => 'videoChat',
+    AppleAudioMode.videoRecording => 'videoRecording',
+    AppleAudioMode.voiceChat => 'voiceChat',
+    AppleAudioMode.voicePrompt => 'voicePrompt',
+  };
 }
 
 class NativeAudioConfiguration {
@@ -56,31 +56,29 @@ class NativeAudioConfiguration {
   final Set<AppleAudioCategoryOption>? appleAudioCategoryOptions;
   final AppleAudioMode? appleAudioMode;
 
-  NativeAudioConfiguration(
-      {
-      // for iOS / Mac
-      this.appleAudioCategory,
-      this.appleAudioCategoryOptions,
-      this.appleAudioMode
-      // Android options
-      // ...
-      });
+  NativeAudioConfiguration({
+    // for iOS / Mac
+    this.appleAudioCategory,
+    this.appleAudioCategoryOptions,
+    this.appleAudioMode,
+    // Android options
+    // ...
+  });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (appleAudioCategory != null) 'appleAudioCategory': appleAudioCategory!.toStringValue(),
-        if (appleAudioCategoryOptions != null)
-          'appleAudioCategoryOptions': appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
-        if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
-      };
+    if (appleAudioCategory != null) 'appleAudioCategory': appleAudioCategory!.toStringValue(),
+    if (appleAudioCategoryOptions != null)
+      'appleAudioCategoryOptions': appleAudioCategoryOptions!.map((e) => e.toStringValue()).toList(),
+    if (appleAudioMode != null) 'appleAudioMode': appleAudioMode!.toStringValue(),
+  };
 
   NativeAudioConfiguration copyWith({
     ValueOrAbsent<AppleAudioCategory?> appleAudioCategory = const ValueOrAbsent.absent(),
     ValueOrAbsent<Set<AppleAudioCategoryOption>?> appleAudioCategoryOptions = const ValueOrAbsent.absent(),
     ValueOrAbsent<AppleAudioMode?> appleAudioMode = const ValueOrAbsent.absent(),
-  }) =>
-      NativeAudioConfiguration(
-        appleAudioCategory: appleAudioCategory.valueOr(this.appleAudioCategory),
-        appleAudioCategoryOptions: appleAudioCategoryOptions.valueOr(this.appleAudioCategoryOptions),
-        appleAudioMode: appleAudioMode.valueOr(this.appleAudioMode),
-      );
+  }) => NativeAudioConfiguration(
+    appleAudioCategory: appleAudioCategory.valueOr(this.appleAudioCategory),
+    appleAudioCategoryOptions: appleAudioCategoryOptions.valueOr(this.appleAudioCategoryOptions),
+    appleAudioMode: appleAudioMode.valueOr(this.appleAudioMode),
+  );
 }

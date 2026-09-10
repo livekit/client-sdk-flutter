@@ -266,7 +266,7 @@ class RTCConfiguration {
   Map<String, dynamic> toMap() {
     final iceServersMap = <Map<String, dynamic>>[
       if (iceServers != null)
-        for (final e in iceServers!) e.toMap()
+        for (final e in iceServers!) e.toMap(),
     ];
 
     return <String, dynamic>{
@@ -287,14 +287,13 @@ class RTCConfiguration {
     RTCIceTransportPolicy? iceTransportPolicy,
     bool? encodedInsertableStreams,
     bool? isDscpEnabled,
-  }) =>
-      RTCConfiguration(
-        iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
-        iceServers: iceServers ?? this.iceServers,
-        iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
-        encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
-        isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
-      );
+  }) => RTCConfiguration(
+    iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
+    iceServers: iceServers ?? this.iceServers,
+    iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
+    encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
+    isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
+  );
 }
 
 @immutable
@@ -310,10 +309,10 @@ class RTCIceServer {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (urls?.isNotEmpty ?? false) 'urls': urls,
-        if (username?.isNotEmpty ?? false) 'username': username,
-        if (credential?.isNotEmpty ?? false) 'credential': credential,
-      };
+    if (urls?.isNotEmpty ?? false) 'urls': urls,
+    if (username?.isNotEmpty ?? false) 'username': username,
+    if (credential?.isNotEmpty ?? false) 'credential': credential,
+  };
 }
 
 @immutable
@@ -360,8 +359,8 @@ class AdaptiveStreamPixelDensity {
   /// `2.0`, `2.75`). The effective value is capped at [maxDensity] (3x) when
   /// resolved.
   const AdaptiveStreamPixelDensity.fixed(double density)
-      : assert(density > 0, 'density must be positive'),
-        value = density;
+    : assert(density > 0, 'density must be positive'),
+      value = density;
 
   /// Resolves the effective multiplier, capped at [maxDensity]. For [auto],
   /// falls back to the supplied [devicePixelRatio].

@@ -30,8 +30,7 @@ Future<LiveKitWebSocketWeb> lkWebSocketConnect(
   WebSocketEventHandlers? options,
   Map<String, String>? headers, // |headers| will be ignored on web
   NetworkOptions? networkOptions = const NetworkOptions(),
-}) =>
-    LiveKitWebSocketWeb.connect(uri, options: options, networkOptions: networkOptions);
+}) => LiveKitWebSocketWeb.connect(uri, options: options, networkOptions: networkOptions);
 
 class LiveKitWebSocketWeb extends LiveKitWebSocket {
   final web.WebSocket _ws;
@@ -50,8 +49,9 @@ class LiveKitWebSocketWeb extends LiveKitWebSocket {
         logger.warning('$objectId already disposed, ignoring received data.');
         return;
       }
-      final dynamic data =
-          event.data.instanceOfString('ArrayBuffer') ? (event.data as JSArrayBuffer).toDart.asUint8List() : event.data;
+      final dynamic data = event.data.instanceOfString('ArrayBuffer')
+          ? (event.data as JSArrayBuffer).toDart.asUint8List()
+          : event.data;
       options?.onData?.call(data);
     });
     _closeSubscription = _ws.onClose.listen((_) async {

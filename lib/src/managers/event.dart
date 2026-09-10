@@ -105,8 +105,8 @@ class EventsListener<T> extends EventsListenable<T> {
     this.emitter, {
     bool synchronized = false,
   }) : super(
-          synchronized: synchronized,
-        );
+         synchronized: synchronized,
+       );
 }
 
 // ensures all listeners will close on dispose
@@ -171,15 +171,14 @@ abstract class EventsListenable<T> extends Disposable {
   CancelListenFunc on<E>(
     FutureOr<void> Function(E) then, {
     bool Function(E)? filter,
-  }) =>
-      listen((event) async {
-        // event must be E
-        if (event is! E) return;
-        // filter must be true (if filter is used)
-        if (filter != null && !filter(event)) return;
-        // cast to E
-        await then(event);
-      });
+  }) => listen((event) async {
+    // event must be E
+    if (event is! E) return;
+    // filter must be true (if filter is used)
+    if (filter != null && !filter(event)) return;
+    // cast to E
+    await then(event);
+  });
 
   /// convenience method to listen & filter a specific event type, just once.
   CancelListenFunc? once<E>(

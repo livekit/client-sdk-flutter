@@ -25,9 +25,11 @@ void main() {
 
   group('Checker', () {
     test('reports success when perform completes without errors', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        checker.addMessage('all good');
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          checker.addMessage('all good');
+        },
+      );
       final info = await checker.run();
       expect(info.status, CheckStatus.success);
       expect(info.name, 'FakeChecker');
@@ -39,9 +41,11 @@ void main() {
     });
 
     test('reports failure when perform throws', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        throw const CheckException('something went wrong');
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          throw const CheckException('something went wrong');
+        },
+      );
       final info = await checker.run();
       expect(info.status, CheckStatus.failed);
       expect(info.logs, hasLength(1));
@@ -51,10 +55,12 @@ void main() {
     });
 
     test('reports failure when an error is appended', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        checker.addError('bad');
-        checker.addMessage('but continued');
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          checker.addError('bad');
+          checker.addMessage('but continued');
+        },
+      );
       final info = await checker.run();
       expect(info.status, CheckStatus.failed);
       expect(info.logs, hasLength(2));
@@ -62,9 +68,11 @@ void main() {
     });
 
     test('warnings do not fail the check', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        checker.addWarning('be careful');
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          checker.addWarning('be careful');
+        },
+      );
       final info = await checker.run();
       expect(info.status, CheckStatus.success);
       expect(info.logs.first.level, CheckLogLevel.warning);
@@ -87,19 +95,23 @@ void main() {
     });
 
     test('skip marks the check as skipped', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        checker.doSkip();
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          checker.doSkip();
+        },
+      );
       final info = await checker.run();
       expect(info.status, CheckStatus.skipped);
       await checker.dispose();
     });
 
     test('emits an update event for every log entry and status change', () async {
-      final checker = FakeChecker(onPerform: (checker) async {
-        checker.addMessage('one');
-        checker.addMessage('two');
-      });
+      final checker = FakeChecker(
+        onPerform: (checker) async {
+          checker.addMessage('one');
+          checker.addMessage('two');
+        },
+      );
       final listener = checker.createListener();
       final updates = <CheckInfo>[];
       listener.on<CheckerUpdateEvent>((event) => updates.add(event.info));

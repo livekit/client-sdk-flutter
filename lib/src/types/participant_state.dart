@@ -34,10 +34,10 @@ enum ParticipantState {
 
 extension ParticipantStateExt on lk_models.ParticipantInfo_State {
   ParticipantState toLKType() => switch (this) {
-        lk_models.ParticipantInfo_State.JOINING => ParticipantState.joining,
-        lk_models.ParticipantInfo_State.JOINED => ParticipantState.joined,
-        lk_models.ParticipantInfo_State.ACTIVE => ParticipantState.active,
-        lk_models.ParticipantInfo_State.DISCONNECTED => ParticipantState.disconnected,
-        _ => ParticipantState.unknown,
-      };
+    lk_models.ParticipantInfo_State.JOINING => ParticipantState.joining,
+    lk_models.ParticipantInfo_State.JOINED => ParticipantState.joined,
+    lk_models.ParticipantInfo_State.ACTIVE => ParticipantState.active,
+    lk_models.ParticipantInfo_State.DISCONNECTED => ParticipantState.disconnected,
+    _ => ParticipantState.unknown,
+  };
 }

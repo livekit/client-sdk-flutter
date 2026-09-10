@@ -105,15 +105,17 @@ void main() async {
 
       final cryptor = getTrackCryptor(participantId.toDart, trackId.toDart, keyProvider);
 
-      unawaited(cryptor.setupTransform(
-        operation: msgType.toDart,
-        readable: transformer.readable,
-        writable: transformer.writable,
-        trackId: trackId.toDart,
-        kind: kind.toDart,
-        codec: codec?.toDart,
-        isReuse: false,
-      ));
+      unawaited(
+        cryptor.setupTransform(
+          operation: msgType.toDart,
+          readable: transformer.readable,
+          writable: transformer.writable,
+          trackId: trackId.toDart,
+          kind: kind.toDart,
+          codec: codec?.toDart,
+          isReuse: false,
+        ),
+      );
     }.toJS;
   }
 
@@ -129,25 +131,28 @@ void main() async {
           final options = msg['keyOptions'];
           final keyProviderId = msg['keyProviderId'] as String;
           final keyProviderOptions = KeyOptions(
-              sharedKey: options['sharedKey'],
-              ratchetSalt: Uint8List.fromList(base64Decode(options['ratchetSalt'] as String)),
-              ratchetWindowSize: options['ratchetWindowSize'],
-              failureTolerance: options['failureTolerance'] ?? -1,
-              uncryptedMagicBytes: options['uncryptedMagicBytes'] != null
-                  ? Uint8List.fromList(base64Decode(options['uncryptedMagicBytes'] as String))
-                  : null,
-              keyRingSze: options['keyRingSize'] ?? KEYRING_SIZE,
-              discardFrameWhenCryptorNotReady: options['discardFrameWhenCryptorNotReady'] ?? false);
+            sharedKey: options['sharedKey'],
+            ratchetSalt: Uint8List.fromList(base64Decode(options['ratchetSalt'] as String)),
+            ratchetWindowSize: options['ratchetWindowSize'],
+            failureTolerance: options['failureTolerance'] ?? -1,
+            uncryptedMagicBytes: options['uncryptedMagicBytes'] != null
+                ? Uint8List.fromList(base64Decode(options['uncryptedMagicBytes'] as String))
+                : null,
+            keyRingSze: options['keyRingSize'] ?? KEYRING_SIZE,
+            discardFrameWhenCryptorNotReady: options['discardFrameWhenCryptorNotReady'] ?? false,
+          );
           logger.config('Init with keyProviderOptions:\n ${keyProviderOptions.toString()}');
 
           final keyProvider = KeyProvider(self, keyProviderId, keyProviderOptions);
           keyProviders[keyProviderId] = keyProvider;
 
-          self.postMessage({
-            'type': 'init',
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'init',
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
           break;
         }
       case 'keyProviderDispose':
@@ -155,11 +160,13 @@ void main() async {
           final keyProviderId = msg['keyProviderId'] as String;
           logger.config('Dispose keyProvider $keyProviderId');
           keyProviders.remove(keyProviderId);
-          self.postMessage({
-            'type': 'dispose',
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'dispose',
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'enable':
@@ -172,12 +179,14 @@ void main() async {
             logger.config('Set enable $enabled for trackId ${cryptor.trackId}');
             cryptor.setEnabled(enabled);
           }
-          self.postMessage({
-            'type': 'cryptorEnabled',
-            'enable': enabled,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'cryptorEnabled',
+              'enable': enabled,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'decode':
@@ -192,21 +201,24 @@ void main() async {
           final keyProviderId = msg['keyProviderId'] as String;
 
           logger.config(
-              'SetupTransform for kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}');
+            'SetupTransform for kind $kind, trackId $trackId, participantId $participantId, ${readable.runtimeType} ${writable.runtimeType}}',
+          );
 
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'cryptorSetup',
-              'participantId': participantId,
-              'trackId': trackId,
-              'exist': exist,
-              'operation': msgType,
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'cryptorSetup',
+                'participantId': participantId,
+                'trackId': trackId,
+                'exist': exist,
+                'operation': msgType,
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
 
@@ -221,15 +233,17 @@ void main() async {
             isReuse: exist && msgType == 'decode',
           );
 
-          self.postMessage({
-            'type': 'cryptorSetup',
-            'participantId': participantId,
-            'trackId': trackId,
-            'exist': exist,
-            'operation': msgType,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'cryptorSetup',
+              'participantId': participantId,
+              'trackId': trackId,
+              'exist': exist,
+              'operation': msgType,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
           cryptor.lastError = CryptorError.kNew;
         }
         break;
@@ -238,12 +252,14 @@ void main() async {
           final trackId = msg['trackId'] as String;
           logger.config('Removing trackId $trackId');
           unsetCryptorParticipant(trackId);
-          self.postMessage({
-            'type': 'cryptorRemoved',
-            'trackId': trackId,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'cryptorRemoved',
+              'trackId': trackId,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'setKey':
@@ -255,12 +271,14 @@ void main() async {
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'setKey',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'setKey',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           final keyProviderOptions = keyProvider.keyProviderOptions;
@@ -273,14 +291,16 @@ void main() async {
             await keyProvider.getParticipantKeyHandler(participantId).setKey(key, keyIndex: keyIndex);
           }
 
-          self.postMessage({
-            'type': 'setKey',
-            'participantId': msg['participantId'],
-            'sharedKey': keyProviderOptions.sharedKey,
-            'keyIndex': keyIndex,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'setKey',
+              'participantId': msg['participantId'],
+              'sharedKey': keyProviderOptions.sharedKey,
+              'keyIndex': keyIndex,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'ratchetKey':
@@ -292,12 +312,14 @@ void main() async {
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'setKey',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'setKey',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           final keyProviderOptions = keyProvider.keyProviderOptions;
@@ -310,15 +332,17 @@ void main() async {
             newKey = await keyProvider.getParticipantKeyHandler(participantId).ratchetKey(keyIndex);
           }
 
-          self.postMessage({
-            'type': 'ratchetKey',
-            'sharedKey': keyProviderOptions.sharedKey,
-            'participantId': participantId,
-            'newKey': newKey != null ? base64Encode(newKey) : '',
-            'keyIndex': keyIndex,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'ratchetKey',
+              'sharedKey': keyProviderOptions.sharedKey,
+              'participantId': participantId,
+              'newKey': newKey != null ? base64Encode(newKey) : '',
+              'keyIndex': keyIndex,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'setKeyIndex':
@@ -332,12 +356,14 @@ void main() async {
             c.setKeyIndex(keyIndex);
           }
 
-          self.postMessage({
-            'type': 'setKeyIndex',
-            'keyIndex': keyIndex,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'setKeyIndex',
+              'keyIndex': keyIndex,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'exportKey':
@@ -349,12 +375,14 @@ void main() async {
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'setKey',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'setKey',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           final keyProviderOptions = keyProvider.keyProviderOptions;
@@ -366,14 +394,16 @@ void main() async {
             logger.config('Export key for participant $participantId, keyIndex $keyIndex');
             key = await keyProvider.getParticipantKeyHandler(participantId).exportKey(keyIndex);
           }
-          self.postMessage({
-            'type': 'exportKey',
-            'participantId': participantId,
-            'keyIndex': keyIndex,
-            'exportedKey': key != null ? base64Encode(key) : '',
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'exportKey',
+              'participantId': participantId,
+              'keyIndex': keyIndex,
+              'exportedKey': key != null ? base64Encode(key) : '',
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'setSifTrailer':
@@ -383,12 +413,14 @@ void main() async {
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'setKey',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'setKey',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           keyProvider.setSifTrailer(sifTrailer);
@@ -397,11 +429,13 @@ void main() async {
             c.setSifTrailer(sifTrailer);
           }
 
-          self.postMessage({
-            'type': 'setSifTrailer',
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'setSifTrailer',
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'updateCodec':
@@ -412,11 +446,13 @@ void main() async {
           final cryptor = participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           cryptor?.updateCodec(codec);
 
-          self.postMessage({
-            'type': 'updateCodec',
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'updateCodec',
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       case 'dispose':
@@ -426,20 +462,24 @@ void main() async {
           final cryptor = participantCryptors.firstWhereOrNull((c) => c.trackId == trackId);
           if (cryptor != null) {
             cryptor.lastError = CryptorError.kDisposed;
-            self.postMessage({
-              'type': 'cryptorDispose',
-              'participantId': cryptor.participantIdentity,
-              'trackId': trackId,
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'cryptorDispose',
+                'participantId': cryptor.participantIdentity,
+                'trackId': trackId,
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           } else {
-            self.postMessage({
-              'type': 'cryptorDispose',
-              'error': 'cryptor not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'cryptorDispose',
+                'error': 'cryptor not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           }
         }
         break;
@@ -452,49 +492,58 @@ void main() async {
           final algorithmStr = msg['algorithm'] as String;
           final algorithm = Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
           if (algorithm == null) {
-            self.postMessage({
-              'type': 'dataCryptorEncrypt',
-              'error': 'algorithm not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorEncrypt',
+                'error': 'algorithm not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           logger.config(
-              'Encrypt for dataCryptorId $dataCryptorId, participantId $participantId, keyIndex $keyIndex, data length ${data.length}, algorithm $algorithmStr');
+            'Encrypt for dataCryptorId $dataCryptorId, participantId $participantId, keyIndex $keyIndex, data length ${data.length}, algorithm $algorithmStr',
+          );
           final keyProviderId = msg['keyProviderId'] as String;
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'dataCryptorEncrypt',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorEncrypt',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           final cryptor = getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
           try {
             final encryptedPacket = await cryptor.encrypt(cryptor.keyHandler, data);
-            self.postMessage({
-              'type': 'dataCryptorEncrypt',
-              'participantId': participantId,
-              'dataCryptorId': dataCryptorId,
-              'data': encryptedPacket!.data,
-              'keyIndex': encryptedPacket.keyIndex,
-              'iv': encryptedPacket.iv,
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorEncrypt',
+                'participantId': participantId,
+                'dataCryptorId': dataCryptorId,
+                'data': encryptedPacket!.data,
+                'keyIndex': encryptedPacket.keyIndex,
+                'iv': encryptedPacket.iv,
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           } catch (e) {
             logger.warning('Error encrypting data: $e');
-            self.postMessage({
-              'type': 'dataCryptorEncrypt',
-              'error': e.toString(),
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorEncrypt',
+                'error': e.toString(),
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           }
         }
         break;
@@ -508,53 +557,63 @@ void main() async {
           final algorithmStr = msg['algorithm'] as String;
           final algorithm = Algorithm.values.firstWhereOrNull((a) => a.name == algorithmStr);
           if (algorithm == null) {
-            self.postMessage({
-              'type': 'dataCryptorDecrypt',
-              'error': 'algorithm not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorDecrypt',
+                'error': 'algorithm not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           logger.config(
-              'Decrypt for dataCryptorId $dataCryptorId, participantId $participantId, keyIndex $keyIndex, data length ${data.length}, algorithm $algorithmStr');
+            'Decrypt for dataCryptorId $dataCryptorId, participantId $participantId, keyIndex $keyIndex, data length ${data.length}, algorithm $algorithmStr',
+          );
           final keyProviderId = msg['keyProviderId'] as String;
           final keyProvider = keyProviders[keyProviderId];
           if (keyProvider == null) {
             logger.warning('KeyProvider not found for $keyProviderId');
-            self.postMessage({
-              'type': 'dataCryptorDecrypt',
-              'error': 'KeyProvider not found',
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorDecrypt',
+                'error': 'KeyProvider not found',
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
             return;
           }
           final cryptor = getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
           try {
             final decryptedData = await cryptor.decrypt(
-                cryptor.keyHandler,
-                EncryptedPacket(
-                  data: data,
-                  keyIndex: keyIndex,
-                  iv: iv,
-                ));
-            self.postMessage({
-              'type': 'dataCryptorDecrypt',
-              'participantId': participantId,
-              'dataCryptorId': dataCryptorId,
-              'data': decryptedData,
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+              cryptor.keyHandler,
+              EncryptedPacket(
+                data: data,
+                keyIndex: keyIndex,
+                iv: iv,
+              ),
+            );
+            self.postMessage(
+              {
+                'type': 'dataCryptorDecrypt',
+                'participantId': participantId,
+                'dataCryptorId': dataCryptorId,
+                'data': decryptedData,
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           } catch (e) {
             logger.warning('Error decrypting data: $e');
-            self.postMessage({
-              'type': 'dataCryptorDecrypt',
-              'error': e.toString(),
-              'msgId': msgId,
-              'msgType': 'response',
-            }.jsify());
+            self.postMessage(
+              {
+                'type': 'dataCryptorDecrypt',
+                'error': e.toString(),
+                'msgId': msgId,
+                'msgType': 'response',
+              }.jsify(),
+            );
           }
         }
         break;
@@ -563,12 +622,14 @@ void main() async {
           final dataCryptorId = msg['dataCryptorId'] as String;
           logger.config('Dispose for dataCryptorId $dataCryptorId');
           unsetDataPacketCryptorParticipant(dataCryptorId);
-          self.postMessage({
-            'type': 'dataCryptorDispose',
-            'dataCryptorId': dataCryptorId,
-            'msgId': msgId,
-            'msgType': 'response',
-          }.jsify());
+          self.postMessage(
+            {
+              'type': 'dataCryptorDispose',
+              'dataCryptorId': dataCryptorId,
+              'msgId': msgId,
+              'msgType': 'response',
+            }.jsify(),
+          );
         }
         break;
       default:

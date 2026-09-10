@@ -137,19 +137,22 @@ class RpcServerManager {
     RpcError? responseError;
 
     try {
-      final response = await handler(RpcInvocationData(
-        requestId: requestId,
-        callerIdentity: callerIdentity,
-        payload: payload,
-        responseTimeoutMs: responseTimeoutMs.toInt(),
-      ));
+      final response = await handler(
+        RpcInvocationData(
+          requestId: requestId,
+          callerIdentity: callerIdentity,
+          payload: payload,
+          responseTimeoutMs: responseTimeoutMs.toInt(),
+        ),
+      );
       responsePayload = response;
     } catch (error) {
       if (error is RpcError) {
         responseError = error;
       } else {
         logger.warning(
-            'Uncaught error returned by RPC handler for $method. Returning RpcError.applicationError instead. $error');
+          'Uncaught error returned by RPC handler for $method. Returning RpcError.applicationError instead. $error',
+        );
         responseError = RpcError(code: RpcError.applicationError, message: error.toString());
       }
     }
@@ -254,11 +257,13 @@ class RpcServerManager {
       logger.warning('Cannot send v2 RPC response: no local participant');
       return;
     }
-    final writer = await local.streamText(StreamTextOptions(
-      topic: kRpcResponseTopic,
-      destinationIdentities: [callerIdentity],
-      attributes: {kRpcAttrRequestId: requestId},
-    ));
+    final writer = await local.streamText(
+      StreamTextOptions(
+        topic: kRpcResponseTopic,
+        destinationIdentities: [callerIdentity],
+        attributes: {kRpcAttrRequestId: requestId},
+      ),
+    );
     await writer.write(payload);
     await writer.close();
   }
@@ -275,8 +280,9 @@ class RpcServerManager {
 
     String? truncatedData;
     if (originalData != null) {
-      truncatedData =
-          originalData.length > kRpcMaxPayloadBytes ? originalData.substring(0, kRpcMaxPayloadBytes) : originalData;
+      truncatedData = originalData.length > kRpcMaxPayloadBytes
+          ? originalData.substring(0, kRpcMaxPayloadBytes)
+          : originalData;
     }
 
     if (truncatedMessage.length != originalMessage.length ||
