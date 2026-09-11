@@ -17,6 +17,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "13.0.0"
+  archive:
+    dependency: transitive
+    description:
+      name: archive
+      sha256: a96e8b390886ee8abb49b7bd3ac8df6f451c621619f52a26e815fdcf568959ff
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.0.9"
   args:
     dependency: transitive
     description:
@@ -284,10 +292,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: e997161d7da3adedd3d430691b20931b0b4d96fa48bb60938d9ba0bf6fca98be
+      sha256: "381e05c120caf2f1ee1accd806baad22b33802f36c74d8ea5e43a5800ce6380c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.0"
+    version: "1.6.2+hotfix.1"
   glob:
     dependency: transitive
     description:
@@ -432,6 +440,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
+  livekit_uniffi:
+    dependency: "direct main"
+    description:
+      name: livekit_uniffi
+      sha256: "2771936d7a799410ab9f9db29ae596648df36322222d5c928f3fa4612b8edce4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.12"
   logger:
     dependency: transitive
     description:
@@ -616,6 +632,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.2"
+  posix:
+    dependency: transitive
+    description:
+      name: posix
+      sha256: bc1bad54ad2b735816e31f8d4600cfde6c7839975085ddfbca48b6c9f7c4044e
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.5.2"
   protobuf:
     dependency: "direct main"
     description:

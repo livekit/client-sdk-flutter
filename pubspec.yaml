@@ -57,6 +57,10 @@ dependencies:
   flutter_webrtc: 1.6.2+hotfix.1
   dart_webrtc: ^1.8.0
 
+  # Rust core (livekit-uniffi), delivered as a bundled cdylib via Native Assets.
+  # Native platforms only, see lib/src/uniffi/.
+  livekit_uniffi: ^0.1.12
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
