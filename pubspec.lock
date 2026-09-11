@@ -444,10 +444,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_uniffi
-      sha256: "519ed7c894c1df692df5a508dc9df9600329e10b75d5e2c3e5dc57d01ad44e6c"
+      sha256: "2771936d7a799410ab9f9db29ae596648df36322222d5c928f3fa4612b8edce4"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.10"
+    version: "0.1.12"
   logger:
     dependency: transitive
     description:
