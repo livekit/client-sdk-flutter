@@ -59,8 +59,8 @@ void main() {
   });
 
   /// Spin until the SDK opens a new signal socket, returning its URI.
-  Future<Uri> awaitNewSocket(Object? previousHandlers) async {
-    for (var i = 0; i < 200 && identical(ws.handlers, previousHandlers); i++) {
+  Future<Uri> awaitNewSocket(Object? previousHandlers, {int maxWaitMs = 2000}) async {
+    for (var i = 0; i < maxWaitMs ~/ 10 && identical(ws.handlers, previousHandlers); i++) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
     expect(identical(ws.handlers, previousHandlers), isFalse, reason: 'SDK never re-opened the signal connection');
@@ -211,6 +211,42 @@ void main() {
 
     expect(roomEvents.whereType<RoomReconnectedEvent>(), hasLength(1));
   });
+
+  test('repeated severed resumes count towards the retry limit', () async {
+    final attempts = <int>[];
+    final cancel = room.events.listen((event) {
+      if (event is RoomAttemptReconnectEvent) attempts.add(event.attempt);
+    });
+
+    // Every resume opens its socket, gets its ReconnectResponse and then loses
+    // the socket before the attempt completes. The socket connect used to reset
+    // the attempt counter, so each failure scheduled "attempt 2" again and the
+    // retry limit was never reached.
+    var handlers = ws.handlers;
+    ws.onDispose();
+    for (var i = 0; i < 3; i++) {
+      await awaitNewSocket(handlers, maxWaitMs: 6000);
+      handlers = ws.handlers;
+      ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+      ws.onDispose();
+      // let the attempt reach its final check, fail and schedule the retry
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+
+    // Leave the engine in a clean state: answer the fourth attempt properly.
+    await awaitNewSocket(handlers, maxWaitMs: 6000);
+    ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    await cancel();
+
+    // Each failure schedules twice (the socket close and the retry), so look at
+    // the distinct attempt numbers: they must climb, not repeat.
+    expect(attempts.where((a) => a > 1).toSet().toList(), [
+      2,
+      3,
+      4,
+    ], reason: 'every failed attempt must advance the counter');
+  }, timeout: const Timeout(Duration(seconds: 30)));
 
   test('a successful resume leaves no full-reconnect state behind', () async {
     final previousHandlers = ws.handlers;

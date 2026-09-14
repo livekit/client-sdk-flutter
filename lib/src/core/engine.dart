@@ -1495,7 +1495,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectedEvent>((event) async {
       logger.fine('Signal connected');
-      _reconnectAttempts = 0;
+      // The attempt counter is not reset here. A resume opens its socket before
+      // the peer connections are restored, so a reset on socket connect would
+      // let an attempt that fails afterwards start again from zero and never
+      // reach the retry limit. _clearPendingReconnect resets it once an attempt
+      // has fully succeeded, and cleanUp on disconnect.
       events.emit(const EngineConnectedEvent());
     })
     ..on<SignalConnectingEvent>((event) async {
