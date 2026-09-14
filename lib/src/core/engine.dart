@@ -235,6 +235,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
     RegionUrlProvider? regionUrlProvider,
+    bool emitDisconnectOnFailure = true,
   }) async {
     this.url = url;
     this.token = token;
@@ -285,17 +286,26 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // during a reconnect this connect() runs inside restartConnection and
       // attemptReconnect owns disconnect emission, emitting here as well
       // would produce two events for one failure
-      if (!_isReconnecting && !_attemptingReconnect) {
-        events.emit(
-          EngineDisconnectedEvent(
-            reason: error is CertificatePinningException
-                ? DisconnectReason.signalingConnectionFailure
-                : DisconnectReason.joinFailure,
-          ),
-        );
+      if (emitDisconnectOnFailure && !_isReconnecting && !_attemptingReconnect) {
+        emitConnectFailure(error);
       }
       rethrow;
     }
+  }
+
+  /// Emits the disconnect for a failed initial connect. Room drives region
+  /// failover with [emitDisconnectOnFailure] off and calls this once the
+  /// whole sequence has failed, so a retried attempt does not surface as a
+  /// disconnect and tear down the connection that follows it.
+  @internal
+  void emitConnectFailure(Object error) {
+    events.emit(
+      EngineDisconnectedEvent(
+        reason: error is CertificatePinningException
+            ? DisconnectReason.signalingConnectionFailure
+            : DisconnectReason.joinFailure,
+      ),
+    );
   }
 
   // resets internal state to a re-usable state

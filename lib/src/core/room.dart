@@ -354,44 +354,48 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    var connectUrl = _regionUrl ?? url;
     try {
-      await engine.connect(
-        _regionUrl ?? url,
-        token,
-        connectOptions: connectOptions,
-        roomOptions: effectiveRoomOptions,
-        fastConnectOptions: fastConnectOptions,
-        regionUrlProvider: _regionUrlProvider,
-      );
-      didConnect = true;
-    } catch (e) {
-      logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
-        String? nextUrl;
+      // Each attempt that fails and is retried against another region must
+      // not surface as a disconnect. The engine event is emitted once, below,
+      // after the last attempt has failed.
+      while (true) {
         try {
-          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
-        } catch (error) {
-          if (error is ConnectException && (error.statusCode == 401)) {
-            rethrow;
-          }
-        }
-        if (nextUrl != null) {
-          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
           await engine.connect(
-            nextUrl,
+            connectUrl,
             token,
             connectOptions: connectOptions,
             roomOptions: effectiveRoomOptions,
             fastConnectOptions: fastConnectOptions,
             regionUrlProvider: _regionUrlProvider,
+            emitDisconnectOnFailure: false,
           );
           didConnect = true;
-        } else {
-          rethrow;
+          break;
+        } catch (e) {
+          logger.warning('could not connect to $connectUrl $e');
+          if (_regionUrlProvider == null || !canFailOverToAnotherRegion(e)) {
+            rethrow;
+          }
+          String? nextUrl;
+          try {
+            nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+          } catch (error) {
+            if (error is ConnectException && (error.statusCode == 401)) {
+              rethrow;
+            }
+          }
+          if (nextUrl == null) {
+            // no regions left to try, or the region list could not be fetched
+            rethrow;
+          }
+          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: $nextUrl');
+          connectUrl = nextUrl;
         }
-      } else {
-        rethrow;
       }
+    } catch (e) {
+      engine.emitConnectFailure(e);
+      rethrow;
     } finally {
       if (!didConnect) {
         await NativeAudioManagement.stop();

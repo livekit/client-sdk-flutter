@@ -27,6 +27,9 @@ class MockWebSocketConnector {
   NetworkOptions? networkOptions;
   Object? connectError;
 
+  /// Per-attempt failure. Takes precedence over [connectError] when it returns non-null.
+  Object? Function(Uri uri)? connectErrorFor;
+
   WebSocketOnData get onData => handlers!.onData!;
 
   WebSocketOnDispose get onDispose => handlers!.onDispose!;
@@ -43,7 +46,7 @@ class MockWebSocketConnector {
     this.headers = headers;
     this.networkOptions = networkOptions;
 
-    final error = connectError;
+    final error = connectErrorFor?.call(uri) ?? connectError;
     if (error != null) {
       throw error;
     }
