@@ -44,7 +44,6 @@ import '../support/disposable.dart';
 import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
-import '../support/websocket.dart' show WebSocketException;
 import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -367,8 +366,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       didConnect = true;
     } catch (e) {
       logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null &&
-          (e is WebSocketException || (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed))) {
+      if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
