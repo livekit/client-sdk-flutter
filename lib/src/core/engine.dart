@@ -1074,10 +1074,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.info('onDisconnected state:${connectionState} reason:${reason.name}');
 
-    // Capture the escalation the moment the request is made. A later
-    // handleReconnect (e.g. the socket close that follows a server Leave)
-    // replaces the pending timer and with it the reason, so deciding this
-    // later — when attemptReconnect finally runs — can silently lose it.
+    // Decide the escalation now rather than when the retry timer fires. A later
+    // request replaces the pending timer together with its reason, so a
+    // Leave{RESUME} that lands right after a peer connection failure would
+    // otherwise downgrade that failure into a resume.
+    //
+    // `leaveReconnect` is intentionally not escalated: since protocol v13 a server
+    // Leave carries an action, and `RESUME` (what the server sends for a node
+    // migration) must stay a resume. The callers that need a full reconnect
+    // (`RECONNECT` leave, connection check) set `fullReconnectOnNext` themselves.
     if ([
       ClientDisconnectReason.negotiationFailed,
       ClientDisconnectReason.peerConnectionFailed,
@@ -1147,8 +1152,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    // Reason-driven escalation is captured in handleReconnect, where the
-    // request originates. This is config, not a request, so it belongs here.
+    // Reason based escalation is decided in handleReconnect. The server side
+    // switch is checked here so the latest ClientConfiguration wins.
     if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
       fullReconnectOnNext = true;
     }
