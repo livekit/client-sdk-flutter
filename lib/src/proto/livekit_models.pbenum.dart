@@ -282,6 +282,41 @@ class DisconnectReason extends $pb.ProtobufEnum {
   const DisconnectReason._(super.value, super.name);
 }
 
+/// why a room ended, reported on room-ended telemetry
+class RoomEndReason extends $pb.ProtobufEnum {
+  static const RoomEndReason ROOM_END_UNKNOWN = RoomEndReason._(0, _omitEnumNames ? '' : 'ROOM_END_UNKNOWN');
+
+  /// RoomService.DeleteRoom was called
+  static const RoomEndReason ROOM_END_API_DELETE = RoomEndReason._(1, _omitEnumNames ? '' : 'ROOM_END_API_DELETE');
+
+  /// the room sat empty past its empty or departure timeout
+  static const RoomEndReason ROOM_END_IDLE_TIMEOUT = RoomEndReason._(2, _omitEnumNames ? '' : 'ROOM_END_IDLE_TIMEOUT');
+
+  /// the server instance is shutting down
+  static const RoomEndReason ROOM_END_SERVER_SHUTDOWN =
+      RoomEndReason._(3, _omitEnumNames ? '' : 'ROOM_END_SERVER_SHUTDOWN');
+
+  /// the room was restarted or replaced elsewhere
+  static const RoomEndReason ROOM_END_SUPERSEDED = RoomEndReason._(4, _omitEnumNames ? '' : 'ROOM_END_SUPERSEDED');
+
+  /// the room failed to finish opening
+  static const RoomEndReason ROOM_END_OPEN_FAILED = RoomEndReason._(5, _omitEnumNames ? '' : 'ROOM_END_OPEN_FAILED');
+
+  static const $core.List<RoomEndReason> values = <RoomEndReason>[
+    ROOM_END_UNKNOWN,
+    ROOM_END_API_DELETE,
+    ROOM_END_IDLE_TIMEOUT,
+    ROOM_END_SERVER_SHUTDOWN,
+    ROOM_END_SUPERSEDED,
+    ROOM_END_OPEN_FAILED,
+  ];
+
+  static final $core.List<RoomEndReason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 5);
+  static RoomEndReason? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const RoomEndReason._(super.value, super.name);
+}
+
 class ReconnectReason extends $pb.ProtobufEnum {
   static const ReconnectReason RR_UNKNOWN = ReconnectReason._(0, _omitEnumNames ? '' : 'RR_UNKNOWN');
   static const ReconnectReason RR_SIGNAL_DISCONNECTED =

@@ -4486,6 +4486,7 @@ class SyncState extends $pb.GeneratedMessage {
     $core.Iterable<$core.String>? trackSidsDisabled,
     $core.Iterable<DataChannelReceiveState>? datachannelReceiveStates,
     $core.Iterable<PublishDataTrackResponse>? publishDataTracks,
+    UpdateDataSubscription? dataSubscription,
   }) {
     final result = create();
     if (answer != null) result.answer = answer;
@@ -4496,6 +4497,7 @@ class SyncState extends $pb.GeneratedMessage {
     if (trackSidsDisabled != null) result.trackSidsDisabled.addAll(trackSidsDisabled);
     if (datachannelReceiveStates != null) result.datachannelReceiveStates.addAll(datachannelReceiveStates);
     if (publishDataTracks != null) result.publishDataTracks.addAll(publishDataTracks);
+    if (dataSubscription != null) result.dataSubscription = dataSubscription;
     return result;
   }
 
@@ -4519,6 +4521,8 @@ class SyncState extends $pb.GeneratedMessage {
         subBuilder: DataChannelReceiveState.create)
     ..pPM<PublishDataTrackResponse>(8, _omitFieldNames ? '' : 'publishDataTracks',
         subBuilder: PublishDataTrackResponse.create)
+    ..aOM<UpdateDataSubscription>(9, _omitFieldNames ? '' : 'dataSubscription',
+        subBuilder: UpdateDataSubscription.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -4591,6 +4595,17 @@ class SyncState extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(8)
   $pb.PbList<PublishDataTrackResponse> get publishDataTracks => $_getList(7);
+
+  @$pb.TagNumber(9)
+  UpdateDataSubscription get dataSubscription => $_getN(8);
+  @$pb.TagNumber(9)
+  set dataSubscription(UpdateDataSubscription value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasDataSubscription() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearDataSubscription() => $_clearField(9);
+  @$pb.TagNumber(9)
+  UpdateDataSubscription ensureDataSubscription() => $_ensure(8);
 }
 
 class DataChannelReceiveState extends $pb.GeneratedMessage {
