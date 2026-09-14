@@ -32,6 +32,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/types/internal.dart';
 import '../mock/e2e_container.dart';
@@ -118,6 +119,97 @@ void main() {
     expect(uri.queryParameters['reconnect'], isNull, reason: 'the peer-connection failure must still force a re-join');
     expect(roomEvents.whereType<RoomReconnectingEvent>(), isNotEmpty);
     expect(roomEvents.whereType<RoomResumingEvent>(), isEmpty);
+  });
+
+  test('a peer failure reported mid-resume is dispatched as a full reconnect afterwards', () async {
+    final roomEvents = <RoomEvent>[];
+    final cancel = room.events.listen(roomEvents.add);
+
+    final firstHandlers = ws.handlers;
+    ws.onDispose();
+    final resumeUri = await awaitNewSocket(firstHandlers);
+    expect(resumeUri.queryParameters['reconnect'], '1', reason: 'cycle 1 must be a resume');
+
+    // The real request path, not a direct flag write: a PeerConnection reports
+    // failed while the resume is in flight. handleReconnect records the
+    // escalation and schedules a timer that the running attempt swallows.
+    unawaited(container.engine.handleReconnect(ClientDisconnectReason.peerConnectionFailed));
+
+    final resumeHandlers = ws.handlers;
+    ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+
+    final restartUri = await awaitNewSocket(resumeHandlers);
+    await cancel();
+
+    expect(restartUri.queryParameters['reconnect'], isNull, reason: 'the peer failure must still force a re-join');
+    expect(roomEvents.whereType<RoomReconnectingEvent>(), isNotEmpty);
+    expect(container.engine.fullReconnectOnNext, isFalse, reason: 'the request must be consumed, not left stale');
+  });
+
+  test('a RECONNECT leave arriving mid-restart is not lost', () async {
+    final roomEvents = <RoomEvent>[];
+    final cancel = room.events.listen(roomEvents.add);
+
+    // Cycle 1: a full reconnect, answered with a JoinResponse.
+    final firstHandlers = ws.handlers;
+    container.engine.fullReconnectOnNext = true;
+    ws.onDispose();
+    final joinUri = await awaitNewSocket(firstHandlers);
+    expect(joinUri.queryParameters['reconnect'], isNull, reason: 'cycle 1 must be a re-join');
+
+    // The node we are joining asks for another full reconnect before the join
+    // completes. restartConnection used to reset the flag after joining, which
+    // erased this request.
+    ws.onData(
+      lk_rtc.SignalResponse(
+        leave: lk_rtc.LeaveRequest(
+          action: lk_rtc.LeaveRequest_Action.RECONNECT,
+          reason: lk_models.DisconnectReason.STATE_MISMATCH,
+        ),
+      ).writeToBuffer(),
+    );
+
+    final joinHandlers = ws.handlers;
+    await container.answerJoin();
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+
+    // Cycle 2: the leave-driven full reconnect must still run.
+    final secondJoinUri = await awaitNewSocket(joinHandlers);
+    await cancel();
+
+    expect(secondJoinUri.queryParameters['reconnect'], isNull, reason: 'cycle 2 must be a re-join too');
+    expect(roomEvents.whereType<RoomReconnectingEvent>(), hasLength(2));
+  });
+
+  test('a signal drop during the resume is retried instead of reported as success', () async {
+    final roomEvents = <RoomEvent>[];
+    final cancel = room.events.listen(roomEvents.add);
+
+    final firstHandlers = ws.handlers;
+    ws.onDispose();
+    await awaitNewSocket(firstHandlers);
+
+    // The server answers the resume and the socket dies right behind it, before
+    // the peer connection work finishes. The attempt must not end in
+    // RoomReconnectedEvent with a dead signal connection.
+    final resumeHandlers = ws.handlers;
+    ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    ws.onDispose();
+
+    final retryUri = await awaitNewSocket(resumeHandlers);
+    expect(retryUri.queryParameters['reconnect'], '1', reason: 'a severed signal is retried as a resume');
+    expect(
+      roomEvents.whereType<RoomReconnectedEvent>(),
+      isEmpty,
+      reason: 'the attempt with the dead socket must not be reported as a success',
+    );
+
+    ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    await room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    await cancel();
+
+    expect(roomEvents.whereType<RoomReconnectedEvent>(), hasLength(1));
   });
 
   test('a successful resume leaves no full-reconnect state behind', () async {

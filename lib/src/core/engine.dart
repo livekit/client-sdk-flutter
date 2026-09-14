@@ -1294,6 +1294,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
+    // The socket can drop while the peer connections were being restored. A
+    // resume that ends with a dead signal connection is a failure, not a
+    // success: throwing here lets the retry path run another resume instead of
+    // reporting the room as reconnected and cancelling the pending request.
+    // Mirrors the re-check in client-sdk-js and rust-sdks.
+    if (signalClient.connectionState != ConnectionState.connected) {
+      throw ConnectException(
+        'resumeConnection: signal connection severed during resume',
+        reason: ConnectionErrorReason.InternalError,
+      );
+    }
+
     _isReconnecting = false;
     events.emit(const EngineResumedEvent());
   }
@@ -1341,7 +1353,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await ensurePublisherConnected();
       }
 
-      fullReconnectOnNext = false;
+      // fullReconnectOnNext is not cleared here. attemptReconnect consumed the
+      // request that started this restart, so a true value at this point is a
+      // new request (e.g. a RECONNECT leave from the node we just joined) that
+      // the finally block in attemptReconnect dispatches once we return.
       _regionUrlProvider?.resetAttempts();
       events.emit(const EngineRestartedEvent());
     } catch (error) {
