@@ -1,1 +1,0 @@
-patch type="added" "sendSimulateScenario can arm the server side disconnectSignalOnResume, disconnectSignalOnResumeNoMessages and leaveRequestFullReconnect scenarios, and now forwards subscriberBandwidth"
