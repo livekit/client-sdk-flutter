@@ -1064,6 +1064,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.info('onDisconnected state:${connectionState} reason:${reason.name}');
 
+    // Decide the escalation now rather than when the retry timer fires. A later
+    // request replaces the pending timer together with its reason, so a
+    // Leave{RESUME} that lands right after a peer connection failure would
+    // otherwise downgrade that failure into a resume.
+    //
+    // `leaveReconnect` is intentionally not escalated: since protocol v13 a server
+    // Leave carries an action, and `RESUME` (what the server sends for a node
+    // migration) must stay a resume. The callers that need a full reconnect
+    // (`RECONNECT` leave, connection check) set `fullReconnectOnNext` themselves.
+    if ([
+      ClientDisconnectReason.negotiationFailed,
+      ClientDisconnectReason.peerConnectionFailed,
+    ].contains(reason)) {
+      fullReconnectOnNext = true;
+    }
+
     _isReconnecting = true;
 
     if (_reconnectAttempts == 0) {
@@ -1126,12 +1142,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED ||
-        [
-          ClientDisconnectReason.leaveReconnect,
-          ClientDisconnectReason.negotiationFailed,
-          ClientDisconnectReason.peerConnectionFailed,
-        ].contains(reason)) {
+    // Reason based escalation is decided in handleReconnect. The server side
+    // switch is checked here so the latest ClientConfiguration wins.
+    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
       fullReconnectOnNext = true;
     }
 
@@ -1526,7 +1539,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // canReconnect is still checked for backward compatibility with v12 servers
       // (where action defaults to DISCONNECT=0 since it's unset).
       if (event.action == lk_rtc.LeaveRequest_Action.RESUME) {
-        fullReconnectOnNext = false;
+        // The server (e.g. a node migration) expects us to resume the session, so
+        // fullReconnectOnNext is deliberately left alone rather than forced to false:
+        // an escalation from an already-failed resume must not be downgraded here.
         // reconnect immediately instead of waiting for next attempt
         await handleReconnect(ClientDisconnectReason.leaveReconnect);
       } else if (event.action == lk_rtc.LeaveRequest_Action.RECONNECT || event.canReconnect) {
