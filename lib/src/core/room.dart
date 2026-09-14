@@ -507,7 +507,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         info: event.response.participant,
       );
 
-      if (engine.fullReconnectOnNext) {
+      if (engine.isFullReconnectInProgress) {
         await _localParticipant!.updateFromInfo(event.response.participant);
       }
 
@@ -522,7 +522,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
-          !engine.fullReconnectOnNext) {
+          !engine.isFullReconnectInProgress) {
         final options = engine.fastConnectOptions!;
 
         final audio = options.microphone;
@@ -651,7 +651,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
-      if (!engine.fullReconnectOnNext || event.reason == DisconnectReason.clientInitiated) {
+      // Suppress while a full reconnect is either pending or running — the
+      // engine is going to re-establish the session, this is not a real
+      // disconnect. Both flags are needed since the attempt consumes the
+      // pending one when it starts.
+      if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
+          event.reason == DisconnectReason.clientInitiated) {
         await _cleanUp(disposeLocalParticipant: false);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
