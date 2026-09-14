@@ -1,0 +1,1 @@
+patch type="fixed" "Reconnect requests are no longer dropped when one attempt is already running, and a reason that requires a full reconnect is no longer lost when a later request replaces it"

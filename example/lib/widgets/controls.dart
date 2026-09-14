@@ -272,6 +272,10 @@ class _ControlsWidgetState extends State<ControlsWidget> {
         migration: result == SimulateScenarioResult.migration ? true : null,
         serverLeave: result == SimulateScenarioResult.serverLeave ? true : null,
         switchCandidate: result == SimulateScenarioResult.switchCandidate ? true : null,
+        disconnectSignalOnResume: result == SimulateScenarioResult.disconnectSignalOnResume ? true : null,
+        disconnectSignalOnResumeNoMessages:
+            result == SimulateScenarioResult.disconnectSignalOnResumeNoMessages ? true : null,
+        leaveRequestFullReconnect: result == SimulateScenarioResult.leaveRequestFullReconnect ? true : null,
       );
     }
   }

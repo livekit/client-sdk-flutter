@@ -201,6 +201,26 @@ final $typed_data.Uint8List disconnectReasonDescriptor =
         'IVChFTSVBfVFJVTktfRkFJTFVSRRANEhYKEkNPTk5FQ1RJT05fVElNRU9VVBAOEhEKDU1FRElB'
         'X0ZBSUxVUkUQDxIPCgtBR0VOVF9FUlJPUhAQ');
 
+@$core.Deprecated('Use roomEndReasonDescriptor instead')
+const RoomEndReason$json = {
+  '1': 'RoomEndReason',
+  '2': [
+    {'1': 'ROOM_END_UNKNOWN', '2': 0},
+    {'1': 'ROOM_END_API_DELETE', '2': 1},
+    {'1': 'ROOM_END_IDLE_TIMEOUT', '2': 2},
+    {'1': 'ROOM_END_SERVER_SHUTDOWN', '2': 3},
+    {'1': 'ROOM_END_SUPERSEDED', '2': 4},
+    {'1': 'ROOM_END_OPEN_FAILED', '2': 5},
+  ],
+};
+
+/// Descriptor for `RoomEndReason`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List roomEndReasonDescriptor =
+    $convert.base64Decode('Cg1Sb29tRW5kUmVhc29uEhQKEFJPT01fRU5EX1VOS05PV04QABIXChNST09NX0VORF9BUElfRE'
+        'VMRVRFEAESGQoVUk9PTV9FTkRfSURMRV9USU1FT1VUEAISHAoYUk9PTV9FTkRfU0VSVkVSX1NI'
+        'VVRET1dOEAMSFwoTUk9PTV9FTkRfU1VQRVJTRURFRBAEEhgKFFJPT01fRU5EX09QRU5fRkFJTE'
+        'VEEAU=');
+
 @$core.Deprecated('Use reconnectReasonDescriptor instead')
 const ReconnectReason$json = {
   '1': 'ReconnectReason',

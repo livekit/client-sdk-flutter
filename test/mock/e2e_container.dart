@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
@@ -63,6 +64,7 @@ class E2EContainer {
     bool captureOutbound = false,
     ConnectOptions? connectOptions,
     @Deprecated('mirrors the deprecated Room.connect parameter') RoomOptions? roomOptions,
+    lk_models.ClientConfiguration? clientConfiguration,
   }) async {
     final connectFuture = room.connect(
       exampleUri,
@@ -71,11 +73,7 @@ class E2EContainer {
       // ignore: deprecated_member_use_from_same_package
       roomOptions: roomOptions,
     );
-    Future.delayed(const Duration(milliseconds: 1), () {
-      final resp = _buildJoinResponse(localClientProtocol);
-      wsConnector.onData(resp.writeToBuffer());
-      wsConnector.onData(offerResponse.writeToBuffer());
-    });
+    unawaited(answerJoin(localClientProtocol: localClientProtocol, clientConfiguration: clientConfiguration));
 
     await connectFuture;
 
@@ -111,20 +109,42 @@ class E2EContainer {
     }
   }
 
-  lk_rtc.SignalResponse _buildJoinResponse(int? localClientProtocol) {
-    if (localClientProtocol == null) {
+  /// Answer the signal connection the SDK just opened the way the server does
+  /// for a (re)join: a `JoinResponse` followed by the subscriber offer. Used by
+  /// [connectRoom] and by tests that drive a full reconnect.
+  Future<void> answerJoin({
+    int? localClientProtocol,
+    lk_models.ClientConfiguration? clientConfiguration,
+  }) async {
+    // Give the SDK a tick to start waiting for the join response.
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    final resp = _buildJoinResponse(localClientProtocol, clientConfiguration);
+    wsConnector.onData(resp.writeToBuffer());
+    wsConnector.onData(offerResponse.writeToBuffer());
+  }
+
+  lk_rtc.SignalResponse _buildJoinResponse(
+    int? localClientProtocol,
+    lk_models.ClientConfiguration? clientConfiguration,
+  ) {
+    if (localClientProtocol == null && clientConfiguration == null) {
       return joinResponse;
     }
-    final localInfo = localParticipantData.deepCopy()..clientProtocol = localClientProtocol;
-    return lk_rtc.SignalResponse(
-      join: lk_rtc.JoinResponse(
-        room: lk_models.Room(name: 'room_name', sid: 'room_sid'),
-        participant: localInfo,
-        subscriberPrimary: true,
-        serverVersion: '99.999',
-        serverInfo: lk_models.ServerInfo(version: '1.8.0'),
-      ),
+    final localInfo = localParticipantData.deepCopy();
+    if (localClientProtocol != null) {
+      localInfo.clientProtocol = localClientProtocol;
+    }
+    final join = lk_rtc.JoinResponse(
+      room: lk_models.Room(name: 'room_name', sid: 'room_sid'),
+      participant: localInfo,
+      subscriberPrimary: true,
+      serverVersion: '99.999',
+      serverInfo: lk_models.ServerInfo(version: '1.8.0'),
     );
+    if (clientConfiguration != null) {
+      join.clientConfiguration = clientConfiguration;
+    }
+    return lk_rtc.SignalResponse(join: join);
   }
 
   void _installOutboundCapture() {
