@@ -1196,6 +1196,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       succeeded = true;
     } catch (e) {
       _reconnectAttempts = _reconnectAttempts + 1;
+      logger.fine('attemptReconnect: ${fullReconnect ? 'full reconnect' : 'resume'} failed: $e');
       bool recoverable = true;
       if (fullReconnect || e is WebSocketException || e is MediaConnectException) {
         // a failed full reconnect stays a full reconnect; a resume that failed
