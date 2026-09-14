@@ -285,10 +285,13 @@ a=rtpmap:32 MPV/90000
   @override
   Future<bool> removeTrack(RTCRtpSender sender) async => true;
 
+  /// Last configuration applied via [setConfiguration] (set on resume, when the
+  /// server hands out new ICE servers in the `ReconnectResponse`).
+  Map<String, dynamic>? appliedConfiguration;
+
   @override
-  Future<void> setConfiguration(Map<String, dynamic> configuration) {
-    // TODO: implement setConfiguration
-    throw UnimplementedError();
+  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
+    appliedConfiguration = configuration;
   }
 
   static Future<RTCPeerConnection> create(
