@@ -1218,6 +1218,21 @@ extension RoomPrivateMethods on Room {
 
 extension RoomDebugMethods on Room {
   /// To be used for internal testing purposes only.
+  ///
+  /// Client side scenarios, no server involvement:
+  /// - [signalReconnect] drops the signal socket, the engine resumes.
+  /// - [fullReconnect] drops the signal socket with a full reconnect pending.
+  ///
+  /// Server side scenarios, forwarded as a `SimulateScenario` request. What the
+  /// server does with them depends on the deployment; the open source server
+  /// and Cloud differ for [migration] and [nodeFailure].
+  /// - [disconnectSignalOnResume] arms the server to close the signal socket
+  ///   right after answering the next resume, once its response messages have
+  ///   been sent. The socket is dropped immediately after arming so the resume
+  ///   starts, matching client-sdk-js.
+  /// - [disconnectSignalOnResumeNoMessages] is the same, but the server closes
+  ///   the socket before sending anything, for the next three resumes.
+  /// - [leaveRequestFullReconnect] makes the server send a `Leave{RECONNECT}`.
   Future<void> sendSimulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,
@@ -1227,6 +1242,9 @@ extension RoomDebugMethods on Room {
     bool? signalReconnect,
     bool? fullReconnect,
     int? subscriberBandwidth,
+    bool? disconnectSignalOnResume,
+    bool? disconnectSignalOnResumeNoMessages,
+    bool? leaveRequestFullReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
       await engine.signalClient.cleanUp();
@@ -1243,7 +1261,16 @@ extension RoomDebugMethods on Room {
       migration: migration,
       serverLeave: serverLeave,
       switchCandidate: switchCandidate,
+      subscriberBandwidth: subscriberBandwidth,
+      disconnectSignalOnResume: disconnectSignalOnResume,
+      disconnectSignalOnResumeNoMessages: disconnectSignalOnResumeNoMessages,
+      leaveRequestFullReconnect: leaveRequestFullReconnect,
     );
+    // The server only acts on the next resume, so start one now. Mirrors the
+    // post action in client-sdk-js.
+    if ((disconnectSignalOnResume ?? false) || (disconnectSignalOnResumeNoMessages ?? false)) {
+      await engine.signalClient.cleanUp();
+    }
   }
 }
 

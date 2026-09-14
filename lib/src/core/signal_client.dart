@@ -579,6 +579,10 @@ extension SignalClientRequests on SignalClient {
     bool? migration,
     bool? serverLeave,
     bool? switchCandidate,
+    int? subscriberBandwidth,
+    bool? disconnectSignalOnResume,
+    bool? disconnectSignalOnResumeNoMessages,
+    bool? leaveRequestFullReconnect,
   }) => _sendRequest(
     lk_rtc.SignalRequest(
       simulate: lk_rtc.SimulateScenario(
@@ -587,6 +591,10 @@ extension SignalClientRequests on SignalClient {
         migration: migration,
         serverLeave: serverLeave,
         switchCandidateProtocol: (switchCandidate != null && switchCandidate) ? lk_rtc.CandidateProtocol.TCP : null,
+        subscriberBandwidth: subscriberBandwidth != null ? Int64(subscriberBandwidth) : null,
+        disconnectSignalOnResume: disconnectSignalOnResume,
+        disconnectSignalOnResumeNoMessages: disconnectSignalOnResumeNoMessages,
+        leaveRequestFullReconnect: leaveRequestFullReconnect,
       ),
     ),
   );
