@@ -1064,6 +1064,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.info('onDisconnected state:${connectionState} reason:${reason.name}');
 
+    // Decide the escalation now rather than when the retry timer fires. A later
+    // request replaces the pending timer together with its reason, so a
+    // Leave{RESUME} that lands right after a peer connection failure would
+    // otherwise downgrade that failure into a resume.
+    //
+    // `leaveReconnect` is intentionally not escalated: since protocol v13 a server
+    // Leave carries an action, and `RESUME` (what the server sends for a node
+    // migration) must stay a resume. The callers that need a full reconnect
+    // (`RECONNECT` leave, connection check) set `fullReconnectOnNext` themselves.
+    if ([
+      ClientDisconnectReason.negotiationFailed,
+      ClientDisconnectReason.peerConnectionFailed,
+    ].contains(reason)) {
+      fullReconnectOnNext = true;
+    }
+
     _isReconnecting = true;
 
     if (_reconnectAttempts == 0) {
@@ -1126,15 +1142,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    // `leaveReconnect` is intentionally not escalated here: since protocol v13 a server
-    // Leave carries an action, and `RESUME` (what the server sends for a node migration)
-    // must stay a resume. The callers that need a full reconnect (`RECONNECT` leave,
-    // connection check) set `fullReconnectOnNext` themselves before handing over.
-    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED ||
-        [
-          ClientDisconnectReason.negotiationFailed,
-          ClientDisconnectReason.peerConnectionFailed,
-        ].contains(reason)) {
+    // Reason based escalation is decided in handleReconnect. The server side
+    // switch is checked here so the latest ClientConfiguration wins.
+    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
       fullReconnectOnNext = true;
     }
 
