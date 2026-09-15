@@ -15,7 +15,6 @@
 @TestOn('vm')
 library;
 
-import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -33,9 +32,8 @@ class _SpyInstrument implements ffi.TelemetryInstrument {
   void stop() => calls.add('stop');
 }
 
-/// Answers every export with 200 so shutdown drains quickly. Never awaited:
-/// the core's `next()` does not resolve `None` after shutdown (the queue owns
-/// its own sender), so the loop stays parked; see the SDK's `_serve`.
+/// Answers every export with 200 so shutdown drains quickly; ends when
+/// `finish()` lets `next()` resolve null, like the SDK's `_serve`.
 Future<void> _serve(ffi.TelemetryExportQueue queue) async {
   while (true) {
     final pending = await queue.next();
@@ -57,12 +55,15 @@ void main() {
       config: ffi.TelemetryConfig(endpoint: 'http://127.0.0.1:1/v1/logs', headers: {}, logSeverity: ffi.Severity.warn),
       instruments: [spy],
     );
-    unawaited(_serve(queue));
+    final serving = _serve(queue);
     expect(spy.calls, ['start'], reason: 'started synchronously inside telemetryConfigurePulled');
     expect(ffi.telemetryScope(), isNotNull);
 
     await ffi.telemetryShutdown();
     expect(spy.calls, ['start', 'stop'], reason: 'stopped synchronously inside telemetryShutdown');
     expect(ffi.telemetryScope(), isNull);
+
+    queue.finish();
+    await serving.timeout(const Duration(seconds: 5));
   });
 }

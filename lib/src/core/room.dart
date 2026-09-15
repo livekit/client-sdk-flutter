@@ -216,31 +216,35 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
        telemetry = RoomTelemetry.create() {
     this.engine.telemetry = telemetry;
     telemetry?.observe(this);
-    _engineListener = this.engine.createListener();
-    _setUpEngineListeners();
+    // The Room's handlers run in its telemetry zone: a warning logged from
+    // one lands in this Room's session even with no span open.
+    telemetry.run(() {
+      _engineListener = this.engine.createListener();
+      _setUpEngineListeners();
 
-    _signalListener = this.engine.signalClient.createListener();
-    _setUpSignalListeners();
+      _signalListener = this.engine.signalClient.createListener();
+      _setUpSignalListeners();
 
-    _rpcClientManager = RpcClientManager(this);
-    _rpcServerManager = RpcServerManager(this);
+      _rpcClientManager = RpcClientManager(this);
+      _rpcServerManager = RpcServerManager(this);
 
-    _pendingTrackQueue = PendingTrackQueue(
-      ttl: this.engine.connectOptions.timeouts.subscribe,
-      emitException: (event) => events.emit(event),
-    );
+      _pendingTrackQueue = PendingTrackQueue(
+        ttl: this.engine.connectOptions.timeouts.subscribe,
+        emitException: (event) => events.emit(event),
+      );
 
-    // Any event emitted will trigger ChangeNotifier
-    events.listen((event) {
-      logger.finer('[RoomEvent] $event, will notifyListeners()');
-      notifyListeners();
+      // Any event emitted will trigger ChangeNotifier
+      events.listen((event) {
+        logger.finer('[RoomEvent] $event, will notifyListeners()');
+        notifyListeners();
+      });
+      // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
+      events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
+
+      _setupRpcListeners();
+
+      _setupDataStreamListeners();
     });
-    // Keep a connected flush as a fallback in case tracks arrive pre-connected but before metadata.
-    events.on<RoomConnectedEvent>((event) => _flushPendingTracks());
-
-    _setupRpcListeners();
-
-    _setupDataStreamListeners();
 
     preConnectAudioBuffer = PreConnectAudioBuffer(this);
 

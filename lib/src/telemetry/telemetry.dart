@@ -18,7 +18,7 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'telemetry_io.dart' if (dart.library.js_interop) 'telemetry_web.dart' as impl;
-import 'telemetry_io.dart' if (dart.library.js_interop) 'telemetry_web.dart' show TraceSpan;
+import 'telemetry_io.dart' if (dart.library.js_interop) 'telemetry_web.dart' show RoomTelemetry, TraceSpan;
 
 export 'telemetry_io.dart'
     if (dart.library.js_interop) 'telemetry_web.dart'
@@ -123,11 +123,26 @@ enum ConnectStep { wsOpen, signal, joinRecv, pcCreated, offerSent, answerSent, e
 @internal
 const Symbol telemetrySpanKey = #livekitTelemetrySpan;
 
+/// Zone value key of the ambient Room: records logged from a Room's event
+/// handlers ([RoomTelemetryZone.run]) with no span land in that Room's session.
+@internal
+const Symbol telemetryRoomKey = #livekitTelemetryRoom;
+
 @internal
 extension TraceSpanZone on TraceSpan? {
   /// Run [body] with this span as the ambient one (a no-op when null).
   Future<T> run<T>(Future<T> Function() body) {
     final span = this;
     return span == null ? body() : runZoned(body, zoneValues: {telemetrySpanKey: span});
+  }
+}
+
+@internal
+extension RoomTelemetryZone on RoomTelemetry? {
+  /// Run [body] with this Room as the ambient one (a no-op when null); stream
+  /// listeners subscribed inside keep running in it.
+  T run<T>(T Function() body) {
+    final room = this;
+    return room == null ? body() : runZoned(body, zoneValues: {telemetryRoomKey: room});
   }
 }

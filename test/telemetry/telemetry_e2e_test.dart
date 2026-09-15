@@ -91,6 +91,17 @@ void main() {
     await op.run(() async => logger.warning(marker));
     op.end();
     logger.warning('$marker outside');
+    // A warning from one of the Room's own handlers, with no span open: the
+    // core files it under the Room's session.
+    ws.onData(
+      lk_rtc.SignalResponse(
+        streamStateUpdate: lk_rtc.StreamStateUpdate(
+          streamStates: [
+            lk_rtc.StreamStateInfo(participantSid: 'nobody', trackSid: 'TR_nobody', state: lk_rtc.StreamState.ACTIVE),
+          ],
+        ),
+      ).writeToBuffer(),
+    );
     room.emitTelemetryEvent('e2e.checkpoint', attributes: {'e2e.marker': marker});
 
     // A quick reconnect: the socket drops, the SDK resumes, the server answers.
@@ -179,16 +190,15 @@ void main() {
     final opSpan = spans.singleWhere((s) => s.name == 'e2e.op');
     final inSpan = logs.singleWhere((l) => l.body == marker);
     expect(inSpan.severity, greaterThanOrEqualTo(13));
-    // Span ids above 2^63 cannot be sent back by the generated bindings yet
-    // (see TraceSpan.spanId): the record then lands in the process scope.
-    if (op.spanId == null) {
-      print('e2e.op span id ${opSpan.spanId} is not representable in Dart; skipping correlation');
-    } else {
-      expect(inSpan.spanId, opSpan.spanId, reason: 'the record points at the span it was emitted in');
-      expect(inSpan.traceId, traceId, reason: '...and therefore lands in the Room\'s trace');
-      expect(inSpan.attributes['lk.room.name'], joinResponse.join.room.name, reason: 'scope attributes attached');
-      expect(inSpan.attributes['lk.participant.identity'], localParticipantData.identity);
-    }
+    expect(inSpan.spanId, opSpan.spanId, reason: 'the record points at the span it was emitted in');
+    expect(inSpan.traceId, traceId, reason: '...and therefore lands in the Room\'s trace');
+    expect(inSpan.attributes['lk.room.name'], joinResponse.join.room.name, reason: 'scope attributes attached');
+    expect(inSpan.attributes['lk.participant.identity'], localParticipantData.identity);
+    final inRoom = logs.singleWhere(
+      (l) => l.traceId == traceId && (l.body ?? '').startsWith('Participant not found for sid nobody'),
+    );
+    expect(inRoom.spanId, isEmpty, reason: 'no span open: filed under the Room\'s session directly');
+    expect(inRoom.attributes['lk.room.name'], joinResponse.join.room.name);
     final outside = logs.singleWhere((l) => l.body == '$marker outside');
     expect(outside.spanId, isEmpty);
     expect(outside.traceId, isNot(traceId), reason: 'no ambient span: the process scope');

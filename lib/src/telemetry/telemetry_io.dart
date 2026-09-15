@@ -51,10 +51,15 @@ const _ffiLoggerName = 'livekit.ffi';
 
 TelemetryOptions? _options;
 
+/// The pipeline's export queue; `finish()` ends the loop serving it.
+ffi.TelemetryExportQueue? _queue;
+
 Future<void> configure(TelemetryOptions? options) async {
   _options = options;
   if (options == null) {
     await ffi.telemetryShutdown();
+    _queue?.finish();
+    _queue = null;
     return;
   }
   _forwardFfiLogs();
@@ -87,6 +92,8 @@ Future<void> configure(TelemetryOptions? options) async {
         if (options.instruments.contains(TelemetryInstrument.logs)) _LogCapture(),
       ],
     );
+    _queue?.finish(); // the replaced pipeline's loop ends once drained
+    _queue = queue;
     unawaited(_serve(queue));
   } catch (error) {
     _log.warning('telemetry could not start: $error');
@@ -103,19 +110,25 @@ void log(LogRecord record) {
   if (options == null || !options.instruments.contains(TelemetryInstrument.logs)) return;
   if (record.level < options.logLevel || record.loggerName.startsWith(_log.fullName)) return;
   final fromCore = record.loggerName.startsWith('$_ffiLoggerName.');
-  // The zone the record was emitted in (stream listeners run in their own).
+  // The zone the record was emitted in (stream listeners run in their own):
+  // inside a span the core files the record by span id; inside a Room's
+  // handlers with no span, under that Room's session; otherwise the process.
   final span = record.zone?[telemetrySpanKey];
+  final room = record.zone?[telemetryRoomKey];
   try {
-    ffi.telemetryLog(
-      record: ffi.LogRecord(
-        severity: _severity(record.level),
-        source: fromCore ? ffi.LogSource.ffi : ffi.LogSource.sdk,
-        message: record.error == null ? record.message : '${record.message} ${record.error}',
-        logger: fromCore ? record.loggerName.substring(_ffiLoggerName.length + 1) : record.loggerName,
-        timestampNs: record.time.microsecondsSinceEpoch * 1000,
-        spanId: span is TraceSpan ? span.spanId : null,
-      ),
+    final lowered = ffi.LogRecord(
+      severity: _severity(record.level),
+      source: fromCore ? ffi.LogSource.ffi : ffi.LogSource.sdk,
+      message: record.error == null ? record.message : '${record.message} ${record.error}',
+      logger: fromCore ? record.loggerName.substring(_ffiLoggerName.length + 1) : record.loggerName,
+      timestampNs: record.time.microsecondsSinceEpoch * 1000,
+      spanId: span is TraceSpan ? span.spanId : null,
     );
+    if (span == null && room is RoomTelemetry) {
+      room._scope.log(record: lowered);
+    } else {
+      ffi.telemetryLog(record: lowered);
+    }
   } catch (error) {
     _log.fine('log record not forwarded: $error'); // never let a log line throw
   }
@@ -151,7 +164,8 @@ void telemetryCaptureFailed(LocalTrackOptions options, Object error) {
 /// The host's half of the pipeline: a dumb bytes mover. The core composed URL,
 /// headers and body and reads the collector's answer; Dart drains the core's
 /// queue from its own thread because uniffi-dart callbacks cannot be invoked
-/// from Rust threads. The loop ends when the pipeline is shut down or replaced.
+/// from Rust threads. `next()` resolves null once the queue was finished
+/// (pipeline shut down or replaced), which ends the loop.
 Future<void> _serve(ffi.TelemetryExportQueue queue) async {
   final client = http.Client();
   try {
@@ -461,13 +475,8 @@ class TraceSpan {
 
   final ffi.TelemetrySpan _span;
 
-  /// For log correlation. Null for the half of the ids the generated Dart
-  /// bindings cannot send back: `FfiConverterUInt64.read` lifts a u64 above
-  /// 2^63 as a negative int, which `lower` then rejects (bindgen defect).
-  int? get spanId {
-    final id = _span.context()?.spanId;
-    return id == null || id < 0 ? null : id;
-  }
+  /// For log correlation.
+  int? get spanId => _span.context()?.spanId;
 
   void step(ConnectStep step) => _span.step(
     step: switch (step) {
