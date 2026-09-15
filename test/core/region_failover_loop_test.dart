@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -49,11 +50,13 @@ void main() {
   late E2EContainer container;
   late int validateStatus;
   bool validateThrows = false;
+  void Function()? onValidate;
 
   setUp(() {
     validatedHosts.clear();
     validateStatus = 503;
     validateThrows = false;
+    onValidate = null;
     container = E2EContainer();
     sdkHttpClientOverride = (_) => MockClient((request) async {
       if (request.url.path == '/settings/regions') {
@@ -61,6 +64,7 @@ void main() {
       }
       if (request.url.path.endsWith('/validate')) {
         validatedHosts.add(request.url.host);
+        onValidate?.call();
         if (validateThrows) throw http.ClientException('connection refused', request.url);
         return http.Response('node error', validateStatus);
       }
@@ -74,7 +78,11 @@ void main() {
   });
 
   Future<void> answerJoinOnceConnectedTo(String host) async {
+    final deadline = DateTime.now().add(const Duration(seconds: 5));
     while (container.wsConnector.uri?.host != host || container.wsConnector.handlers == null) {
+      if (DateTime.now().isAfter(deadline)) {
+        fail('socket to $host was never opened, last attempt: ${container.wsConnector.uri}');
+      }
       await Future<void>.delayed(const Duration(milliseconds: 1));
     }
     await container.answerJoin();
@@ -123,6 +131,20 @@ void main() {
     );
 
     expect(validatedHosts, [cloudHost]);
+  });
+
+  test('disconnect during failover stops the region loop', () async {
+    container.wsConnector.connectError = const WebSocketException('Failed to connect');
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+    // the app gives up while the first attempt is being validated
+    onValidate = () => unawaited(container.room.disconnect());
+
+    await expectLater(container.room.connect(cloudUrl, token), throwsA(isA<Exception>()));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(validatedHosts, [cloudHost]);
+    expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
   });
 
   test('a failed validate request keeps the socket error and still fails over', () async {

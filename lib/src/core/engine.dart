@@ -283,10 +283,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
 
-      // during a reconnect this connect() runs inside restartConnection and
-      // attemptReconnect owns disconnect emission, emitting here as well
-      // would produce two events for one failure
-      if (emitDisconnectOnFailure && !_isReconnecting && !_attemptingReconnect) {
+      if (emitDisconnectOnFailure) {
         emitConnectFailure(error);
       }
       rethrow;
@@ -299,6 +296,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   /// disconnect and tear down the connection that follows it.
   @internal
   void emitConnectFailure(Object error) {
+    // during a reconnect this connect() runs inside restartConnection and
+    // attemptReconnect owns disconnect emission, emitting here as well
+    // would produce two events for one failure
+    if (_isReconnecting || _attemptingReconnect) {
+      return;
+    }
     events.emit(
       EngineDisconnectedEvent(
         reason: error is CertificatePinningException

@@ -374,6 +374,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           break;
         } catch (e) {
           logger.warning('could not connect to $connectUrl $e');
+          // disconnect() or dispose() during an attempt closes the engine,
+          // which ends the failover instead of moving on to the next region
+          if (engine.isClosed || isDisposed) {
+            rethrow;
+          }
           if (_regionUrlProvider == null || !canFailOverToAnotherRegion(e)) {
             rethrow;
           }
@@ -394,7 +399,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
     } catch (e) {
-      engine.emitConnectFailure(e);
+      // a client initiated close emits its own disconnect from engine.disconnect
+      if (!engine.isClosed && !isDisposed) {
+        engine.emitConnectFailure(e);
+      }
       rethrow;
     } finally {
       if (!didConnect) {
