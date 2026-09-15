@@ -114,6 +114,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
     } catch (e) {
       rethrow;
     }
+    telemetry?.recordStatsReport(this, stats, outbound: false);
 
     AudioReceiverStats? receiverStats;
     for (var v in stats) {
