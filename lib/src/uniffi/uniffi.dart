@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
+
 import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
 
 /// Facade over the Rust core exposed by the `livekit_uniffi` package.
@@ -26,6 +28,7 @@ import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
 ///
 /// Callers get [isAvailable] to branch on, and platform-specific code paths
 /// stay out of the public API surface.
+@experimental
 abstract final class LiveKitUniffi {
   /// Whether the Rust core can be called on this platform.
   ///
