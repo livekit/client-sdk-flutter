@@ -1,1 +1,0 @@
-patch type="fixed" "A resume whose signal connection drops before it completes is retried instead of being reported as reconnected"

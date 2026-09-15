@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 2.13.0
+
+* Changed: Bump libwebrtc to m150(flutter-webrtc 1.6.2), added `enableWARP` and `zeroPlayoutDelay` options to LiveKitClient.initialize
+* Changed: Bump flutter-webrtc to 1.6.2+hotfix.1, fixed crash on Linux/Windows and fix resource leak by releasing event channel on Darwin
+* Changed: Bump flutter_webrtc to 1.6.2+hotfix.3
+* Fixed: Session migration (server `Leave{action: RESUME}`) now resumes the session instead of escalating to a full reconnect, so remote participants are no longer dropped and re-added
+* Fixed: Reconnect requests are no longer dropped when one attempt is already running, and a reason that requires a full reconnect is no longer lost when a later request replaces it
+* Fixed: A resume whose signal connection drops before it completes is retried instead of being reported as reconnected
+* Fixed: Fail over to other Cloud regions when the initial connection is rejected with 403
+
 ## 2.12.0
 
 * Added: Add AudioSessionException for iOS audio session failures
