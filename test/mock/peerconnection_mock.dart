@@ -43,6 +43,66 @@ void resetMockDataChannels() {
   _dataChannels.clear();
 }
 
+/// A sender whose `getStats()` reports a growing `outbound-rtp` stream, so the
+/// SDK's stats monitor (and telemetry behind it) sees media flowing.
+class MockRtpSender extends RTCRtpSender {
+  MockRtpSender(this._track);
+
+  final MediaStreamTrack? _track;
+  int _bytesSent = 0;
+
+  @override
+  MediaStreamTrack? get track => _track;
+
+  @override
+  String get senderId => 'mock-sender';
+
+  @override
+  Future<List<StatsReport>> getStats() async {
+    _bytesSent += 4000;
+    final now = DateTime.now().millisecondsSinceEpoch.toDouble();
+    return [
+      StatsReport('OT01', 'outbound-rtp', now, {
+        'id': 'OT01',
+        'type': 'outbound-rtp',
+        'timestamp': now,
+        'bytesSent': _bytesSent,
+        'packetsSent': _bytesSent ~/ 100,
+        'codecId': 'CIT01',
+      }),
+      StatsReport('CIT01', 'codec', now, {'id': 'CIT01', 'type': 'codec', 'mimeType': 'audio/opus'}),
+    ];
+  }
+
+  @override
+  Future<void> replaceTrack(MediaStreamTrack? track) async {}
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
+class MockRtpTransceiver extends RTCRtpTransceiver {
+  MockRtpTransceiver(this.sender);
+
+  @override
+  final RTCRtpSender sender;
+
+  @override
+  String get mid => '0';
+
+  @override
+  Future<void> setCodecPreferences(List<RTCRtpCodecCapability> codecs) async {}
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
@@ -171,10 +231,7 @@ class MockPeerConnection extends RTCPeerConnection {
     MediaStreamTrack? track,
     RTCRtpMediaType? kind,
     RTCRtpTransceiverInit? init,
-  }) {
-    // TODO: implement addTransceiver
-    throw UnimplementedError();
-  }
+  }) async => MockRtpTransceiver(MockRtpSender(track));
 
   @override
   Future<void> close() async {
@@ -300,6 +357,5 @@ a=rtpmap:32 MPV/90000
   ]) async => MockPeerConnection();
 
   @override
-  // TODO: implement restartIce
-  Future<void> restartIce() => throw UnimplementedError();
+  Future<void> restartIce() async {}
 }

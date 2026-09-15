@@ -14,6 +14,63 @@
 
 import 'package:livekit_uniffi/livekit_uniffi.dart' as uniffi;
 
+// The telemetry integration (`telemetry/telemetry_io.dart`) reaches the
+// bindings through this file, so this stays the SDK's single import site.
+export 'package:livekit_uniffi/livekit_telemetry.dart'
+    show
+        AnswerSentSpanStep,
+        AppState,
+        AttemptSpanStep,
+        Attribute,
+        AttributeValue,
+        AudioOutput,
+        AudioRouteChangedDeviceEvent,
+        AudioRouteReason,
+        BoolAttributeValue,
+        CaptureDevice,
+        CaptureFailedDeviceEvent,
+        CaptureFailure,
+        ConnectSpanName,
+        CustomSpanName,
+        DeviceState,
+        DisconnectReason,
+        DoubleAttributeValue,
+        EngineSpanStep,
+        ExportResponse,
+        Instrument,
+        IntAttributeValue,
+        JoinRecvSpanStep,
+        LogRecord,
+        LogSource,
+        MemoryPressure,
+        NetworkType,
+        OfferSentSpanStep,
+        PcConnectedSpanStep,
+        PcCreatedSpanStep,
+        PublishSpanName,
+        ReconnectReason,
+        ReconnectSpanName,
+        RetryableExportException,
+        RoomConnectedSpanStep,
+        RoomIdentity,
+        RtcStat,
+        Sdk,
+        Severity,
+        SignalSpanStep,
+        SpanName,
+        SpanOutcome,
+        SpanTrack,
+        StrAttributeValue,
+        StreamDirection,
+        TelemetryConfig,
+        TelemetryInstrument,
+        TelemetryResource,
+        ThermalState,
+        TrackKind,
+        TrackSource,
+        WsOpenSpanStep;
+export 'package:livekit_uniffi/livekit_uniffi.dart';
+
 /// Native implementation of [LiveKitUniffi]. See `uniffi.dart`.
 ///
 /// This is the only file in the SDK that may import the generated bindings:

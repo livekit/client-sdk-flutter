@@ -102,3 +102,8 @@ topics:
   - video
   - livestream
   - conference
+
+# Prototype: the telemetry bindings come from a local rust-sdks build (cargo make dart-package).
+dependency_overrides:
+  livekit_uniffi:
+    path: /Users/blaze/.supacode/repos/rust-sdks/blaze/telemetry/livekit-uniffi/packages/dart

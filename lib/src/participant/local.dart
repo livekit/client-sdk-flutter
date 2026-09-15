@@ -30,6 +30,7 @@ import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart';
 import 'package:uuid/uuid.dart';
 
+import '../telemetry/telemetry.dart';
 import '../core/engine.dart';
 import '../core/room.dart';
 import '../core/signal_client.dart';
@@ -155,8 +156,20 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
-    final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
-    return result! as LocalTrackPublication<LocalAudioTrack>;
+    // One publish attempt = one `lk.publish` span, under the connect span for a pre-connect microphone.
+    final span = room.telemetry?.publish(track.kind, track.source, parent: room.connectSpan);
+    try {
+      final result = await span.run(
+        () => _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions)),
+      );
+      span
+        ?..setTrack(track.kind, track.source, sid: result!.sid)
+        ..end();
+      return result! as LocalTrackPublication<LocalAudioTrack>;
+    } catch (error) {
+      span?.fail(error);
+      rethrow;
+    }
   }
 
   Future<LocalTrackPublication<LocalAudioTrack>?> _publishAudioTrack(
@@ -271,8 +284,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
-    final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
-    return result! as LocalTrackPublication<LocalVideoTrack>;
+    final span = room.telemetry?.publish(track.kind, track.source, parent: room.connectSpan);
+    try {
+      final result = await span.run(
+        () => _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions)),
+      );
+      span
+        ?..setTrack(track.kind, track.source, sid: result!.sid)
+        ..end();
+      return result! as LocalTrackPublication<LocalVideoTrack>;
+    } catch (error) {
+      span?.fail(error);
+      rethrow;
+    }
   }
 
   Future<LocalTrackPublication<LocalVideoTrack>?> _publishVideoTrack(

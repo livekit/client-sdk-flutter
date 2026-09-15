@@ -44,6 +44,7 @@ import '../support/disposable.dart';
 import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
+import '../telemetry/telemetry.dart';
 import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -122,6 +123,39 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   @internal
   final Engine engine;
+
+  /// This Room's telemetry scope, one trace for the connection's lifetime;
+  /// null when telemetry is off. Taken at construction, so pre-connect work is
+  /// part of the trace.
+  @internal
+  final RoomTelemetry? telemetry;
+
+  // The `lk.connect` span ends once both halves are done: engine.connect
+  // returned and the join response was applied (RoomConnectedEvent).
+  TraceSpan? _connectSpan;
+  bool _roomConnected = false;
+  bool _engineConnected = false;
+
+  /// The open `lk.connect` span, the parent of a pre-connect publish.
+  @internal
+  TraceSpan? get connectSpan => _connectSpan;
+
+  /// The telemetry trace id of this Room's scope (32 hex characters), or null
+  /// when telemetry is off. Print it next to a bug report to find the session.
+  String? get telemetryTraceId => telemetry?.traceId;
+
+  /// Record an app-defined telemetry event alongside the SDK's own, in this
+  /// Room's scope. The core prefixes [name] with `custom.`; [attributes] values
+  /// are `String`, `int`, `double` or `bool`. A no-op when telemetry is off.
+  void emitTelemetryEvent(String name, {Map<String, Object> attributes = const {}}) =>
+      telemetry?.emitCustom(name, attributes);
+
+  void _endConnectSpanIfDone() {
+    if (!_roomConnected || !_engineConnected) return;
+    _connectSpan?.end();
+    _connectSpan = engine.connectSpan = null;
+  }
+
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
   //
@@ -178,8 +212,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
            Engine(
              connectOptions: connectOptions,
              roomOptions: roomOptions,
-           ) {
-    //
+           ),
+       telemetry = RoomTelemetry.create() {
+    this.engine.telemetry = telemetry;
+    telemetry?.observe(this);
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
 
@@ -272,6 +308,37 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String token, {
     ConnectOptions? connectOptions,
     @Deprecated('deprecated, please use roomOptions in Room constructor') RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
+  }) async {
+    // The core derives the Cloud ingest endpoint from the server URL when the
+    // options named none.
+    telemetrySetServer(url, token);
+    _roomConnected = _engineConnected = false;
+    final connectSpan = _connectSpan = engine.connectSpan = telemetry?.connect();
+    try {
+      await connectSpan.run(
+        () => _connect(
+          url,
+          token,
+          connectOptions: connectOptions,
+          roomOptions: roomOptions,
+          fastConnectOptions: fastConnectOptions,
+        ),
+      );
+    } catch (error) {
+      connectSpan?.fail(error);
+      _connectSpan = engine.connectSpan = null;
+      rethrow;
+    }
+    _engineConnected = true;
+    _endConnectSpanIfDone();
+  }
+
+  Future<void> _connect(
+    String url,
+    String token, {
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) async {
     var effectiveRoomOptions = roomOptions ?? this.roomOptions;
@@ -492,6 +559,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _setUpEngineListeners() => _engineListener
     ..on<EngineJoinResponseEvent>((event) async {
       _applyRoomUpdate(event.response.room);
+      telemetry?.setRoom(event.response.room, event.response.participant);
       _serverVersion = event.response.serverVersion;
       _serverRegion = event.response.serverRegion;
 
@@ -589,6 +657,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       logger.fine('Room Connect completed');
 
       events.emit(RoomConnectedEvent(room: this, metadata: _metadata));
+      _connectSpan?.step(ConnectStep.roomConnected);
+      _roomConnected = true;
+      _endConnectSpanIfDone();
     })
     ..on<EngineResumedEvent>((event) async {
       // re-send tracks permissions
@@ -656,6 +727,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
         await _cleanUp(disposeLocalParticipant: false);
+        telemetry?.disconnected(event.reason);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }

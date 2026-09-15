@@ -81,6 +81,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
     } catch (e) {
       rethrow;
     }
+    telemetry?.recordStatsReport(this, stats, outbound: false);
 
     VideoReceiverStats? receiverStats;
     for (var v in stats) {

@@ -20,6 +20,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
+import '../telemetry/telemetry.dart';
 import '../events.dart';
 import '../extensions.dart';
 import '../internal/events.dart';
@@ -48,6 +49,11 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   rtc.MediaStreamTrack? _originalTrack;
 
   String? sid;
+
+  /// The Room's telemetry scope while this track is published or subscribed:
+  /// the stats monitor forwards every raw `getStats()` report to it.
+  @internal
+  RoomTelemetry? telemetry;
   rtc.RTCRtpTransceiver? transceiver;
   String? _cid;
 
