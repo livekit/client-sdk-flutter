@@ -13,11 +13,17 @@
 // limitations under the License.
 
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import '../options.dart';
 import 'http_client/io.dart' if (dart.library.js_interop) 'http_client/web.dart' as impl;
 
-http.Client createSdkHttpClient(NetworkOptions networkOptions) => impl.createSdkHttpClient(networkOptions);
+/// Replaces the client behind [sdkHttpGet] and [sdkHttpHead] in tests.
+@visibleForTesting
+http.Client Function(NetworkOptions networkOptions)? sdkHttpClientOverride;
+
+http.Client createSdkHttpClient(NetworkOptions networkOptions) =>
+    (sdkHttpClientOverride ?? impl.createSdkHttpClient)(networkOptions);
 
 Future<http.Response> sdkHttpGet(
   Uri uri, {

@@ -21,6 +21,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCDataChannelMessage;
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/core/signal_client.dart';
+import 'package:livekit_client/src/core/transport.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../core/signal_client_test.dart';
@@ -38,14 +39,14 @@ class E2EContainer {
   /// since [connectRoom] returned. Populated only when [captureOutbound] is true.
   final List<lk_models.DataPacket> capturedDataPackets = [];
 
-  E2EContainer({RoomOptions roomOptions = const RoomOptions()}) {
+  E2EContainer({RoomOptions roomOptions = const RoomOptions(), PeerConnectionCreate? peerConnectionCreate}) {
     wsConnector = MockWebSocketConnector();
     client = SignalClient(wsConnector.connect);
     engine = Engine(
       connectOptions: const ConnectOptions(),
       roomOptions: roomOptions,
       signalClient: client,
-      peerConnectionCreate: MockPeerConnection.create,
+      peerConnectionCreate: peerConnectionCreate ?? MockPeerConnection.create,
     );
     room = Room(engine: engine);
   }

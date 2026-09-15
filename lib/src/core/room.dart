@@ -354,45 +354,67 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    // a prepared region is good for one connect, the next one starts from the
+    // given url and picks regions on its own
+    var connectUrl = _regionUrl ?? url;
+    _regionUrl = null;
     try {
-      await engine.connect(
-        _regionUrl ?? url,
-        token,
-        connectOptions: connectOptions,
-        roomOptions: effectiveRoomOptions,
-        fastConnectOptions: fastConnectOptions,
-        regionUrlProvider: _regionUrlProvider,
-      );
-      didConnect = true;
-    } catch (e) {
-      logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
-        String? nextUrl;
+      // Each attempt that fails and is retried against another region must
+      // not surface as a disconnect. The engine event is emitted once, below,
+      // after the last attempt has failed.
+      while (true) {
         try {
-          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
-        } catch (error) {
-          if (error is ConnectException && (error.statusCode == 401)) {
-            rethrow;
-          }
-        }
-        if (nextUrl != null) {
-          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
           await engine.connect(
-            nextUrl,
+            connectUrl,
             token,
             connectOptions: connectOptions,
             roomOptions: effectiveRoomOptions,
             fastConnectOptions: fastConnectOptions,
             regionUrlProvider: _regionUrlProvider,
+            emitDisconnectOnFailure: false,
           );
           didConnect = true;
-        } else {
-          rethrow;
+          break;
+        } catch (e) {
+          logger.warning('could not connect to $connectUrl $e');
+          // disconnect() or dispose() during an attempt closes the engine,
+          // which ends the failover instead of moving on to the next region
+          if (engine.isClosed || isDisposed) {
+            rethrow;
+          }
+          if (_regionUrlProvider == null || !canFailOverToAnotherRegion(e)) {
+            rethrow;
+          }
+          // drop whatever the failed attempt built before looking for the next
+          // region, so a join response that lands late hits a closed socket
+          // instead of creating peer connections or a participant for it
+          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false);
+          String? nextUrl;
+          try {
+            nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+          } catch (error) {
+            if (error is ConnectException && (error.statusCode == 401)) {
+              rethrow;
+            }
+          }
+          if (nextUrl == null) {
+            // no regions left to try, or the region list could not be fetched
+            rethrow;
+          }
+          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: $nextUrl');
+          connectUrl = nextUrl;
         }
-      } else {
-        rethrow;
       }
+    } catch (e) {
+      // the engine skips this when disconnect() already emitted for this
+      // session, otherwise this failure is what completes the teardown
+      if (!isDisposed) {
+        engine.emitConnectFailure(e);
+      }
+      rethrow;
     } finally {
+      // the next connect, or a reconnect, starts with every region available
+      _regionUrlProvider?.resetAttempts();
       if (!didConnect) {
         await NativeAudioManagement.stop();
       }
@@ -1090,7 +1112,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
+  Future<void> _cleanUp({bool disposeLocalParticipant = true, bool stopNativeAudio = true}) async {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
@@ -1118,7 +1140,9 @@ extension RoomPrivateMethods on Room {
     // clean up engine
     await engine.cleanUp();
 
-    await NativeAudioManagement.stop();
+    if (stopNativeAudio) {
+      await NativeAudioManagement.stop();
+    }
 
     // reset params
     _roomInfo = null;
