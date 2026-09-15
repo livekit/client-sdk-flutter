@@ -137,6 +137,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool _isClosed = false;
 
+  // set when an EngineDisconnectedEvent has gone out since connect() began,
+  // so a failing connect does not add a second one after disconnect() spoke
+  bool _disconnectEmitted = false;
+
   bool get isClosed => _isClosed;
 
   bool get isPendingReconnect => _reconnectStart != null && _reconnectTimeout != null;
@@ -250,6 +254,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     //reset state
     _isClosed = false;
+    _disconnectEmitted = false;
 
     try {
       // wait for socket to connect rtc server
@@ -298,17 +303,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void emitConnectFailure(Object error) {
     // during a reconnect this connect() runs inside restartConnection and
     // attemptReconnect owns disconnect emission, emitting here as well
-    // would produce two events for one failure
-    if (_isReconnecting || _attemptingReconnect) {
+    // would produce two events for one failure. Likewise when disconnect()
+    // already emitted for this session.
+    if (_isReconnecting || _attemptingReconnect || _disconnectEmitted) {
       return;
     }
-    events.emit(
-      EngineDisconnectedEvent(
-        reason: error is CertificatePinningException
-            ? DisconnectReason.signalingConnectionFailure
-            : DisconnectReason.joinFailure,
-      ),
+    _emitDisconnected(
+      error is CertificatePinningException ? DisconnectReason.signalingConnectionFailure : DisconnectReason.joinFailure,
     );
+  }
+
+  void _emitDisconnected(DisconnectReason reason) {
+    _disconnectEmitted = true;
+    events.emit(EngineDisconnectedEvent(reason: reason));
   }
 
   // resets internal state to a re-usable state
@@ -1114,11 +1121,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _isClosed = true;
       await cleanUp();
 
-      events.emit(
-        EngineDisconnectedEvent(
-          reason: DisconnectReason.reconnectAttemptsExceeded,
-        ),
-      );
+      _emitDisconnected(DisconnectReason.reconnectAttemptsExceeded);
       return;
     }
 
@@ -1231,12 +1234,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         // drops the event while fullReconnectOnNext is still true and
         // cleanUp() is what resets it
         await cleanUp();
-        events.emit(
-          EngineDisconnectedEvent(
-            reason: e is CertificatePinningException
-                ? DisconnectReason.signalingConnectionFailure
-                : DisconnectReason.disconnected,
-          ),
+        _emitDisconnected(
+          e is CertificatePinningException
+              ? DisconnectReason.signalingConnectionFailure
+              : DisconnectReason.disconnected,
         );
       }
     } finally {
@@ -1644,7 +1645,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _clearPendingReconnect();
       }
       await cleanUp();
-      events.emit(EngineDisconnectedEvent(reason: reason));
+      _emitDisconnected(reason);
     }
   }
 

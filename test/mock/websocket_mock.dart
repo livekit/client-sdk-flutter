@@ -22,6 +22,7 @@ class MockWebSocket extends LiveKitWebSocket {
 
 class MockWebSocketConnector {
   WebSocketEventHandlers? handlers;
+  MockWebSocket? socket;
   Uri? uri;
   Map<String, String>? headers;
   NetworkOptions? networkOptions;
@@ -30,7 +31,12 @@ class MockWebSocketConnector {
   /// Per-attempt failure. Takes precedence over [connectError] when it returns non-null.
   Object? Function(Uri uri)? connectErrorFor;
 
-  WebSocketOnData get onData => handlers!.onData!;
+  /// Delivers data as the server would. A socket the SDK has disposed drops
+  /// it, matching the real socket implementations.
+  WebSocketOnData get onData => (dynamic data) {
+    if (socket?.isDisposed ?? true) return;
+    handlers!.onData!(data);
+  };
 
   WebSocketOnDispose get onDispose => handlers!.onDispose!;
 
@@ -52,6 +58,6 @@ class MockWebSocketConnector {
     }
 
     handlers = options;
-    return MockWebSocket();
+    return socket = MockWebSocket();
   }
 }

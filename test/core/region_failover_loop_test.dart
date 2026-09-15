@@ -211,9 +211,9 @@ void main() {
     expect(validatedHosts, [cloudHost, ...regionHosts]);
   });
 
-  test('peer connections built by a late join response are disposed before the next region', () async {
-    // The first attempt's join response lands after the connect deadline, so
-    // transports get created for an attempt that has already been given up on.
+  test('a join response that lands after the attempt timed out is ignored', () async {
+    // The first attempt's socket is closed as soon as the attempt fails, so a
+    // late join response cannot create transports or a participant for it.
     // A slow region lookup keeps the loop parked while that happens.
     regionsDelay = const Duration(milliseconds: 300);
     var creates = 0;
@@ -246,26 +246,58 @@ void main() {
         .connect(cloudUrl, token, connectOptions: const ConnectOptions(timeouts: shortTimeouts))
         .then<Object?>((_) => null, onError: (Object e) => e);
 
+    final connectedEvents = <RoomConnectedEvent>[];
+    counting.room.events.on<RoomConnectedEvent>(connectedEvents.add);
+
     await waitForSocket(cloudHost);
     await Future<void>.delayed(const Duration(milliseconds: 250));
+    // the attempt has timed out and its socket is closed, the late join goes nowhere
     await counting.answerJoin();
-    final deadline = DateTime.now().add(const Duration(seconds: 2));
-    while (counting.engine.publisher == null) {
-      if (DateTime.now().isAfter(deadline)) fail('late join never created the first publisher');
-      await Future<void>.delayed(const Duration(milliseconds: 1));
-    }
-    final firstPublisher = counting.engine.publisher;
-    expect(creates, 2);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    expect(creates, 0, reason: 'a join for an abandoned attempt must not create transports');
+    expect(counting.engine.publisher, isNull);
 
     await waitForSocket(regionHosts[0]);
-    expect(counting.engine.publisher, isNull, reason: 'transports from the failed attempt must be disposed');
     await counting.answerJoin();
     expect(await connectOutcome, isNull);
 
     expect(counting.room.connectionState, ConnectionState.connected);
-    expect(counting.engine.publisher, isNot(same(firstPublisher)));
+    expect(counting.engine.publisher, isNotNull);
     expect(counting.engine.subscriber, isNotNull);
-    expect(creates, 4);
+    expect(creates, 2);
+    expect(connectedEvents, hasLength(1));
+  });
+
+  test('disconnect during a stalled join completes even if the server closes the socket without a leave', () async {
+    const shortTimeouts = Timeouts(
+      connection: Duration(milliseconds: 200),
+      debounce: Duration(milliseconds: 1),
+      publish: Duration(milliseconds: 200),
+      subscribe: Duration(milliseconds: 200),
+      peerConnection: Duration(milliseconds: 200),
+      iceRestart: Duration(milliseconds: 200),
+    );
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    final connectOutcome = container.room
+        .connect(cloudUrl, token, connectOptions: const ConnectOptions(timeouts: shortTimeouts))
+        .then<Object?>((_) => null, onError: (Object e) => e);
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (container.room.connectionState != ConnectionState.connected) {
+      if (DateTime.now().isAfter(deadline)) fail('signal socket never opened');
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+    }
+
+    final disconnectFuture = container.room.disconnect();
+    // the server drops the socket instead of answering the leave
+    container.wsConnector.onDispose();
+    await disconnectFuture.timeout(const Duration(seconds: 3));
+    expect(await connectOutcome, isA<ConnectException>());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(disconnectedEvents, hasLength(1));
   });
 
   test('a failed validate request keeps the socket error and still fails over', () async {

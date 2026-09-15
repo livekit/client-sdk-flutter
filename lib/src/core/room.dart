@@ -385,6 +385,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           if (_regionUrlProvider == null || !canFailOverToAnotherRegion(e)) {
             rethrow;
           }
+          // drop whatever the failed attempt built before looking for the next
+          // region, so a join response that lands late hits a closed socket
+          // instead of creating peer connections or a participant for it
+          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false);
           String? nextUrl;
           try {
             nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -398,18 +402,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             rethrow;
           }
           logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: $nextUrl');
-          // drop whatever the failed attempt built, a join that arrived late
-          // may have created peer connections for the wrong region
-          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false);
           connectUrl = nextUrl;
         }
       }
     } catch (e) {
-      // engine.disconnect() emits its own event when it could tear down right
-      // away. If it is still waiting on the server, or nothing closed the
-      // engine, this failure is what completes the teardown.
-      final closedAndTornDown = engine.isClosed && engine.connectionState == ConnectionState.disconnected;
-      if (!closedAndTornDown && !isDisposed) {
+      // the engine skips this when disconnect() already emitted for this
+      // session, otherwise this failure is what completes the teardown
+      if (!isDisposed) {
         engine.emitConnectFailure(e);
       }
       rethrow;
