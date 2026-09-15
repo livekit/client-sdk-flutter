@@ -399,12 +399,17 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
     } catch (e) {
-      // a client initiated close emits its own disconnect from engine.disconnect
-      if (!engine.isClosed && !isDisposed) {
+      // engine.disconnect() emits its own event when it could tear down right
+      // away. If it is still waiting on the server, or nothing closed the
+      // engine, this failure is what completes the teardown.
+      final closedAndTornDown = engine.isClosed && engine.connectionState == ConnectionState.disconnected;
+      if (!closedAndTornDown && !isDisposed) {
         engine.emitConnectFailure(e);
       }
       rethrow;
     } finally {
+      // the next connect, or a reconnect, starts with every region available
+      _regionUrlProvider?.resetAttempts();
       if (!didConnect) {
         await NativeAudioManagement.stop();
       }

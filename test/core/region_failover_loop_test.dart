@@ -19,8 +19,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'package:livekit_client/src/constants.dart';
 import 'package:livekit_client/src/events.dart';
 import 'package:livekit_client/src/exceptions.dart';
+import 'package:livekit_client/src/options.dart';
 import 'package:livekit_client/src/support/http_client.dart';
 import 'package:livekit_client/src/support/websocket.dart' show WebSocketException;
 import 'package:livekit_client/src/types/other.dart';
@@ -145,6 +147,48 @@ void main() {
 
     expect(validatedHosts, [cloudHost]);
     expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+  });
+
+  test('a later connect on the same room has every region available again', () async {
+    container.wsConnector.connectError = const WebSocketException('Failed to connect');
+
+    await expectLater(container.room.connect(cloudUrl, token), throwsA(isA<ConnectException>()));
+    expect(validatedHosts, [cloudHost, ...regionHosts]);
+
+    validatedHosts.clear();
+    await expectLater(container.room.connect(cloudUrl, token), throwsA(isA<ConnectException>()));
+    expect(validatedHosts, [cloudHost, ...regionHosts]);
+  });
+
+  test('disconnect while the join is stalled completes the teardown', () async {
+    // the socket opens but the server never answers the join
+    const shortTimeouts = Timeouts(
+      connection: Duration(milliseconds: 200),
+      debounce: Duration(milliseconds: 1),
+      publish: Duration(milliseconds: 200),
+      subscribe: Duration(milliseconds: 200),
+      peerConnection: Duration(milliseconds: 200),
+      iceRestart: Duration(milliseconds: 200),
+    );
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    // capture the outcome now, the failure lands while disconnect() is awaited
+    final connectOutcome = container.room
+        .connect(cloudUrl, token, connectOptions: const ConnectOptions(timeouts: shortTimeouts))
+        .then<Object?>((_) => null, onError: (Object e) => e);
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (container.room.connectionState != ConnectionState.connected) {
+      if (DateTime.now().isAfter(deadline)) fail('signal socket never opened');
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+    }
+
+    await container.room.disconnect().timeout(const Duration(seconds: 3));
+    expect(await connectOutcome, isA<ConnectException>());
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(disconnectedEvents, hasLength(1));
   });
 
   test('a failed validate request keeps the socket error and still fails over', () async {
