@@ -184,6 +184,10 @@ class Transport extends Disposable {
     logger.fine('starting to negotiate');
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
 
+    if ((offer.sdp ?? '').contains('goog-sped-v1')) {
+      logger.fine('negotiate with sped (WARP)');
+    }
+
     final sdpParsed = sdp_transform.parse(offer.sdp ?? '');
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {
