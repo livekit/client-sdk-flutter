@@ -137,6 +137,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool _isClosed = false;
 
+  // Reason of a disconnect() that has sent its Leave and is waiting for the
+  // server to answer. Non-null only during that window.
+  DisconnectReason? _pendingDisconnect;
+
   bool get isClosed => _isClosed;
 
   bool get isPendingReconnect => _reconnectStart != null && _reconnectTimeout != null;
@@ -249,6 +253,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     //reset state
     _isClosed = false;
+    _pendingDisconnect = null;
 
     try {
       // wait for socket to connect rtc server
@@ -1512,11 +1517,24 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
-        await handleReconnect(
-          ClientDisconnectReason.signal,
-          reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED,
-        );
+      if (event.reason == DisconnectReason.disconnected) {
+        if (!_isClosed) {
+          await handleReconnect(
+            ClientDisconnectReason.signal,
+            reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED,
+          );
+        } else if (_pendingDisconnect != null) {
+          // disconnect() sent its Leave and the server closed the socket
+          // without echoing it. Media nodes drop queued leave messages on
+          // close, so the close itself is how this disconnect completes.
+          // Otherwise Room.disconnect() waits out its timeout for an event
+          // that never comes.
+          final reason = _pendingDisconnect!;
+          _pendingDisconnect = null;
+          logger.fine('signal closed during disconnect, completing without the leave echo');
+          await cleanUp();
+          events.emit(EngineDisconnectedEvent(reason: reason));
+        }
       }
       // signalingConnectionFailure is intentionally not relayed as
       // EngineDisconnectedEvent here. The signal client emits it while the
@@ -1622,6 +1640,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _isClosed = true;
     events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
+      // the server answers with a Leave, whose handler calls back into
+      // disconnect() on the path below and emits the event
+      _pendingDisconnect = reason;
       await signalClient.sendLeave();
     } else {
       if (isPendingReconnect) {
@@ -1630,6 +1651,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _signalListener.cancelAll();
         _clearPendingReconnect();
       }
+      _pendingDisconnect = null;
       await cleanUp();
       events.emit(EngineDisconnectedEvent(reason: reason));
     }
