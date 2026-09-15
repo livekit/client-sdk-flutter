@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
@@ -26,6 +27,10 @@ void main() async {
   /// await LiveKitClient.initialize(
   ///  bypassVoiceProcessing: lkPlatformIsMobile(),
   /// );
+  await LiveKitClient.initialize(
+    zeroPlayoutDelay: true,
+    enableWARP: true,
+  );
   runApp(const LiveKitExampleApp());
 }
 

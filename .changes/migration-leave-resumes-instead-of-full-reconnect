@@ -1,0 +1,1 @@
+patch type="fixed" "Session migration (server `Leave{action: RESUME}`) now resumes the session instead of escalating to a full reconnect, so remote participants are no longer dropped and re-added"

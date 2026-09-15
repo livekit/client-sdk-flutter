@@ -1314,6 +1314,14 @@ const SyncState$json = {
       '6': '.livekit.PublishDataTrackResponse',
       '10': 'publishDataTracks'
     },
+    {
+      '1': 'data_subscription',
+      '3': 9,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.UpdateDataSubscription',
+      '10': 'dataSubscription'
+    },
   ],
 };
 
@@ -1328,7 +1336,9 @@ final $typed_data.Uint8List syncStateDescriptor =
         'YWJsZWQYBiADKAlSEXRyYWNrU2lkc0Rpc2FibGVkEl4KGmRhdGFjaGFubmVsX3JlY2VpdmVfc3'
         'RhdGVzGAcgAygLMiAubGl2ZWtpdC5EYXRhQ2hhbm5lbFJlY2VpdmVTdGF0ZVIYZGF0YWNoYW5u'
         'ZWxSZWNlaXZlU3RhdGVzElEKE3B1Ymxpc2hfZGF0YV90cmFja3MYCCADKAsyIS5saXZla2l0Ll'
-        'B1Ymxpc2hEYXRhVHJhY2tSZXNwb25zZVIRcHVibGlzaERhdGFUcmFja3M=');
+        'B1Ymxpc2hEYXRhVHJhY2tSZXNwb25zZVIRcHVibGlzaERhdGFUcmFja3MSTAoRZGF0YV9zdWJz'
+        'Y3JpcHRpb24YCSABKAsyHy5saXZla2l0LlVwZGF0ZURhdGFTdWJzY3JpcHRpb25SEGRhdGFTdW'
+        'JzY3JpcHRpb24=');
 
 @$core.Deprecated('Use dataChannelReceiveStateDescriptor instead')
 const DataChannelReceiveState$json = {
