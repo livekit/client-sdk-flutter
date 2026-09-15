@@ -1,1 +1,0 @@
-patch type="fixed" "Fail over to other Cloud regions when the initial connection is rejected with 403"
