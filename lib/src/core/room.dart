@@ -354,7 +354,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    // a prepared region is good for one connect, the next one starts from the
+    // given url and picks regions on its own
     var connectUrl = _regionUrl ?? url;
+    _regionUrl = null;
     try {
       // Each attempt that fails and is retried against another region must
       // not surface as a disconnect. The engine event is emitted once, below,
@@ -395,6 +398,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
             rethrow;
           }
           logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: $nextUrl');
+          // drop whatever the failed attempt built, a join that arrived late
+          // may have created peer connections for the wrong region
+          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false);
           connectUrl = nextUrl;
         }
       }
@@ -1107,7 +1113,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
+  Future<void> _cleanUp({bool disposeLocalParticipant = true, bool stopNativeAudio = true}) async {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
@@ -1135,7 +1141,9 @@ extension RoomPrivateMethods on Room {
     // clean up engine
     await engine.cleanUp();
 
-    await NativeAudioManagement.stop();
+    if (stopNativeAudio) {
+      await NativeAudioManagement.stop();
+    }
 
     // reset params
     _roomInfo = null;

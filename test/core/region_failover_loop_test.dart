@@ -16,6 +16,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCPeerConnection;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
@@ -27,6 +28,7 @@ import 'package:livekit_client/src/support/http_client.dart';
 import 'package:livekit_client/src/support/websocket.dart' show WebSocketException;
 import 'package:livekit_client/src/types/other.dart';
 import '../mock/e2e_container.dart';
+import '../mock/peerconnection_mock.dart';
 
 const token = 'token';
 const cloudHost = 'project.livekit.cloud';
@@ -53,15 +55,21 @@ void main() {
   late int validateStatus;
   bool validateThrows = false;
   void Function()? onValidate;
+  Duration? regionsDelay;
 
   setUp(() {
     validatedHosts.clear();
     validateStatus = 503;
     validateThrows = false;
     onValidate = null;
+    regionsDelay = null;
     container = E2EContainer();
     sdkHttpClientOverride = (_) => MockClient((request) async {
+      if (request.method == 'HEAD') {
+        return http.Response('', 200);
+      }
       if (request.url.path == '/settings/regions') {
+        if (regionsDelay != null) await Future<void>.delayed(regionsDelay!);
         return http.Response(regionsJson(), 200);
       }
       if (request.url.path.endsWith('/validate')) {
@@ -189,6 +197,76 @@ void main() {
 
     expect(container.room.connectionState, ConnectionState.disconnected);
     expect(disconnectedEvents, hasLength(1));
+  });
+
+  test('a prepared region is used once and is not picked again as the next region', () async {
+    container.wsConnector.connectError = const WebSocketException('Failed to connect');
+    await container.room.prepareConnection(cloudUrl, token);
+
+    await expectLater(container.room.connect(cloudUrl, token), throwsA(isA<ConnectException>()));
+    // the prepared region is the first attempt, the others follow once each
+    expect(validatedHosts, regionHosts);
+
+    validatedHosts.clear();
+    await expectLater(container.room.connect(cloudUrl, token), throwsA(isA<ConnectException>()));
+    expect(validatedHosts, [cloudHost, ...regionHosts]);
+  });
+
+  test('peer connections built by a late join response are disposed before the next region', () async {
+    // The first attempt's join response lands after the connect deadline, so
+    // transports get created for an attempt that has already been given up on.
+    // A slow region lookup keeps the loop parked while that happens.
+    regionsDelay = const Duration(milliseconds: 300);
+    var creates = 0;
+    final counting = E2EContainer(
+      peerConnectionCreate: (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async {
+        creates++;
+        return MockPeerConnection();
+      },
+    );
+    addTearDown(counting.dispose);
+    const shortTimeouts = Timeouts(
+      connection: Duration(milliseconds: 200),
+      debounce: Duration(milliseconds: 1),
+      publish: Duration(milliseconds: 200),
+      subscribe: Duration(milliseconds: 200),
+      peerConnection: Duration(milliseconds: 200),
+      iceRestart: Duration(milliseconds: 200),
+    );
+
+    Future<void> waitForSocket(String host) async {
+      final deadline = DateTime.now().add(const Duration(seconds: 5));
+      while (counting.wsConnector.uri?.host != host || counting.wsConnector.handlers == null) {
+        if (DateTime.now().isAfter(deadline)) fail('socket to $host was never opened');
+        await Future<void>.delayed(const Duration(milliseconds: 1));
+      }
+    }
+
+    // capture the outcome now, a failure would otherwise surface as an unhandled error while polling
+    final connectOutcome = counting.room
+        .connect(cloudUrl, token, connectOptions: const ConnectOptions(timeouts: shortTimeouts))
+        .then<Object?>((_) => null, onError: (Object e) => e);
+
+    await waitForSocket(cloudHost);
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    await counting.answerJoin();
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (counting.engine.publisher == null) {
+      if (DateTime.now().isAfter(deadline)) fail('late join never created the first publisher');
+      await Future<void>.delayed(const Duration(milliseconds: 1));
+    }
+    final firstPublisher = counting.engine.publisher;
+    expect(creates, 2);
+
+    await waitForSocket(regionHosts[0]);
+    expect(counting.engine.publisher, isNull, reason: 'transports from the failed attempt must be disposed');
+    await counting.answerJoin();
+    expect(await connectOutcome, isNull);
+
+    expect(counting.room.connectionState, ConnectionState.connected);
+    expect(counting.engine.publisher, isNot(same(firstPublisher)));
+    expect(counting.engine.subscriber, isNotNull);
+    expect(creates, 4);
   });
 
   test('a failed validate request keeps the socket error and still fails over', () async {
