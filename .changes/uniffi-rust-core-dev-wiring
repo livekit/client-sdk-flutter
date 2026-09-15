@@ -1,0 +1,1 @@
+patch type="added" "Wire in the livekit_uniffi Rust core behind a native-only facade, delivered as a bundled cdylib via Native Assets"
