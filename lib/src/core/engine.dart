@@ -114,7 +114,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
 
+  /// A *pending* full-reconnect request. Consumed at the start of each
+  /// reconnect attempt, so it is false while an attempt runs unless a new
+  /// request arrived mid-attempt — use [isFullReconnectInProgress] to ask
+  /// what the running attempt is doing.
   bool fullReconnectOnNext = false;
+
+  bool _attemptIsFullReconnect = false;
+
+  /// Whether the reconnect attempt currently running is a full reconnect
+  /// (as opposed to a resume). False when no attempt is in flight.
+  bool get isFullReconnectInProgress => _attemptIsFullReconnect;
 
   // server-provided ice servers
   List<RTCIceServer> _serverProvidedIceServers = [];
@@ -1148,6 +1158,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       fullReconnectOnNext = true;
     }
 
+    // Consume the flag up front: this attempt's mode is now fixed, and from
+    // here a `true` value unambiguously means a *new* full-reconnect request
+    // arrived while we were running (e.g. a server RECONNECT leave during a
+    // resume), which the finally block dispatches. Mirrors client-sdk-js.
+    final fullReconnect = fullReconnectOnNext;
+    fullReconnectOnNext = false;
+    _attemptIsFullReconnect = fullReconnect;
+
+    var succeeded = false;
     try {
       _attemptingReconnect = true;
 
@@ -1163,7 +1182,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
 
-      if (fullReconnectOnNext) {
+      if (fullReconnect) {
         await restartConnection();
       } else {
         await resumeConnection(
@@ -1174,11 +1193,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _clearPendingReconnect();
       _attemptingReconnect = false;
       _isReconnecting = false;
+      succeeded = true;
     } catch (e) {
       _reconnectAttempts = _reconnectAttempts + 1;
+      logger.fine('attemptReconnect: ${fullReconnect ? 'full reconnect' : 'resume'} failed: $e');
       bool recoverable = true;
-      if (e is WebSocketException || e is MediaConnectException) {
-        // cannot resume connection, need to do full reconnect
+      if (fullReconnect || e is WebSocketException || e is MediaConnectException) {
+        // a failed full reconnect stays a full reconnect; a resume that failed
+        // at the transport or media layer cannot be resumed again
         fullReconnectOnNext = true;
       }
 
@@ -1206,6 +1228,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     } finally {
       _attemptingReconnect = false;
+      _attemptIsFullReconnect = false;
+
+      // A full reconnect requested while this attempt was running that a
+      // successful attempt didn't act on — dispatch it now. The failure path
+      // already retries, so only the success path needs this.
+      if (succeeded && fullReconnectOnNext && !_isClosed) {
+        logger.fine('attemptReconnect: full reconnect requested mid-attempt, dispatching');
+        unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
+      }
     }
   }
 
@@ -1264,6 +1295,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
+    // The socket can drop while the peer connections were being restored. A
+    // resume that ends with a dead signal connection is a failure, not a
+    // success: throwing here lets the retry path run another resume instead of
+    // reporting the room as reconnected and cancelling the pending request.
+    // Mirrors the re-check in client-sdk-js and rust-sdks.
+    if (signalClient.connectionState != ConnectionState.connected) {
+      throw ConnectException(
+        'resumeConnection: signal connection severed during resume',
+        reason: ConnectionErrorReason.InternalError,
+      );
+    }
+
     _isReconnecting = false;
     events.emit(const EngineResumedEvent());
   }
@@ -1311,7 +1354,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await ensurePublisherConnected();
       }
 
-      fullReconnectOnNext = false;
+      // fullReconnectOnNext is not cleared here. attemptReconnect consumed the
+      // request that started this restart, so a true value at this point is a
+      // new request (e.g. a RECONNECT leave from the node we just joined) that
+      // the finally block in attemptReconnect dispatches once we return.
       _regionUrlProvider?.resetAttempts();
       events.emit(const EngineRestartedEvent());
     } catch (error) {
@@ -1449,7 +1495,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectedEvent>((event) async {
       logger.fine('Signal connected');
-      _reconnectAttempts = 0;
+      // The attempt counter is not reset here. A resume opens its socket before
+      // the peer connections are restored, so a reset on socket connect would
+      // let an attempt that fails afterwards start again from zero and never
+      // reach the retry limit. _clearPendingReconnect resets it once an attempt
+      // has fully succeeded, and cleanUp on disconnect.
       events.emit(const EngineConnectedEvent());
     })
     ..on<SignalConnectingEvent>((event) async {
