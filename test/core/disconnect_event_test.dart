@@ -19,6 +19,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
+import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
 import 'package:livekit_client/src/types/internal.dart';
 import '../mock/e2e_container.dart';
@@ -114,5 +116,48 @@ void main() {
     expect(engineDisconnectedEvents.single.reason, DisconnectReason.signalingConnectionFailure);
     expect(roomDisconnectedEvents, hasLength(1));
     expect(roomDisconnectedEvents.single.reason, DisconnectReason.signalingConnectionFailure);
+  });
+
+  test('disconnect completes when the server closes the socket without echoing the leave', () async {
+    await container.connectRoom();
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    final disconnecting = container.room.disconnect();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    // media nodes drop queued leave messages on close, so only the close arrives
+    container.wsConnector.onDispose();
+
+    await disconnecting.timeout(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+  });
+
+  test('disconnect with a leave echo followed by the socket close emits exactly one disconnected event', () async {
+    await container.connectRoom();
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    final disconnecting = container.room.disconnect();
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    container.wsConnector.onData(
+      lk_rtc.SignalResponse(
+        leave: lk_rtc.LeaveRequest(
+          action: lk_rtc.LeaveRequest_Action.DISCONNECT,
+          reason: lk_models.DisconnectReason.CLIENT_INITIATED,
+        ),
+      ).writeToBuffer(),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    // the real socket reports its close after the SDK disposed it
+    container.wsConnector.onDispose();
+
+    await disconnecting.timeout(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(disconnectedEvents, hasLength(1));
   });
 }
