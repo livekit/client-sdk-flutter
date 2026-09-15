@@ -1,1 +1,1 @@
-patch type="fixed" "disconnect() completes when the server closes the signal connection without echoing the leave, instead of timing out after 10 s"
+patch type="fixed" "disconnect() tears the room down locally after sending the Leave instead of waiting for the server to echo it, so it no longer stalls 10 s when the echo is lost"

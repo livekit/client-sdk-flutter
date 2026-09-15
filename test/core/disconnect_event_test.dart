@@ -160,4 +160,40 @@ void main() {
     expect(container.room.connectionState, ConnectionState.disconnected);
     expect(disconnectedEvents, hasLength(1));
   });
+
+  test('disconnect returns with the room torn down, without waiting on the server', () async {
+    await container.connectRoom();
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    // no leave echo, no socket close from the server, nothing at all
+    await container.room.disconnect().timeout(const Duration(seconds: 2));
+
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(container.engine.publisher, isNull);
+    expect(container.engine.subscriber, isNull);
+    expect(container.room.localParticipant, isNull);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+  });
+
+  test('connect again to the same room right after disconnect returns', () async {
+    // the case behind issue 553: cleanup from the first session racing the second connect
+    await container.connectRoom();
+    await container.room.disconnect();
+
+    final events = <RoomEvent>[];
+    container.room.events.on<RoomConnectedEvent>(events.add);
+    container.room.events.on<RoomDisconnectedEvent>(events.add);
+    await container.connectRoom();
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.connected);
+    expect(container.room.localParticipant, isNotNull);
+    expect(events.whereType<RoomDisconnectedEvent>(), isEmpty, reason: 'no stale disconnect from the first session');
+    expect(events.whereType<RoomConnectedEvent>(), hasLength(1));
+
+    await container.room.disconnect().timeout(const Duration(seconds: 2));
+    expect(container.room.connectionState, ConnectionState.disconnected);
+  });
 }
