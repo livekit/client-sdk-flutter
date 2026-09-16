@@ -1256,12 +1256,12 @@ extension RoomDebugMethods on Room {
     bool? leaveRequestFullReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     if (fullReconnect != null && fullReconnect) {
       engine.fullReconnectOnNext = true;
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     engine.signalClient.sendSimulateScenario(
