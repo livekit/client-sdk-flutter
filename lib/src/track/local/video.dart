@@ -126,6 +126,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
     }
 
     final stats = await sender!.getStats();
+    telemetry?.recordStatsReport(this, stats, outbound: true);
     final List<VideoSenderStats> items = [];
     for (var v in stats) {
       if (v.type == 'outbound-rtp') {
