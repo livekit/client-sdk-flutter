@@ -124,6 +124,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
+
+  // true while disconnect() is tearing the room down itself
+  bool _disconnecting = false;
   //
   late EventsListener<SignalEvent> _signalListener;
 
@@ -655,7 +658,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // pending one when it starts.
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
-        await _cleanUp(disposeLocalParticipant: false);
+        // disconnect() owns the teardown for the disconnect it started, so a
+        // connect() right after it returns cannot race this handler
+        if (!_disconnecting) {
+          await _cleanUp(disposeLocalParticipant: false);
+        }
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -761,17 +768,21 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
 
   /// Disconnects from the room, notifying server of disconnection.
+  /// Leaves the room. Returns once the engine and the room are torn down, so
+  /// connect() may be called again immediately. Nothing here waits on the
+  /// server, the Leave request is best effort.
   Future<void> disconnect() async {
-    final bool isPendingReconnect = engine.isPendingReconnect;
-    if (engine.isClosed && !isPendingReconnect && engine.connectionState == ConnectionState.disconnected) {
+    if (engine.isClosed && !engine.isPendingReconnect && engine.connectionState == ConnectionState.disconnected) {
       logger.warning('Engine is already closed');
       return;
     }
-    await engine.disconnect();
-    if (!isPendingReconnect) {
-      await _engineListener.waitFor<EngineDisconnectedEvent>(duration: const Duration(seconds: 10));
+    _disconnecting = true;
+    try {
+      await engine.disconnect();
+      await _cleanUp();
+    } finally {
+      _disconnecting = false;
     }
-    await _cleanUp();
   }
 
   Future<void> setE2EEEnabled(bool enabled) async {
