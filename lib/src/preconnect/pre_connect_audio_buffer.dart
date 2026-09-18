@@ -15,7 +15,6 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-
 import 'package:uuid/uuid.dart';
 
 import '../audio/audio_frame_capture.dart';
