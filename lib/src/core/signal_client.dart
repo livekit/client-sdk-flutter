@@ -207,17 +207,26 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           networkOptions: roomOptions.networkOptions,
         );
         if (validateResponse.statusCode != 200) {
+          final status = validateResponse.statusCode;
           finalError = ConnectException(
             validateResponse.body,
-            reason: validateResponse.statusCode >= 400
+            // A 4xx is a verdict on this token or request and no other region
+            // will answer differently. A 5xx describes the node that answered,
+            // so it stays retryable for region failover.
+            reason: status >= 400 && status < 500
                 ? ConnectionErrorReason.NotAllowed
                 : ConnectionErrorReason.InternalError,
-            statusCode: validateResponse.statusCode,
+            statusCode: status,
           );
         }
       } catch (error) {
-        if (socketError.runtimeType != error.runtimeType) {
+        if (error is CertificatePinningException) {
           finalError = error;
+        } else {
+          // The validate request itself failed, so the region is most likely
+          // unreachable. Keep the socket error, which region failover accepts,
+          // rather than a transport error that would end the connect.
+          logger.warning('validate request failed: $error');
         }
       } finally {
         events.emit(SignalDisconnectedEvent(reason: DisconnectReason.signalingConnectionFailure));

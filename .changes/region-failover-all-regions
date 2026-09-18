@@ -1,0 +1,1 @@
+patch type="fixed" "Initial connect on Cloud now tries every available region instead of one, and a 5xx or failed validate response no longer blocks region failover"
