@@ -18,12 +18,13 @@ import 'package:meta/meta.dart';
 import '../options.dart';
 import 'http_client/io.dart' if (dart.library.js_interop) 'http_client/web.dart' as impl;
 
-/// Replaces the client behind [sdkHttpGet] and [sdkHttpHead] in tests.
+/// Replaces the HTTP client the SDK builds, so tests can answer the requests
+/// the SDK makes on its own, such as the validate call after a failed connect.
 @visibleForTesting
-http.Client Function(NetworkOptions networkOptions)? sdkHttpClientOverride;
+http.Client Function(NetworkOptions networkOptions)? sdkHttpClientFactoryForTesting;
 
 http.Client createSdkHttpClient(NetworkOptions networkOptions) =>
-    (sdkHttpClientOverride ?? impl.createSdkHttpClient)(networkOptions);
+    sdkHttpClientFactoryForTesting?.call(networkOptions) ?? impl.createSdkHttpClient(networkOptions);
 
 Future<http.Response> sdkHttpGet(
   Uri uri, {

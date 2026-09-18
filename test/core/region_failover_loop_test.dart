@@ -63,7 +63,7 @@ void main() {
     onValidate = null;
     regionsDelay = null;
     container = E2EContainer();
-    sdkHttpClientOverride = (_) => MockClient((request) async {
+    sdkHttpClientFactoryForTesting = (_) => MockClient((request) async {
       if (request.method == 'HEAD') {
         return http.Response('', 200);
       }
@@ -82,7 +82,7 @@ void main() {
   });
 
   tearDown(() async {
-    sdkHttpClientOverride = null;
+    sdkHttpClientFactoryForTesting = null;
     await container.dispose();
   });
 

@@ -128,6 +128,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late EventsListener<SignalEvent> _signalListener;
 
   RegionUrlProvider? _regionUrlProvider;
+
+  /// True while [connect] is running. A failed attempt tears the engine down
+  /// and reports a disconnect before [connect] retries another region, and
+  /// that cleanup must not throw away state the retry still needs.
+  bool _connectInProgress = false;
+
+  /// Lets tests install a provider with known regions, so a failover can be
+  /// exercised without reaching a real LiveKit Cloud endpoint.
+  @visibleForTesting
+  set regionUrlProviderForTesting(RegionUrlProvider? provider) {
+    _regionUrlProvider = provider;
+  }
+
   String? _regionUrl;
 
   // Agents
@@ -358,6 +371,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // given url and picks regions on its own
     var connectUrl = _regionUrl ?? url;
     _regionUrl = null;
+    _connectInProgress = true;
     try {
       // Each attempt that fails and is retried against another region must
       // not surface as a disconnect. The engine event is emitted once, below,
@@ -388,7 +402,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           // drop whatever the failed attempt built before looking for the next
           // region, so a join response that lands late hits a closed socket
           // instead of creating peer connections or a participant for it
-          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false);
+          // The pre-connect audio buffer keeps recording across attempts, the
+          // retry that gets through publishes it.
+          await _cleanUp(disposeLocalParticipant: false, stopNativeAudio: false, preservePreConnectAudio: true);
           String? nextUrl;
           try {
             nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -413,6 +429,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
       rethrow;
     } finally {
+      _connectInProgress = false;
       // the next connect, or a reconnect, starts with every region available
       _regionUrlProvider?.resetAttempts();
       if (!didConnect) {
@@ -677,7 +694,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // pending one when it starts.
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
-        await _cleanUp(disposeLocalParticipant: false);
+        // A failed first attempt lands here before connect() retries another
+        // region. The pre-connect audio buffer has to survive that, or the
+        // retry connects without ever publishing the microphone.
+        await _cleanUp(disposeLocalParticipant: false, preservePreConnectAudio: _connectInProgress);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -1112,7 +1132,11 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp({bool disposeLocalParticipant = true, bool stopNativeAudio = true}) async {
+  Future<void> _cleanUp({
+    bool disposeLocalParticipant = true,
+    bool stopNativeAudio = true,
+    bool preservePreConnectAudio = false,
+  }) async {
     logger.fine('[${objectId}] cleanUp()');
 
     // clean up RemoteParticipants
@@ -1135,7 +1159,9 @@ extension RoomPrivateMethods on Room {
 
     _activeSpeakers.clear();
 
-    await preConnectAudioBuffer.reset();
+    if (!preservePreConnectAudio) {
+      await preConnectAudioBuffer.reset();
+    }
 
     // clean up engine
     await engine.cleanUp();

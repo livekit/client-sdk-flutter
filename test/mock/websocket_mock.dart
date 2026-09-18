@@ -28,6 +28,11 @@ class MockWebSocketConnector {
   NetworkOptions? networkOptions;
   Object? connectError;
 
+  /// When true, [connectError] is thrown once and then cleared, so the next
+  /// connect succeeds. Models a first attempt that fails and a retry that gets
+  /// through.
+  bool connectErrorOnce = false;
+
   /// Per-attempt failure. Takes precedence over [connectError] when it returns non-null.
   Object? Function(Uri uri)? connectErrorFor;
 
@@ -54,6 +59,9 @@ class MockWebSocketConnector {
 
     final error = connectErrorFor?.call(uri) ?? connectError;
     if (error != null) {
+      if (connectErrorOnce) {
+        connectError = null;
+      }
       throw error;
     }
 
