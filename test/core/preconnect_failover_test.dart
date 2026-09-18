@@ -18,13 +18,13 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/http_client.dart';
 import 'package:livekit_client/src/support/region_url_provider.dart';
 import 'package:livekit_client/src/support/websocket.dart';
-
 import '../mock/e2e_container.dart';
 
 const cloudUri = 'wss://test.livekit.cloud';
