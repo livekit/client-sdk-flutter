@@ -37,6 +37,13 @@ import '../mock/test_data.dart';
 
 const collectorOutput = '/tmp/livekit-telemetry-otlp.jsonl';
 
+/// Points the session at a real collector — LiveKit Cloud — instead of the local
+/// one: a `…/observability/client/logs/otlp/v0` URL and a token carrying an
+/// `observability:write` grant. Such a run has no collector file to read, so it
+/// reports the pipeline's own account of the upload policy instead of asserting.
+final cloudEndpoint = Platform.environment['LIVEKIT_TELEMETRY_ENDPOINT'];
+final cloudToken = Platform.environment['LIVEKIT_TELEMETRY_TOKEN'];
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   // The test binding answers every HttpClient request with a 400; the
@@ -53,7 +60,8 @@ void main() {
     // Process-wide, configured before the Room exists, like an app would at launch.
     await Telemetry.configure(
       TelemetryOptions(
-        endpoint: Uri.parse('http://127.0.0.1:4319/v1/logs'),
+        endpoint: Uri.parse(cloudEndpoint ?? 'http://127.0.0.1:4319/v1/logs'),
+        headers: cloudToken == null ? const {} : {'Authorization': 'Bearer $cloudToken'},
         flushInterval: const Duration(seconds: 1),
         statsWindow: const Duration(seconds: 2),
       ),
@@ -131,6 +139,21 @@ void main() {
     );
     await disconnecting;
     await container.dispose();
+
+    // A cloud run has no local file to read — the records are asserted out of the
+    // ingest afterwards (`telemetry-staging/verify.py --service livekit-client-flutter`).
+    // What the test itself can still say is that the pipeline believes every batch
+    // left: anything retried, rejected or dropped shows up here.
+    if (cloudEndpoint != null) {
+      for (var i = 0; i < 3; i++) {
+        await Future<void>.delayed(const Duration(seconds: 2));
+        print('telemetry cloud: trace $traceId — ${Telemetry.diagnostics()}');
+      }
+      final cloud = Telemetry.diagnostics();
+      expect(cloud, allOf(contains('failed 0'), contains('lost 0')),
+          reason: 'every batch left the device');
+      return;
+    }
 
     // The disconnect flush (1 s cadence) and the collector's write, which lag
     // under load: poll for the session's last record rather than sleep.
