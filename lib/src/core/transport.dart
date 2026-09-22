@@ -13,8 +13,10 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
 
 import '../exceptions.dart';
@@ -38,20 +40,135 @@ const ddExtensionURI = 'https://aomediacodec.github.io/av1-rtp-spec/#dependency-
  * Why 90%: Gives ~10% headroom for bandwidth estimation while starting close to target.
  * Why same for all codecs: Target bitrate already accounts for codec efficiency
  * (e.g., users set lower targets for VP9/AV1 knowing they're more efficient).
+ * Why cap at 1 Mbps: Prevents BWE from starting too aggressively on high bitrate tracks.
  */
 const startBitrateMultiplier = 0.9;
+
+/// Maximum x-google-start-bitrate in kbps. 1 Mbps prevents BWE from starting too aggressively.
+const maxStartBitrateKbps = 1000;
+
+/// Minimum target bitrate in kbps for the start bitrate hint. Below this, seeding above the
+/// real capacity costs more than the ramp it saves, so libwebrtc's default is left in place.
+const minTargetBitrateKbps = 300;
 
 class TrackBitrateInfo {
   String? cid;
   rtc.RTCRtpTransceiver? transceiver;
   String codec;
   int maxbr;
+  bool isScreenShare;
   TrackBitrateInfo({
     required this.cid,
     required this.transceiver,
     required this.codec,
     required this.maxbr,
+    this.isScreenShare = false,
   });
+}
+
+/// Codec payload for [codec] in this media section, when the section carries [cid].
+///
+/// Returns `null` when the section does not belong to the track, `0` when it does but does
+/// not offer the requested codec, and the codec payload otherwise.
+@internal
+int? findTrackCodecPayload(Map<String, dynamic> media, String cid, String codec) {
+  final msid = media['msid'];
+  if (msid is! String || !msid.contains(cid)) {
+    return null;
+  }
+  for (final rtp in (media['rtp'] as List? ?? const [])) {
+    if ((rtp['codec'] as String?)?.toUpperCase() == codec.toUpperCase()) {
+      return rtp['payload'] as int;
+    }
+  }
+  return 0;
+}
+
+/// Start bitrate hinted for a single track, or `null` when its target is too low to be
+/// worth seeding.
+///
+/// 90% of the target leaves ~10% headroom for the estimator to settle. The same multiplier
+/// is used for every codec because the target already reflects the codec's efficiency.
+/// Camera is capped at 1 Mbps so the estimator does not open too aggressively on a
+/// high-bitrate track; screen share is exempt, because its content needs the bitrate
+/// immediately to stay legible.
+@internal
+int? computeTrackStartBitrate(TrackBitrateInfo trackbr) {
+  if (trackbr.maxbr < minTargetBitrateKbps) {
+    return null;
+  }
+  final calculated = (trackbr.maxbr * startBitrateMultiplier).round();
+  return trackbr.isScreenShare ? calculated : math.min(calculated, maxStartBitrateKbps);
+}
+
+/// The single start bitrate for this peer connection: the largest hint among the video
+/// m-sections of [media] that map to a published track.
+///
+/// libwebrtc reads `x-google-start-bitrate` per m-section but applies it to the shared
+/// `Call` (`WebRtcVideoSendChannel::ApplyChangedParams` -> `SetSdpBitrateParameters`), where
+/// `RtpBitrateConfigurator` holds one config for the whole connection. Differing per-section
+/// values are therefore last-writer-wins, decided by m-section order, so every video section
+/// gets the same number instead.
+///
+/// Only sections that can send local media are considered. [trackBitrates] is append-only and
+/// an unpublished section keeps its `a=msid`, so matching on msid alone would still pair a
+/// stale entry with its old section — letting an uncapped screen-share target seed a
+/// connection that now carries only a camera, or consuming the one-shot hint on a section that
+/// sends nothing. `recvonly` and `inactive` are the only directions that cannot carry local
+/// media, and they are exactly where a section lands once its sender is removed (`removeTrack`
+/// moves sendonly to inactive and sendrecv to recvonly); everything else sends, including a
+/// section with no direction attribute, which SDP defaults to `sendrecv`.
+@internal
+int? computeConnectionStartBitrate(List<dynamic> media, List<TrackBitrateInfo> trackBitrates) {
+  int? connectionStartBitrate;
+  for (final m in media) {
+    final direction = m['direction'];
+    if (m['type'] != 'video' || direction == 'recvonly' || direction == 'inactive') {
+      continue;
+    }
+    for (final trackbr in trackBitrates) {
+      final cid = trackbr.cid;
+      if (cid == null) {
+        continue;
+      }
+      final codecPayload = findTrackCodecPayload(m, cid, trackbr.codec);
+      if (codecPayload == null) {
+        continue;
+      }
+      final startBitrate = codecPayload > 0 ? computeTrackStartBitrate(trackbr) : null;
+      if (startBitrate != null && (connectionStartBitrate == null || startBitrate > connectionStartBitrate)) {
+        connectionStartBitrate = startBitrate;
+      }
+      break;
+    }
+  }
+  return connectionStartBitrate;
+}
+
+/// Declares `x-google-start-bitrate` on [codecPayload]'s fmtp. This SDP munging is used for a
+/// bitrate setting that cannot be applied through the sender's encodings.
+///
+/// Returns whether the section now carries the hint.
+@internal
+bool applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int startBitrate) {
+  final fmtpList = (media['fmtp'] as List? ?? const []);
+  for (final fmtp in fmtpList) {
+    if (fmtp['payload'] == codecPayload) {
+      // A payload type is shared across the bundle, so a value written for one section is
+      // already the connection-level one; leave it rather than rewrite it.
+      if (!(fmtp['config'] as String).contains('x-google-start-bitrate')) {
+        fmtp['config'] += ';x-google-start-bitrate=$startBitrate';
+      }
+      return true;
+    }
+  }
+  // VP8 and some codecs may not have an existing fmtp line.
+  fmtpList.add(<String, dynamic>{
+    'payload': codecPayload,
+    'config': 'x-google-start-bitrate=$startBitrate',
+  });
+  media['fmtp'] = fmtpList;
+  return true;
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
@@ -63,6 +180,14 @@ class Transport extends Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   final List<TrackBitrateInfo> _bitrateTrackers = [];
+
+  /// Whether an offer carrying the connection-level `x-google-start-bitrate` has been
+  /// accepted locally. The hint is written once per peer connection: libwebrtc retains
+  /// `start_bitrate_bps` in `RtpBitrateConfigurator` and re-applies it on network route
+  /// changes, so a later rewrite is at best a no-op and at worst restarts a converged
+  /// bandwidth estimator. A new peer connection (full reconnect) seeds a new estimator.
+  bool _hasAppliedVideoStartBitrate = false;
+
   bool restartingIce = false;
   bool renegotiate = false;
   TransportOnOffer? onOffer;
@@ -189,46 +314,47 @@ class Transport extends Disposable {
     }
 
     final sdpParsed = sdp_transform.parse(offer.sdp ?? '');
+    // One value for every video m-section, written only on the first offer that carries local
+    // video: the hint is connection-level in libwebrtc, so differing per-section values would
+    // be last-writer-wins on m-section order. Offers before any video is published (data
+    // channel or audio only) find no target and leave the latch unset.
+    final connectionStartBitrate = _hasAppliedVideoStartBitrate
+        ? null
+        : computeConnectionStartBitrate(sdpParsed['media'] ?? const [], _bitrateTrackers);
+    var appliedVideoStartBitrate = false;
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {
         ensureVideoDDExtensionForSVC(media, media['type'], media['port'], media['protocol'], media['payloads']);
 
         // mung sdp for codec bitrate setting that can't apply by sendEncoding
         for (var trackbr in _bitrateTrackers) {
-          if (media['msid'] == null || trackbr.cid == null || !(media['msid'] as String).contains(trackbr.cid!)) {
+          final cid = trackbr.cid;
+          if (cid == null) {
             continue;
           }
-
-          var codecPayload = 0;
-          for (var rtp in media['rtp']) {
-            if (rtp['codec']?.toUpperCase() == trackbr.codec.toUpperCase()) {
-              codecPayload = rtp['payload'];
-              continue;
-            }
+          final codecPayload = findTrackCodecPayload(media, cid, trackbr.codec);
+          if (codecPayload == null) {
             continue;
           }
-
-          if (codecPayload == 0) {
-            continue;
+          if (codecPayload > 0 && connectionStartBitrate != null) {
+            appliedVideoStartBitrate =
+                applyVideoStartBitrate(media, codecPayload, connectionStartBitrate) || appliedVideoStartBitrate;
           }
-
-          for (var fmtp in media['fmtp']) {
-            if (fmtp['payload'] == codecPayload) {
-              if (!(fmtp['config'] as String).contains('x-google-start-bitrate')) {
-                fmtp['config'] += ';x-google-start-bitrate=${(trackbr.maxbr * startBitrateMultiplier).toInt()}';
-              }
-              break;
-            }
-          }
-          continue;
+          break;
         }
       }
     });
 
+    final mungedSdp = sdp_transform.write(sdpParsed, null);
     try {
-      await setMungedSDP(sd: offer, munged: sdp_transform.write(sdpParsed, null));
+      await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
       throw NegotiationError(e.toString());
+    }
+    // setMungedSDP falls back to the unmunged SDP on rejection. Only consume the one-shot
+    // hint once the SDP carrying it has been accepted locally.
+    if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
+      _hasAppliedVideoStartBitrate = true;
     }
     onOffer?.call(offer);
   }
