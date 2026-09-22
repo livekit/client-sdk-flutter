@@ -50,6 +50,12 @@ void main() {
   // transport needs the real collector.
   HttpOverrides.global = null;
 
+  // The pipeline is process-wide, so it has to be stopped the way an app would
+  // stop it — `configure(null)` is the Dart spelling of shutdown. Without it the
+  // session summary (`lk.telemetry.report`) is never emitted and the last batch
+  // rides on the periodic flush instead of the shutdown drain.
+  tearDown(() => Telemetry.configure(null));
+
   test('a session with telemetry reaches the collector', () async {
     // Not truncated: the collector keeps its write offset, which would leave a
     // hole of NUL bytes. Records are filtered by time instead, like Swift's OTLPFile.
