@@ -148,9 +148,10 @@ int? computeConnectionStartBitrate(List<dynamic> media, List<TrackBitrateInfo> t
 /// Declares `x-google-start-bitrate` on [codecPayload]'s fmtp. This SDP munging is used for a
 /// bitrate setting that cannot be applied through the sender's encodings.
 ///
-/// Returns whether the section now carries the hint.
+/// The section always carries the hint afterwards: either its existing fmtp line gains the
+/// parameter, or one is created for the payload.
 @internal
-bool applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int startBitrate) {
+void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int startBitrate) {
   final fmtpList = (media['fmtp'] as List? ?? const []);
   for (final fmtp in fmtpList) {
     if (fmtp['payload'] == codecPayload) {
@@ -159,7 +160,7 @@ bool applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
       if (!(fmtp['config'] as String).contains('x-google-start-bitrate')) {
         fmtp['config'] += ';x-google-start-bitrate=$startBitrate';
       }
-      return true;
+      return;
     }
   }
   // VP8 and some codecs may not have an existing fmtp line.
@@ -168,7 +169,6 @@ bool applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
     'config': 'x-google-start-bitrate=$startBitrate',
   });
   media['fmtp'] = fmtpList;
-  return true;
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
@@ -337,8 +337,8 @@ class Transport extends Disposable {
             continue;
           }
           if (codecPayload > 0 && connectionStartBitrate != null) {
-            appliedVideoStartBitrate =
-                applyVideoStartBitrate(media, codecPayload, connectionStartBitrate) || appliedVideoStartBitrate;
+            applyVideoStartBitrate(media, codecPayload, connectionStartBitrate);
+            appliedVideoStartBitrate = true;
           }
           break;
         }
@@ -393,7 +393,16 @@ class Transport extends Disposable {
     return null;
   }
 
+  @visibleForTesting
+  List<TrackBitrateInfo> get bitrateTrackers => List.unmodifiable(_bitrateTrackers);
+
   void setTrackBitrateInfo(TrackBitrateInfo info) {
+    // One entry per cid. A LocalTrack keeps its cid across unpublish and republish, and
+    // `computeConnectionStartBitrate` stops at the first entry whose cid the section carries,
+    // so a leftover entry would shadow the republished track's new target — and with a stale
+    // sub-floor target it would suppress the hint entirely. Replacing also keeps the list from
+    // growing for the lifetime of the connection.
+    _bitrateTrackers.removeWhere((e) => e.cid != null && e.cid == info.cid);
     _bitrateTrackers.add(info);
   }
 

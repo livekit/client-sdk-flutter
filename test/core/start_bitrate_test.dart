@@ -19,12 +19,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
 
-import 'package:livekit_client/src/options.dart' show VideoPublishOptions;
+import 'package:livekit_client/src/options.dart' show ConnectOptions, VideoPublishOptions;
 import 'package:livekit_client/src/utils.dart' show computeStartTargetBitrate;
+import '../mock/peerconnection_mock.dart';
 
 import 'package:livekit_client/src/core/transport.dart'
     show
         TrackBitrateInfo,
+        Transport,
         applyVideoStartBitrate,
         computeConnectionStartBitrate,
         computeTrackStartBitrate,
@@ -202,6 +204,26 @@ void main() {
         ]),
         1800,
       );
+    });
+
+    test('republishing a track replaces its tracker instead of shadowing it', () async {
+      final transport = await Transport.create(MockPeerConnection.create, connectOptions: const ConnectOptions());
+      addTearDown(transport.dispose);
+
+      // First publish below the floor: no hint, so the one-shot latch stays unset.
+      transport.setTrackBitrateInfo(
+        TrackBitrateInfo(cid: 'camera-cid', transceiver: null, codec: 'VP8', maxbr: 250),
+      );
+      expect(computeConnectionStartBitrate(mediaOf(twoVideoSections), transport.bitrateTrackers), isNull);
+
+      // A LocalTrack keeps its cid across unpublish and republish, and the lookup stops at the
+      // first entry whose cid the section carries — so a leftover entry would shadow this one.
+      transport.setTrackBitrateInfo(
+        TrackBitrateInfo(cid: 'camera-cid', transceiver: null, codec: 'VP8', maxbr: 1500),
+      );
+
+      expect(computeConnectionStartBitrate(mediaOf(twoVideoSections), transport.bitrateTrackers), 1000);
+      expect(transport.bitrateTrackers.length, 1);
     });
 
     test('gives no connection value when nothing sending matches', () {
