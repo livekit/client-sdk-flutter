@@ -1512,6 +1512,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
+      // after disconnect() the close is ours, cleanUp() already ran
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleReconnect(
           ClientDisconnectReason.signal,
@@ -1600,6 +1601,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await handleReconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         // DISCONNECT or v12 server with canReconnect=false
+        if (_isClosed) {
+          // the echo of our own Leave, or a server Leave that raced
+          // disconnect(). The local teardown has run or is running.
+          logger.fine('[Signal] Leave received after disconnect() started, ignoring');
+          return;
+        }
         await signalClient.cleanUp();
         fullReconnectOnNext = false;
         await disconnect(reason: event.reason.toSDKType());
@@ -1622,17 +1629,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _isClosed = true;
     events.emit(EngineClosingEvent());
     if (connectionState == ConnectionState.connected) {
+      // Tell the server, then tear down locally without waiting for its Leave
+      // echo, the same as the other SDKs. The echo is not guaranteed: media
+      // nodes drop queued leave messages when they close the signal sink, and
+      // waiting for it cost a 10 s timeout whenever it was lost.
       await signalClient.sendLeave();
-    } else {
-      if (isPendingReconnect) {
-        logger.fine('disconnect: Cancel the reconnection processing!');
-        await signalClient.cleanUp();
-        await _signalListener.cancelAll();
-        _clearPendingReconnect();
-      }
-      await cleanUp();
-      events.emit(EngineDisconnectedEvent(reason: reason));
+    } else if (isPendingReconnect) {
+      logger.fine('disconnect: Cancel the reconnection processing!');
+      await signalClient.cleanUp();
+      await _signalListener.cancelAll();
+      _clearPendingReconnect();
     }
+    await cleanUp();
+    events.emit(EngineDisconnectedEvent(reason: reason));
   }
 
   void setRegionUrlProvider(RegionUrlProvider provider) {
