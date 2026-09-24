@@ -106,8 +106,16 @@ class VideoTrackRenderer extends StatefulWidget {
   State<StatefulWidget> createState() => _VideoTrackRendererState();
 }
 
+@visibleForTesting
+rtc.RTCVideoRenderer Function() videoTrackRendererFactory = rtc.RTCVideoRenderer.new;
+
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.VideoRenderer? _renderer;
+  bool _ownsRenderer = false;
+  bool _disposed = false;
+  int _generation = 0;
+  Future<void>? _initializing;
+  Future<rtc.VideoRenderer?>? _rendererFuture;
   // for flutter web only.
   bool _rendererReadyForWeb = false;
   double? _aspectRatio;
@@ -128,26 +136,38 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
     return null;
   }
 
-  Future<rtc.VideoRenderer?> _initializeRenderer() async {
-    if (_shouldUsePlatformView) {
-      return null;
-    }
-    // A leftover platform view controller is owned by its RTCVideoPlatFormView
-    // widget, which disposes it on unmount. Only drop our reference here.
-    if (_renderer != null && _renderer is! rtc.RTCVideoRenderer) {
-      _releaseRenderer(dispose: false);
-    }
+  Future<rtc.VideoRenderer?> _startRenderer() async {
+    final generation = _generation;
+    if (_shouldUsePlatformView) return null;
     if (_renderer == null) {
-      final cachedRenderer = widget.cachedRenderer;
-      if (cachedRenderer != null) {
-        _renderer = cachedRenderer;
+      final cached = widget.cachedRenderer;
+      if (cached != null) {
+        _renderer = cached;
       } else {
-        _renderer = rtc.RTCVideoRenderer();
-        await _renderer!.initialize();
+        final renderer = videoTrackRendererFactory();
+        _renderer = renderer;
+        _ownsRenderer = true;
+        _initializing = renderer.initialize();
       }
     }
-    await _attach();
-    return _renderer!;
+    final renderer = _renderer!;
+    await _initializing;
+    if (identical(renderer, _renderer)) _initializing = null;
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return null;
+    await _attach(generation, renderer);
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return null;
+    return renderer;
+  }
+
+  void _scheduleRenderer() {
+    final future = _rendererFuture = _startRenderer();
+    if (kIsWeb) {
+      unawaited(() async {
+        final renderer = await future;
+        if (renderer == null || !mounted || !identical(future, _rendererFuture)) return;
+        setState(() => _rendererReadyForWeb = true);
+      }());
+    }
   }
 
   void setZoom(double zoomLevel) async {
@@ -175,90 +195,106 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void _releaseRenderer({required bool dispose}) {
     final renderer = _renderer;
     _renderer = null;
-    try {
-      renderer?.onResize = null;
-      renderer?.srcObject = null;
-      if (dispose) {
-        unawaited(renderer?.dispose());
+    final ownsRenderer = _ownsRenderer;
+    _ownsRenderer = false;
+    final initializing = _initializing;
+    _initializing = null;
+    renderer?.onResize = null;
+    if (renderer == null) return;
+    if (initializing == null) {
+      try {
+        renderer.srcObject = null;
+      } catch (e) {
+        logger.warning('Got error detaching renderer: $e');
       }
-    } catch (e) {
-      logger.warning('Got error releasing renderer: $e');
+      if (dispose && ownsRenderer) unawaited(renderer.dispose());
+    } else {
+      unawaited(() async {
+        try {
+          await initializing;
+          renderer.srcObject = null;
+        } catch (e) {
+          logger.warning('Got error detaching renderer: $e');
+        } finally {
+          if (dispose && ownsRenderer) await renderer.dispose();
+        }
+      }());
     }
   }
 
   @override
   void initState() {
     super.initState();
-    if (!_shouldUsePlatformView && widget.cachedRenderer != null) {
-      _renderer = widget.cachedRenderer;
-    }
     _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
-    if (kIsWeb) {
-      unawaited(() async {
-        await _initializeRenderer();
-        if (!mounted) return;
-        setState(() => _rendererReadyForWeb = true);
-      }());
-    }
+    _scheduleRenderer();
   }
 
   @override
   void dispose() {
+    _disposed = true;
+    _generation++;
     widget.track.removeViewRegistration(_viewRegistration);
-    unawaited(_listener?.dispose());
-    if (widget.autoDisposeRenderer) {
-      _releaseRenderer(dispose: true);
-    }
+    final listener = _listener;
+    _listener = null;
+    unawaited(listener?.dispose());
+    _releaseRenderer(dispose: widget.autoDisposeRenderer);
     super.dispose();
   }
 
-  Future<void> _attach() async {
-    _renderer?.srcObject = widget.track.mediaStream;
-    await _listener?.dispose();
-    _listener = widget.track.createListener()
+  Future<void> _attach(int generation, rtc.VideoRenderer renderer) async {
+    final oldListener = _listener;
+    _listener = null;
+    await oldListener?.dispose();
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return;
+    final track = widget.track;
+    renderer.srcObject = track.mediaStream;
+    _listener = track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
-        if (!mounted) return;
-        _renderer?.srcObject = event.stream;
+        if (_disposed || generation != _generation || !identical(renderer, _renderer)) return;
+        renderer.srcObject = event.stream;
       })
       ..on<LocalTrackOptionsUpdatedEvent>((event) {
-        if (!mounted) return;
-        // force recompute of mirror mode
+        if (_disposed || generation != _generation || !mounted) return;
         setState(() {});
       });
-    _renderer?.onResize = () {
-      if (mounted) {
-        setState(() {
-          _aspectRatio = _rendererAspectRatio;
-        });
-      }
+    renderer.onResize = () {
+      if (_disposed || generation != _generation || !identical(renderer, _renderer) || !mounted) return;
+      setState(() => _aspectRatio = _rendererAspectRatio);
     };
   }
 
   @override
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_usesPlatformView(oldWidget.renderMode) != _shouldUsePlatformView) {
-      // Only dispose texture renderers we created ourselves. Platform view
-      // controllers belong to RTCVideoPlatFormView and a cachedRenderer
-      // belongs to the caller, who may hand it back on a later switch.
-      final ownsRenderer = _renderer is rtc.RTCVideoRenderer && !identical(_renderer, oldWidget.cachedRenderer);
-      unawaited(_listener?.dispose());
+    final modeChanged = _usesPlatformView(oldWidget.renderMode) != _shouldUsePlatformView;
+    final cachedChanged = !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
+    final trackChanged = !identical(oldWidget.track, widget.track);
+    if (modeChanged || cachedChanged || trackChanged) {
+      _generation++;
+      _rendererReadyForWeb = false;
+    }
+    if (modeChanged || cachedChanged) {
+      // Platform view controllers and cached renderers belong to their creators.
+      final listener = _listener;
       _listener = null;
+      unawaited(listener?.dispose());
       _aspectRatio = null;
-      _releaseRenderer(dispose: ownsRenderer && oldWidget.autoDisposeRenderer);
+      _releaseRenderer(dispose: oldWidget.autoDisposeRenderer);
     }
 
-    if (widget.track != oldWidget.track) {
+    if (trackChanged) {
       oldWidget.track.removeViewRegistration(_viewRegistration);
       _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
-      unawaited(() async {
-        await _attach();
-      }());
     } else if (widget.adaptiveStreamPixelDensity != oldWidget.adaptiveStreamPixelDensity) {
       _viewRegistration.pixelDensity = widget.adaptiveStreamPixelDensity;
     }
 
-    if ([BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) && oldWidget.key != widget.key) {
+    if (modeChanged || cachedChanged || trackChanged) _scheduleRenderer();
+
+    if (!modeChanged &&
+        !cachedChanged &&
+        [BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) &&
+        oldWidget.key != widget.key) {
       _renderer?.srcObject = widget.track.mediaStream;
     }
   }
@@ -284,13 +320,14 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
 
   Widget _videoRendererView() {
     if (_shouldUsePlatformView) {
+      final generation = _generation;
       return rtc.RTCVideoPlatFormView(
         mirror: _shouldMirror(),
         objectFit: widget.fit.toRTCType(),
         onViewReady: (controller) async {
+          if (_disposed || generation != _generation || !_shouldUsePlatformView) return;
           _renderer = controller;
-          _renderer?.srcObject = widget.track.mediaStream;
-          await _attach();
+          await _attach(generation, controller);
         },
       );
     }
@@ -304,7 +341,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   }
 
   Widget _videoViewForNative() => FutureBuilder(
-    future: _initializeRenderer(),
+    future: _rendererFuture,
     builder: (context, snapshot) {
       if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
         return Builder(
