@@ -102,7 +102,10 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
         receiverStats.nackCount = getNumValFromReport(v.values, 'nackCount');
         receiverStats.decoderImplementation = getStringValFromReport(v.values, 'decoderImplementation');
 
-        final c = stats.firstWhereOrNull((element) => element.type == 'codec');
+        final codecId = getStringValFromReport(v.values, 'codecId');
+        final c = codecId == null
+            ? null
+            : stats.firstWhereOrNull((element) => element.type == 'codec' && element.id == codecId);
         if (c != null) {
           receiverStats.mimeType = getStringValFromReport(c.values, 'mimeType');
           receiverStats.payloadType = getNumValFromReport(c.values, 'payloadType');
