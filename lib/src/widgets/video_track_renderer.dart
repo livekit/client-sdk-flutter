@@ -15,7 +15,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart' show ValueListenable, kIsWeb;
+import 'package:flutter/foundation.dart' show ValueListenable, kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -30,7 +30,7 @@ import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../track/options.dart';
 import '../track/video_track_view_registration.dart';
-import '../types/other.dart';
+import '../types/other.dart' hide ConnectionState;
 
 enum VideoViewMirrorMode {
   auto,
@@ -109,6 +109,9 @@ class VideoTrackRenderer extends StatefulWidget {
 @visibleForTesting
 rtc.RTCVideoRenderer Function() videoTrackRendererFactory = rtc.RTCVideoRenderer.new;
 
+@visibleForTesting
+bool Function(VideoRenderMode)? videoTrackRendererPlatformViewOverride;
+
 class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   rtc.VideoRenderer? _renderer;
   bool _ownsRenderer = false;
@@ -124,7 +127,8 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   late VideoTrackViewRegistration _viewRegistration;
 
   bool _usesPlatformView(VideoRenderMode renderMode) =>
-      renderMode == VideoRenderMode.platformView && [PlatformType.iOS, PlatformType.macOS].contains(lkPlatform());
+      videoTrackRendererPlatformViewOverride?.call(renderMode) ??
+      (renderMode == VideoRenderMode.platformView && [PlatformType.iOS, PlatformType.macOS].contains(lkPlatform()));
 
   bool get _shouldUsePlatformView => _usesPlatformView(widget.renderMode);
 
@@ -267,7 +271,7 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   void didUpdateWidget(covariant VideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
     final modeChanged = _usesPlatformView(oldWidget.renderMode) != _shouldUsePlatformView;
-    final cachedChanged = !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
+    final cachedChanged = !_shouldUsePlatformView && !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
     final trackChanged = !identical(oldWidget.track, widget.track);
     if (modeChanged || cachedChanged || trackChanged) {
       _generation++;
@@ -289,7 +293,11 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
       _viewRegistration.pixelDensity = widget.adaptiveStreamPixelDensity;
     }
 
-    if (modeChanged || cachedChanged || trackChanged) _scheduleRenderer();
+    if (modeChanged || cachedChanged || (trackChanged && !_shouldUsePlatformView)) {
+      _scheduleRenderer();
+    } else if (trackChanged && _renderer != null) {
+      unawaited(_attach(_generation, _renderer!));
+    }
 
     if (!modeChanged &&
         !cachedChanged &&
@@ -343,7 +351,10 @@ class _VideoTrackRendererState extends State<VideoTrackRenderer> {
   Widget _videoViewForNative() => FutureBuilder(
     future: _rendererFuture,
     builder: (context, snapshot) {
-      if ((snapshot.hasData && _renderer != null) || _shouldUsePlatformView) {
+      if ((snapshot.connectionState == ConnectionState.done &&
+              snapshot.hasData &&
+              identical(snapshot.data, _renderer)) ||
+          _shouldUsePlatformView) {
         return Builder(
           key: _viewRegistration.key,
           builder: (ctx) {

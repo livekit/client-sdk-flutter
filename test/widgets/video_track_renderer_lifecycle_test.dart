@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride, kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -56,6 +57,17 @@ class _Renderer extends rtc.RTCVideoRenderer {
   }
 }
 
+class _PlatformController extends rtc.RTCVideoPlatformViewController {
+  _PlatformController() : super(1);
+  rtc.MediaStream? _stream;
+
+  @override
+  rtc.MediaStream? get srcObject => _stream;
+
+  @override
+  set srcObject(rtc.MediaStream? value) => _stream = value;
+}
+
 class _Listener extends EventsListener<TrackEvent> {
   _Listener(super.emitter);
   Completer<void>? beforeDispose;
@@ -90,9 +102,18 @@ void main() {
     renderer = _Renderer();
     videoTrackRendererFactory = () => renderer;
   });
-  tearDown(() => videoTrackRendererFactory = rtc.RTCVideoRenderer.new);
+  tearDown(() {
+    videoTrackRendererFactory = rtc.RTCVideoRenderer.new;
+    videoTrackRendererPlatformViewOverride = null;
+    debugDefaultTargetPlatformOverride = null;
+  });
 
-  Widget view(_Track track, {rtc.RTCVideoRenderer? cached, bool autoDispose = true}) => MaterialApp(
+  Widget view(
+    _Track track, {
+    rtc.RTCVideoRenderer? cached,
+    bool autoDispose = true,
+    VideoRenderMode renderMode = VideoRenderMode.auto,
+  }) => MaterialApp(
     home: SizedBox(
       width: 100,
       height: 100,
@@ -101,6 +122,7 @@ void main() {
         key: const ValueKey('video'),
         cachedRenderer: cached,
         autoDisposeRenderer: autoDispose,
+        renderMode: renderMode,
       ),
     ),
   );
@@ -211,6 +233,100 @@ void main() {
     expect(replacement.disposeCount, 0);
     expect(replacement.srcObject, isNull);
     await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('cached to owned renderer waits for initialization before building video view', (tester) async {
+    final track = _Track(_Stream());
+    final cached = _Renderer()..initialized.complete();
+    await tester.pumpWidget(view(track, cached: cached));
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(find.byType(rtc.RTCVideoView), findsOneWidget);
+
+    await tester.pumpWidget(view(track));
+    expect(renderer.initializationCount, 1);
+    expect(find.byType(rtc.RTCVideoView), findsNothing);
+    expect(cached.disposeCount, 0);
+    renderer.initialized.complete();
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(find.byType(rtc.RTCVideoView), findsOneWidget);
+    expect(renderer.srcObject, same(track.stream));
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 100));
+  });
+
+  testWidgets('platform view reattaches on track changes but ignores cached renderer changes', (tester) async {
+    if (kIsWeb) return; // RTCVideoPlatFormView is only supported on iOS and macOS.
+    videoTrackRendererPlatformViewOverride = (mode) => mode == VideoRenderMode.platformView;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final a = _Track(_Stream());
+    final b = _Track(_Stream());
+    final controller = _PlatformController();
+    final cachedA = _Renderer()..initialized.complete();
+    final cachedB = _Renderer()..initialized.complete();
+
+    await tester.pumpWidget(view(a, cached: cachedA, renderMode: VideoRenderMode.platformView));
+    tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!(controller);
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(controller.srcObject, same(a.stream));
+    expect(a.created.length, 1);
+
+    await tester.pumpWidget(view(a, cached: cachedB, renderMode: VideoRenderMode.platformView));
+    expect(controller.srcObject, same(a.stream));
+    expect(a.created.length, 1);
+    expect(a.created.single.disposeCount, 0);
+
+    await tester.pumpWidget(view(b, cached: cachedB, renderMode: VideoRenderMode.platformView));
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(controller.srcObject, same(b.stream));
+    expect(a.created.single.disposeCount, 1);
+    expect(b.created.single.isDisposed, isFalse);
+    a.updateStream(_Stream());
+    await tester.pump();
+    expect(controller.srcObject, same(b.stream));
+    await tester.pumpWidget(const SizedBox());
+    expect(controller.srcObject, isNull);
+    expect(cachedA.disposeCount, 0);
+    expect(cachedB.disposeCount, 0);
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('render mode switch retires owned texture without disposing a platform controller', (tester) async {
+    if (kIsWeb) return; // Platform views are native-only.
+    videoTrackRendererPlatformViewOverride = (mode) => mode == VideoRenderMode.platformView;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final track = _Track(_Stream());
+    renderer.initialized.complete();
+    await tester.pumpWidget(view(track));
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(renderer.srcObject, same(track.stream));
+
+    await tester.pumpWidget(view(track, renderMode: VideoRenderMode.platformView));
+    expect(renderer.disposeCount, 1);
+    expect(renderer.srcObject, isNull);
+    final ready = tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!;
+    final controller = _PlatformController();
+    ready(controller);
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(controller.srcObject, same(track.stream));
+
+    final cached = _Renderer()..initialized.complete();
+    await tester.pumpWidget(view(track, cached: cached));
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+    expect(controller.srcObject, isNull);
+    expect(cached.srcObject, same(track.stream));
+    ready(controller); // The old view's delayed callback must not resurrect its controller.
+    await tester.pump();
+    expect(controller.srcObject, isNull);
+    expect(cached.srcObject, same(track.stream));
+    await tester.pumpWidget(const SizedBox());
+    debugDefaultTargetPlatformOverride = null;
   });
 
   testWidgets('rebuild and autoDispose false do not initialize or dispose twice', (tester) async {
