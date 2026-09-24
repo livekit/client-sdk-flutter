@@ -144,6 +144,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     } catch (e) {
       rethrow;
     }
+    telemetry?.recordStatsReport(this, stats, outbound: true);
 
     AudioSenderStats? senderStats;
     for (var v in stats) {

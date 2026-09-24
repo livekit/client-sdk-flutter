@@ -21,6 +21,7 @@ import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../telemetry/telemetry.dart';
 import '../../audio/audio_engine_error.dart';
 import '../../audio/audio_frame_capture.dart';
 import '../../events.dart';
@@ -245,7 +246,16 @@ abstract class LocalTrack extends Track {
 
   /// Creates a [rtc.MediaStream] from [LocalTrackOptions].
   @internal
-  static Future<rtc.MediaStream> createStream(
+  static Future<rtc.MediaStream> createStream(LocalTrackOptions options) async {
+    try {
+      return await _createStream(options);
+    } catch (error) {
+      telemetryCaptureFailed(options, error);
+      rethrow;
+    }
+  }
+
+  static Future<rtc.MediaStream> _createStream(
     LocalTrackOptions options,
   ) async {
     final constraints = <String, dynamic>{

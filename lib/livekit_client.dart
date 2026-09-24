@@ -56,6 +56,7 @@ export 'src/publication/local.dart';
 export 'src/publication/remote.dart';
 export 'src/publication/track_publication.dart';
 export 'src/support/platform.dart';
+export 'src/telemetry/telemetry.dart' show Telemetry, TelemetryInstrument, TelemetryOptions;
 export 'src/audio/audio_processing_state.dart';
 export 'src/track/audio_visualizer.dart';
 export 'src/track/local/audio.dart';
@@ -90,6 +91,7 @@ export 'src/token_source/custom.dart';
 export 'src/token_source/caching.dart';
 export 'src/token_source/development.dart';
 export 'src/token_source/jwt.dart';
+export 'src/uniffi/uniffi.dart';
 
 /// Misspelled alias for [kRpcVersion]. Kept for backwards compatibility with code
 /// that referenced the original typo.

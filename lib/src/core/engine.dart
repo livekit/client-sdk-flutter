@@ -42,6 +42,7 @@ import '../support/disposable.dart';
 import '../support/platform.dart' show lkPlatformIsTest, lkPlatformIs, PlatformType;
 import '../support/region_url_provider.dart';
 import '../support/websocket.dart';
+import '../telemetry/telemetry.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
 import '../types/internal.dart';
@@ -144,6 +145,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   final int _reconnectCount = defaultRetryDelaysInMs.length;
 
   bool _attemptingReconnect = false;
+
+  /// The Room's telemetry scope and its open `lk.connect` span, set by the Room.
+  @internal
+  RoomTelemetry? telemetry;
+  @internal
+  TraceSpan? connectSpan;
+
+  /// One reconnect cycle = one `lk.reconnect` span; attempts are its checkpoints.
+  TraceSpan? _reconnectSpan;
 
   RegionUrlProvider? _regionUrlProvider;
 
@@ -258,6 +268,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         connectOptions: this.connectOptions,
         roomOptions: this.roomOptions,
       );
+      connectSpan?.step(ConnectStep.signal);
 
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
@@ -278,6 +289,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      connectSpan
+        ?..step(ConnectStep.engine)
+        ..step(ConnectStep.pcConnected);
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
@@ -321,6 +335,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _isReconnecting = false;
 
     _clearPendingReconnect();
+    _reconnectSpan?.cancel();
+    _reconnectSpan = null;
   }
 
   @internal
@@ -696,6 +712,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     publisher?.onOffer = (offer) {
       logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
+      connectSpan?.step(ConnectStep.offerSent);
     };
 
     // in subscriber primary mode, server side opens sub data channels.
@@ -1094,10 +1111,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     if (_reconnectAttempts == 0) {
       _reconnectStart = DateTime.timestamp();
+      _reconnectSpan ??= telemetry?.reconnect(reason, reconnectReason);
     }
 
     if (_reconnectAttempts >= _reconnectCount) {
       logger.fine('reconnectAttempts exceeded, disconnecting...');
+      _reconnectSpan?.fail('reconnectAttemptsExceeded');
+      _reconnectSpan = null;
       _isClosed = true;
       await cleanUp();
 
@@ -1165,6 +1185,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     final fullReconnect = fullReconnectOnNext;
     fullReconnectOnNext = false;
     _attemptIsFullReconnect = fullReconnect;
+    _reconnectSpan?.attempt(_reconnectAttempts + 1, full: fullReconnect);
 
     var succeeded = false;
     try {
@@ -1182,18 +1203,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
 
-      if (fullReconnect) {
-        await restartConnection();
-      } else {
-        await resumeConnection(
-          reason,
-          reconnectReason: reconnectReason,
-        );
-      }
+      await _reconnectSpan.run(
+        () => fullReconnect ? restartConnection() : resumeConnection(reason, reconnectReason: reconnectReason),
+      );
       _clearPendingReconnect();
       _attemptingReconnect = false;
       _isReconnecting = false;
       succeeded = true;
+      _reconnectSpan?.end();
+      _reconnectSpan = null;
     } catch (e) {
       _reconnectAttempts = _reconnectAttempts + 1;
       logger.fine('attemptReconnect: ${fullReconnect ? 'full reconnect' : 'resume'} failed: $e');
@@ -1214,6 +1232,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
+        _reconnectSpan?.fail(e);
+        _reconnectSpan = null;
         // clean up before emitting, room's EngineDisconnectedEvent handler
         // drops the event while fullReconnectOnNext is still true and
         // cleanUp() is what resets it
@@ -1420,6 +1440,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
+      connectSpan?.step(ConnectStep.joinRecv);
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
       _serverInfo = event.response.serverInfo;
@@ -1445,6 +1466,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       if (publisher == null && subscriber == null) {
         await _createPeerConnections(rtcConfiguration);
+        connectSpan?.step(ConnectStep.pcCreated);
       }
 
       if (!_subscriberPrimary || event.response.fastPublish) {
@@ -1495,6 +1517,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalConnectedEvent>((event) async {
       logger.fine('Signal connected');
+      connectSpan?.step(ConnectStep.wsOpen);
       // The attempt counter is not reset here. A resume opens its socket before
       // the peer connections are restored, so a reset on socket connect would
       // let an attempt that fails afterwards start again from zero and never
@@ -1544,6 +1567,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.finer('sdp: ${answer.sdp}');
         await subscriber!.pc.setLocalDescription(answer);
         signalClient.sendAnswer(answer);
+        connectSpan?.step(ConnectStep.answerSent);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
       }

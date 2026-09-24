@@ -92,7 +92,8 @@ class Utils {
   // DeviceInfoPlugin caches internally
   static final _deviceInfoPlugin = DeviceInfoPlugin();
 
-  static Future<lk_models.ClientInfo?> _clientInfo() async {
+  @internal
+  static Future<lk_models.ClientInfo?> clientInfo() async {
     if (!kIsWeb && lkPlatformIsTest()) {
       return lk_models.ClientInfo(
         os: 'test',
@@ -184,7 +185,7 @@ class Utils {
     pathSegments.removeWhere((e) => e.isEmpty);
     pathSegments.addAll(lastSegments);
 
-    final clientInfo = await _clientInfo();
+    final clientInfo = await Utils.clientInfo();
     final networkType = await getNetworkType();
 
     return uri.replace(

@@ -19,11 +19,18 @@ import 'audio/audio_session.dart';
 import 'support/native.dart';
 import 'support/platform.dart' show PlatformType, lkPlatformIs, lkPlatformIsMobile, lkPlatformIsDesktop;
 import 'support/webrtc_initialize_options.dart';
+import 'telemetry/telemetry.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
   static const version = '2.13.0';
+
+  /// Turn client telemetry on: warn/error records, RTC statistics, spans and
+  /// device state ship out-of-band to an OTLP collector. Configure before
+  /// creating Rooms; each Room gets its own scope (see `Room.telemetryTraceId`).
+  /// `null` turns it off after a final flush. Same as [Telemetry.configure].
+  static Future<void> setTelemetry(TelemetryOptions? options) => Telemetry.configure(options);
 
   /// Initialize the WebRTC plugin.
   ///
