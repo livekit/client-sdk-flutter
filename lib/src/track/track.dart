@@ -168,7 +168,6 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
   }
 
   Timer? _monitorTimer;
-  bool _monitorInFlight = false;
 
   @internal
   Future<bool> monitorStats();
@@ -184,13 +183,15 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
   @internal
   void startMonitor() {
-    _monitorTimer ??= Timer.periodic(const Duration(milliseconds: monitorFrequency), (timer) async {
-      if (_monitorInFlight || !identical(_monitorTimer, timer)) return;
-      _monitorInFlight = true;
+    if (_monitorTimer != null) return;
+    var inFlight = false;
+    _monitorTimer = Timer.periodic(const Duration(milliseconds: monitorFrequency), (timer) async {
+      if (inFlight || !identical(_monitorTimer, timer)) return;
+      inFlight = true;
       try {
         if (!await monitorStats() && identical(_monitorTimer, timer)) stopMonitor();
       } finally {
-        _monitorInFlight = false;
+        inFlight = false;
       }
     });
   }

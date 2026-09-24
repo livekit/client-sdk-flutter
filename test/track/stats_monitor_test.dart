@@ -74,4 +74,66 @@ void main() {
     await tester.pump(const Duration(seconds: 4));
     expect(track.pending.length, 3);
   });
+
+  testWidgets('restart polls while the previous generation is still unresolved', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final track = _SlowTrack();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track.pending.length, 1);
+    track.stopMonitor();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track.pending.length, 2);
+    expect(track.active, 2);
+    track.stopMonitor();
+    track.pending[0].complete(true);
+    track.pending[1].complete(true);
+    await tester.pump();
+  });
+
+  testWidgets('stale false result cannot stop or block the restarted generation', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final track = _SlowTrack();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    track.stopMonitor();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track.pending.length, 2);
+    track.pending[0].complete(false);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 4));
+    expect(track.pending.length, 2, reason: 'the old completion must not release B\'s in-flight ownership');
+    track.pending[1].complete(true);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    expect(track.pending.length, 3);
+    track.stopMonitor();
+    track.pending[2].complete(true);
+    await tester.pump();
+  });
+
+  testWidgets('a false result stops only its current generation', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final track = _SlowTrack();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    track.pending.single.complete(false);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 6));
+    expect(track.pending.length, 1);
+  });
+
+  testWidgets('stopping during a call prevents future polls', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final track = _SlowTrack();
+    track.startMonitor();
+    await tester.pump(const Duration(seconds: 2));
+    track.stopMonitor();
+    track.pending.single.complete(true);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 6));
+    expect(track.pending.length, 1);
+  });
 }
