@@ -561,6 +561,9 @@ class Utils {
     final opts = VideoPublishOptions(
       videoCodec: backupOpts.codec,
       videoEncoding: backupOpts.encoding,
+      // computeVideoEncodings reads screenShareEncoding for a screen share, so the backup
+      // codec's own encoding has to be passed there too.
+      screenShareEncoding: backupOpts.encoding,
       simulcast: backupOpts.simulcast,
     );
     return computeVideoEncodings(
