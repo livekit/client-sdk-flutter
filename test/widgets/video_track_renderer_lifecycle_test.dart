@@ -27,6 +27,7 @@ import 'package:livekit_client/src/managers/event.dart';
 import 'package:livekit_client/src/track/remote/video.dart';
 import 'package:livekit_client/src/types/other.dart';
 import 'package:livekit_client/src/widgets/video_track_renderer.dart';
+import 'package:livekit_client/src/widgets/video_track_renderer_common.dart';
 
 class _Stream extends Mock implements rtc.MediaStream {}
 
