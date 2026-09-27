@@ -257,6 +257,28 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   });
 
+  testWidgets('platform view attaches the replacement track when readiness is delayed', (tester) async {
+    if (kIsWeb) return; // RTCVideoPlatFormView is only supported on iOS and macOS.
+    videoTrackRendererPlatformViewOverride = (mode) => mode == VideoRenderMode.platformView;
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final a = _Track(_Stream());
+    final b = _Track(_Stream());
+    final controller = _PlatformController();
+
+    await tester.pumpWidget(view(a, renderMode: VideoRenderMode.platformView));
+    final ready = tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!;
+    await tester.pumpWidget(view(b, renderMode: VideoRenderMode.platformView));
+    ready(controller);
+    await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
+    await tester.pumpAndSettle();
+
+    expect(controller.srcObject, same(b.stream));
+    expect(a.created, isEmpty);
+    expect(b.created.single.isDisposed, isFalse);
+    await tester.pumpWidget(const SizedBox());
+    debugDefaultTargetPlatformOverride = null;
+  });
+
   testWidgets('platform view reattaches on track changes but ignores cached renderer changes', (tester) async {
     if (kIsWeb) return; // RTCVideoPlatFormView is only supported on iOS and macOS.
     videoTrackRendererPlatformViewOverride = (mode) => mode == VideoRenderMode.platformView;

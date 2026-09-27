@@ -86,6 +86,7 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
   bool _ownsRenderer = false;
   bool _disposed = false;
   int _generation = 0;
+  int _platformViewGeneration = 0;
   Future<void>? _initializing;
   Future<rtc.VideoRenderer?>? _rendererFuture;
   double? _aspectRatio;
@@ -189,6 +190,7 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
   void dispose() {
     _disposed = true;
     _generation++;
+    _platformViewGeneration++;
     widget.track.removeViewRegistration(_viewRegistration);
     final listener = _listener;
     _listener = null;
@@ -226,6 +228,7 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
     final cachedChanged = !_shouldUsePlatformView && !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
     final trackChanged = !identical(oldWidget.track, widget.track);
     if (modeChanged || cachedChanged || trackChanged) _generation++;
+    if (modeChanged) _platformViewGeneration++;
     if (modeChanged || cachedChanged) {
       final listener = _listener;
       _listener = null;
@@ -248,14 +251,15 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
 
   Widget _videoRendererView() {
     if (_shouldUsePlatformView) {
-      final generation = _generation;
+      final platformViewGeneration = _platformViewGeneration;
       return rtc.RTCVideoPlatFormView(
         mirror: shouldMirror(widget.track, widget.mirrorMode),
         objectFit: widget.fit.toRTCType(),
+        placeholderBuilder: widget.placeholderBuilder,
         onViewReady: (controller) async {
-          if (_disposed || generation != _generation || !_shouldUsePlatformView) return;
+          if (_disposed || platformViewGeneration != _platformViewGeneration || !_shouldUsePlatformView) return;
           _renderer = controller;
-          await _attach(generation, controller);
+          await _attach(_generation, controller);
         },
       );
     }
