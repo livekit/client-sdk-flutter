@@ -37,6 +37,18 @@ Future<rtc.RTCPeerConnection> _createRejecting(
   Map<String, dynamic>? constraints,
 ]) async => _RejectingPeerConnection();
 
+class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
+  bool rejectLocal = false;
+
+  @override
+  Future<void> setLocalDescription(rtc.RTCSessionDescription description) async {
+    if (rejectLocal) {
+      throw Exception('The order of m-lines in subsequent offer doesn\'t match order from previous offer/answer.');
+    }
+    await super.setLocalDescription(description);
+  }
+}
+
 void main() {
   group('Transport.negotiate', () {
     test('reports a failed offer to onNegotiationError instead of leaking an unhandled error', () async {
@@ -71,6 +83,38 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 200));
 
       expect(offers, hasLength(1));
+    });
+
+    test('reports a failed deferred offer to onNegotiationError', () async {
+      final pc = _RejectAfterAnswerPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      transport.onOffer = (_) {};
+      final reported = Completer<Object>();
+      transport.onNegotiationError = reported.complete;
+
+      // An offer is already waiting for its answer, so the next one is deferred.
+      await pc.setLocalDescription(await pc.createOffer());
+      await transport.createAndSendOffer();
+      expect(transport.renegotiate, isTrue);
+
+      pc.rejectLocal = true;
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0', 'answer'));
+
+      expect(reported.isCompleted, isTrue);
+      expect(await reported.future, isA<NegotiationError>());
+    });
+
+    test('still throws from a direct createAndSendOffer', () async {
+      final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
+      addTearDown(transport.dispose);
+      transport.onOffer = (_) {};
+      transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
+
+      await expectLater(transport.createAndSendOffer(), throwsA(isA<NegotiationError>()));
     });
   });
 }

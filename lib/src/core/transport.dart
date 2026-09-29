@@ -248,8 +248,9 @@ class Transport extends Disposable {
     wait: connectOptions.timeouts.debounce,
   );
 
-  /// The debouncer discards the returned future, so a failure here would surface as an
-  /// unhandled error. Hand it to [onNegotiationError] instead.
+  /// The debouncer and the offer deferred until the answer arrives have no caller that handles
+  /// errors, so a failure here would surface as an unhandled error. Hand it to
+  /// [onNegotiationError] instead. Direct [createAndSendOffer] callers still get the error.
   Future<void> _createAndSendOfferReportingErrors() async {
     try {
       await createAndSendOffer();
@@ -280,7 +281,9 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
-      await createAndSendOffer(); // await or un-awaited ?
+      // The signal listener that awaits this call has no reconnect handling, so a failed deferred
+      // offer is reported to [onNegotiationError] like a debounced one.
+      await _createAndSendOfferReportingErrors();
     }
   }
 
