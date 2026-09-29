@@ -1042,7 +1042,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       // the sender itself, so the peer connection carries no transceiver the
       // server cannot match to a signalled track (see
       // Engine.createSimulcastTransceiverSender for what happens if it does).
-      track.simulcastCodecs.remove(backupCodec);
+      // The map is keyed by codec alone, so only this attempt's own entry goes:
+      // a republish that raced this failure owns the key by now.
+      if (identical(track.simulcastCodecs[backupCodec], simulcastTrack)) {
+        track.simulcastCodecs.remove(backupCodec);
+      }
       final sender = simulcastTrack.sender;
       if (sender != null) {
         try {
