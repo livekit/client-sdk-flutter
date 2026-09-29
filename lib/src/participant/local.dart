@@ -994,47 +994,65 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
 
     final layers = Utils.computeVideoLayers(dimensions, encodings, isSVCCodec(backupCodec));
 
-    simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
-      track,
-      simulcastTrack,
-      encodings,
-      publication,
-      backupCodec,
-    );
+    late final lk_models.TrackInfo trackInfo;
+    try {
+      simulcastTrack.sender = await room.engine.createSimulcastTransceiverSender(
+        track,
+        simulcastTrack,
+        encodings,
+        publication,
+        backupCodec,
+      );
 
-    // the backup codec publishes over its own sender, so it needs the same
-    // degradation preference the primary sender resolved to.
-    await track.applyDegradationPreference(simulcastTrack.sender);
+      // the backup codec publishes over its own sender, so it needs the same
+      // degradation preference the primary sender resolved to.
+      await track.applyDegradationPreference(simulcastTrack.sender);
 
-    final cid = simulcastTrack.sender!.senderId;
+      final cid = simulcastTrack.sender!.senderId;
 
-    final req = lk_rtc.AddTrackRequest(
-      cid: cid,
-      name:
-          options.name ??
-          (track.source == TrackSource.screenShareVideo
-              ? VideoPublishOptions.defaultScreenShareName
-              : VideoPublishOptions.defaultCameraName),
-      type: track.kind.toPBType(),
-      source: track.source.toPBType(),
-      muted: track.muted,
-      layers: layers,
-      sid: publication.sid,
-      simulcastCodecs: <lk_rtc.SimulcastCodec>[
-        lk_rtc.SimulcastCodec(
-          codec: backupCodec.toLowerCase(),
-          cid: cid,
-        ),
-      ],
-    );
+      final req = lk_rtc.AddTrackRequest(
+        cid: cid,
+        name:
+            options.name ??
+            (track.source == TrackSource.screenShareVideo
+                ? VideoPublishOptions.defaultScreenShareName
+                : VideoPublishOptions.defaultCameraName),
+        type: track.kind.toPBType(),
+        source: track.source.toPBType(),
+        muted: track.muted,
+        layers: layers,
+        sid: publication.sid,
+        simulcastCodecs: <lk_rtc.SimulcastCodec>[
+          lk_rtc.SimulcastCodec(
+            codec: backupCodec.toLowerCase(),
+            cid: cid,
+          ),
+        ],
+      );
 
-    // video specific
-    if (dimensions.width > 0 && dimensions.height > 0) {
-      req.width = dimensions.width;
-      req.height = dimensions.height;
+      // video specific
+      if (dimensions.width > 0 && dimensions.height > 0) {
+        req.width = dimensions.width;
+        req.height = dimensions.height;
+      }
+
+      trackInfo = await room.engine.addTrack(req);
+    } catch (_) {
+      // The server never learned about this sender. Drop the local record and
+      // the sender itself, so the peer connection carries no transceiver the
+      // server cannot match to a signalled track (see
+      // Engine.createSimulcastTransceiverSender for what happens if it does).
+      track.simulcastCodecs.remove(backupCodec);
+      final sender = simulcastTrack.sender;
+      if (sender != null) {
+        try {
+          await room.engine.publisher?.pc.removeTrack(sender);
+        } catch (e) {
+          logger.warning('failed to remove the backup codec sender: $e');
+        }
+      }
+      rethrow;
     }
-
-    final trackInfo = await room.engine.addTrack(req);
 
     await room.engine.negotiate();
 
