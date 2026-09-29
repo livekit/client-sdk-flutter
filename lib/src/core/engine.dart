@@ -1706,7 +1706,25 @@ extension EngineInternalMethods on Engine {
       kind: rtc.RTCRtpMediaType.RTCRtpMediaTypeVideo,
       init: transceiverInit,
     );
-    await setPreferredCodec(transceiver, track.kind.toString().toLowerCase(), videoCodec);
+    try {
+      // The transceiver is always video (the kind above), and the plugin's
+      // capability lookup wants the plain media kind. `track.kind.toString()`
+      // yields 'tracktype.video', which the native desktop plugins refuse
+      // ("kind is null or empty") and the darwin plugin reads as audio.
+      await setPreferredCodec(transceiver, 'video', videoCodec);
+    } catch (_) {
+      // The transceiver is already on the peer connection and the server has
+      // not been told about it. Left behind, the next offer carries a media
+      // section the server has no signalled track for, and the server binds
+      // it to whichever video track is pending, so this track's frames can
+      // surface under another publication. Take it back out before failing.
+      try {
+        await publisher!.pc.removeTrack(transceiver.sender);
+      } catch (e) {
+        logger.warning('failed to remove the backup codec sender: $e');
+      }
+      rethrow;
+    }
     return transceiver.sender;
   }
 
