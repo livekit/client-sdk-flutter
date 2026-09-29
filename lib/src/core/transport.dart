@@ -172,6 +172,7 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
 
@@ -191,6 +192,7 @@ class Transport extends Disposable {
   bool restartingIce = false;
   bool renegotiate = false;
   TransportOnOffer? onOffer;
+  TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
 
@@ -241,10 +243,21 @@ class Transport extends Disposable {
   }
 
   late final negotiate = Utils.createDebounceFunc(
-    (void _) => createAndSendOffer(),
+    (void _) => _createAndSendOfferReportingErrors(),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: connectOptions.timeouts.debounce,
   );
+
+  /// The debouncer discards the returned future, so a failure here would surface as an
+  /// unhandled error. Hand it to [onNegotiationError] instead.
+  Future<void> _createAndSendOfferReportingErrors() async {
+    try {
+      await createAndSendOffer();
+    } catch (error) {
+      logger.warning('[$objectId] negotiate() failed with error: $error');
+      onNegotiationError?.call(error);
+    }
+  }
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {

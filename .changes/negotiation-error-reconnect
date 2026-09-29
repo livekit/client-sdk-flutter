@@ -1,0 +1,1 @@
+patch type="fixed" "A failed publisher negotiation (for example a `setLocalDescription` rejection) is now routed to the reconnect path instead of escaping as an unhandled `NegotiationError`"
