@@ -282,8 +282,13 @@ class Transport extends Disposable {
     if (renegotiate) {
       renegotiate = false;
       // The signal listener that awaits this call has no reconnect handling, so a failed deferred
-      // offer is reported to [onNegotiationError] like a debounced one.
-      await _createAndSendOfferReportingErrors();
+      // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
+      // error propagates to the caller instead of being dropped.
+      if (onNegotiationError == null) {
+        await createAndSendOffer();
+      } else {
+        await _createAndSendOfferReportingErrors();
+      }
     }
   }
 

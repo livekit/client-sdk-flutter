@@ -108,6 +108,26 @@ void main() {
       expect(await reported.future, isA<NegotiationError>());
     });
 
+    test('throws from setRemoteDescription when a deferred offer fails and no handler is set', () async {
+      final pc = _RejectAfterAnswerPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      transport.onOffer = (_) {};
+
+      await pc.setLocalDescription(await pc.createOffer());
+      await transport.createAndSendOffer();
+      expect(transport.renegotiate, isTrue);
+
+      pc.rejectLocal = true;
+      await expectLater(
+        transport.setRemoteDescription(rtc.RTCSessionDescription('v=0', 'answer')),
+        throwsA(isA<NegotiationError>()),
+      );
+    });
+
     test('still throws from a direct createAndSendOffer', () async {
       final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
       addTearDown(transport.dispose);
