@@ -43,11 +43,61 @@ void resetMockDataChannels() {
   _dataChannels.clear();
 }
 
+/// Remote MediaStreamTrack ids (→ kind) every mock peer connection reports a growing
+/// `inbound-rtp` stream for, as if media arrived.
+final mockInboundTracks = <String, String>{};
+
+/// A sender for [MockPeerConnection.addTransceiver].
+class MockRtpSender extends RTCRtpSender {
+  MockRtpSender(this._track);
+
+  final MediaStreamTrack? _track;
+
+  @override
+  MediaStreamTrack? get track => _track;
+
+  @override
+  String get senderId => 'mock-sender';
+
+  @override
+  Future<List<StatsReport>> getStats() async => [];
+
+  @override
+  Future<void> replaceTrack(MediaStreamTrack? track) async {}
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
+class MockRtpTransceiver extends RTCRtpTransceiver {
+  MockRtpTransceiver(this.sender);
+
+  @override
+  final RTCRtpSender sender;
+
+  @override
+  String get mid => '0';
+
+  @override
+  Future<void> setCodecPreferences(List<RTCRtpCodecCapability> codecs) async {}
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => throw UnimplementedError('${invocation.memberName}');
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
 
   bool closed = false;
+  final _sentTracks = <MediaStreamTrack>[];
+  int _polls = 0;
   RTCSessionDescription? _localDescription;
   RTCSessionDescription? _remoteDescription;
 
@@ -171,9 +221,9 @@ class MockPeerConnection extends RTCPeerConnection {
     MediaStreamTrack? track,
     RTCRtpMediaType? kind,
     RTCRtpTransceiverInit? init,
-  }) {
-    // TODO: implement addTransceiver
-    throw UnimplementedError();
+  }) async {
+    if (track != null) _sentTracks.add(track);
+    return MockRtpTransceiver(MockRtpSender(track));
   }
 
   @override
@@ -273,8 +323,42 @@ a=rtpmap:32 MPV/90000
   @override
   Future<List<RTCRtpSender>> getSenders() async => List.empty();
 
+  /// `getStats()` calls on every mock peer connection in this process.
+  static int statsCalls = 0;
+
+  /// Runs inside every `getStats()` before it answers (a slow or failing read).
+  static Future<void> Function()? onGetStats;
+
   @override
-  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async => List.empty();
+  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async {
+    statsCalls++;
+    await onGetStats?.call();
+    // Growing counters, like a peer connection with media flowing: an `outbound-rtp` (and its
+    // `media-source`) per sent track, an `inbound-rtp` per [mockInboundTracks] entry.
+    final bytes = 4000 * ++_polls;
+    final now = DateTime.now().microsecondsSinceEpoch.toDouble();
+    return [
+      StatsReport('CIT01', 'codec', now, {'mimeType': 'audio/opus'}),
+      for (final (i, sent) in _sentTracks.indexed) ...[
+        StatsReport('MS$i', 'media-source', now, {'trackIdentifier': sent.id, 'kind': sent.kind}),
+        StatsReport('OT$i', 'outbound-rtp', now, {
+          'kind': sent.kind,
+          'mediaSourceId': 'MS$i',
+          'bytesSent': bytes,
+          'packetsSent': bytes ~/ 100,
+          'codecId': 'CIT01',
+        }),
+      ],
+      for (final (i, MapEntry(key: id, value: kind)) in mockInboundTracks.entries.indexed)
+        StatsReport('IT$i', 'inbound-rtp', now, {
+          'kind': kind,
+          'trackIdentifier': id,
+          'bytesReceived': bytes,
+          'packetsReceived': bytes ~/ 100,
+          'codecId': 'CIT01',
+        }),
+    ];
+  }
 
   @override
   Future<List<RTCRtpTransceiver>> getTransceivers() async => List.empty();
@@ -300,6 +384,5 @@ a=rtpmap:32 MPV/90000
   ]) async => MockPeerConnection();
 
   @override
-  // TODO: implement restartIce
-  Future<void> restartIce() => throw UnimplementedError();
+  Future<void> restartIce() async {}
 }
