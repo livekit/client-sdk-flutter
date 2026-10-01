@@ -349,6 +349,7 @@ class RemoteTrackPublication<T extends RemoteTrack> extends TrackPublication<T> 
       logger.fine('ignoring subscribe() request...');
       return;
     }
+    participant.room.telemetry?.subscribeStarted(this);
     _sendUpdateSubscription(subscribed: true);
   }
 

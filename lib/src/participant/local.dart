@@ -157,8 +157,13 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalAudioTrack track, {
     AudioPublishOptions? publishOptions,
   }) async {
-    final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
-    return result! as LocalTrackPublication<LocalAudioTrack>;
+    // One publish attempt = one `lk.publish` span.
+    Future<LocalTrackPublication<LocalAudioTrack>> publish() async {
+      final result = await _publishRunner.run(() => _publishAudioTrack(track, publishOptions: publishOptions));
+      return result! as LocalTrackPublication<LocalAudioTrack>;
+    }
+
+    return room.telemetry?.publish(track, publish) ?? publish();
   }
 
   Future<LocalTrackPublication<LocalAudioTrack>?> _publishAudioTrack(
@@ -273,8 +278,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     LocalVideoTrack track, {
     VideoPublishOptions? publishOptions,
   }) async {
-    final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
-    return result! as LocalTrackPublication<LocalVideoTrack>;
+    Future<LocalTrackPublication<LocalVideoTrack>> publish() async {
+      final result = await _publishRunner.run(() => _publishVideoTrack(track, publishOptions: publishOptions));
+      return result! as LocalTrackPublication<LocalVideoTrack>;
+    }
+
+    return room.telemetry?.publish(track, publish) ?? publish();
   }
 
   Future<LocalTrackPublication<LocalVideoTrack>?> _publishVideoTrack(
