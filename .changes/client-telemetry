@@ -1,0 +1,1 @@
+minor type="added" "Client telemetry: every Room reports its connect, reconnect, publish and subscribe spans, RTC statistics, SDK warnings and device state to its LiveKit Cloud project through the shared Rust core (native platforms only), with LiveKitClient.disableTelemetry() to opt out and Room.emitTelemetryEvent / Room.setTelemetryAttribute for app events and correlation ids"
