@@ -14,6 +14,8 @@
 
 import 'package:logging/logging.dart';
 
+import 'support/sdk_logger.dart';
+
 enum LoggerLevel {
   kALL,
   kFINEST,
@@ -27,7 +29,7 @@ enum LoggerLevel {
   kOFF,
 }
 
-final logger = Logger('livekit');
+final Logger logger = SdkLogger(Logger('livekit'));
 
 /// disable logging
 void disableLogging() {
