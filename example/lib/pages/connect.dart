@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 
 enum _ConnectOption { autoSubscribe, e2ee }
 
@@ -435,6 +436,13 @@ class _ConnectIntro extends StatelessWidget {
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: LKColors.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            rustCoreVersionLabel(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: LKColors.textSecondary),
           ),
         ],
       );
