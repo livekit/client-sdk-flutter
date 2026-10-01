@@ -19,11 +19,20 @@ import 'audio/audio_session.dart';
 import 'support/native.dart';
 import 'support/platform.dart' show PlatformType, lkPlatformIs, lkPlatformIsMobile, lkPlatformIsDesktop;
 import 'support/webrtc_initialize_options.dart';
+import 'telemetry/telemetry.dart';
 
 /// Main entry point to connect to a room.
 /// {@category Room}
 class LiveKitClient {
   static const version = '2.13.0';
+
+  /// Opts this process out of client telemetry, in effect as soon as it is called: collection
+  /// stops and Rooms created afterwards collect nothing. Everything not yet sent — queued, open or
+  /// cached on disk — is deleted in the background. Call it at every launch, before creating a
+  /// Room, to collect nothing at all. A no-op on web.
+  ///
+  /// TODO: final shape pending the token/consent discussion.
+  static Future<void> disableTelemetry() => RoomTelemetry.disable();
 
   /// Initialize the WebRTC plugin.
   ///

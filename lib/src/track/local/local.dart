@@ -31,6 +31,7 @@ import '../../logger.dart';
 import '../../participant/remote.dart';
 import '../../support/native.dart';
 import '../../support/platform.dart';
+import '../../telemetry/telemetry.dart';
 import '../../types/other.dart';
 import '../options.dart';
 import '../processor.dart';
@@ -245,7 +246,16 @@ abstract class LocalTrack extends Track {
 
   /// Creates a [rtc.MediaStream] from [LocalTrackOptions].
   @internal
-  static Future<rtc.MediaStream> createStream(
+  static Future<rtc.MediaStream> createStream(LocalTrackOptions options) async {
+    try {
+      return await _createStream(options);
+    } catch (error) {
+      RoomTelemetry.captureFailed(options, error);
+      rethrow;
+    }
+  }
+
+  static Future<rtc.MediaStream> _createStream(
     LocalTrackOptions options,
   ) async {
     final constraints = <String, dynamic>{

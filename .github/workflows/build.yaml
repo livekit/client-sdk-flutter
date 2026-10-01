@@ -83,6 +83,19 @@ jobs:
       - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
+      # The telemetry end-to-end test posts OTLP to 127.0.0.1:4319 and reads back what the
+      # collector wrote (test/telemetry/otelcol.yaml). Only that test gets the endpoint, and a
+      # collector that did not start fails the job instead of skipping the test.
+      - name: Telemetry E2E Test
+        run: |
+          curl -sSfL -o otelcol.tar.gz "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v0.162.0/otelcol-contrib_0.162.0_linux_amd64.tar.gz"
+          echo "fcc063749f730f8c21fe29f2d340ff174f5f1c5885bd3156fb6c985a3036fcc3  otelcol.tar.gz" | sha256sum -c -
+          tar -xzf otelcol.tar.gz otelcol-contrib
+          nohup ./otelcol-contrib --config test/telemetry/otelcol.yaml > "$RUNNER_TEMP/otelcol.log" 2>&1 &
+          timeout 30 bash -c 'until curl -s -o /dev/null http://127.0.0.1:4319; do sleep 1; done' || { cat "$RUNNER_TEMP/otelcol.log"; exit 1; }
+          flutter test test/telemetry/
+        env:
+          LK_TELEMETRY_ENDPOINT: http://127.0.0.1:4319
 
   build-for-android:
     name: Android

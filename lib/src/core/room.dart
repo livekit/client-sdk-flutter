@@ -44,6 +44,7 @@ import '../support/disposable.dart';
 import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
+import '../telemetry/telemetry.dart';
 import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -122,6 +123,33 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
   @internal
   final Engine engine;
+
+  /// This Room's telemetry session, one trace for the Room's lifetime; null on web and after
+  /// `LiveKitClient.disableTelemetry`.
+  @internal
+  late final RoomTelemetry? telemetry = RoomTelemetry.create(this);
+
+  /// Records an app event in this Room's telemetry, exported as `custom.<name>` next to the SDK's
+  /// own records, with this Room's correlation attributes. A no-op on web.
+  ///
+  /// ```dart
+  /// room.emitTelemetryEvent('checkout.started', attributes: {'cart.items': '3'});
+  /// ```
+  ///
+  /// Names and keys up to 128 bytes, values up to 1024 bytes, at most 64 attributes and no `lk.`
+  /// keys; anything else is dropped, never truncated.
+  void emitTelemetryEvent(String name, {Map<String, String> attributes = const {}}) =>
+      telemetry?.emitCustom(name, attributes);
+
+  /// Sets a correlation attribute on every telemetry record this Room captures from now on, to
+  /// match them with your own data (an order id, a tenant); `null` removes it. Same limits as
+  /// [emitTelemetryEvent], at most 64 per Room. A no-op on web.
+  ///
+  /// ```dart
+  /// room.setTelemetryAttribute('app.order_id', orderId);
+  /// ```
+  void setTelemetryAttribute(String key, String? value) => telemetry?.setAttribute(key, value);
+
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
   //
@@ -179,12 +207,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
              connectOptions: connectOptions,
              roomOptions: roomOptions,
            ) {
-    //
-    _engineListener = this.engine.createListener();
-    _setUpEngineListeners();
+    this.engine.telemetry = telemetry;
+    // The Room's handlers run in its telemetry zone: a warning one of them logs lands in this
+    // Room's session even with no span open.
+    telemetry.run(() {
+      _engineListener = this.engine.createListener();
+      _setUpEngineListeners();
 
-    _signalListener = this.engine.signalClient.createListener();
-    _setUpSignalListeners();
+      _signalListener = this.engine.signalClient.createListener();
+      _setUpSignalListeners();
+    });
 
     _rpcClientManager = RpcClientManager(this);
     _rpcServerManager = RpcServerManager(this);
@@ -272,6 +304,23 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     String token, {
     ConnectOptions? connectOptions,
     @Deprecated('deprecated, please use roomOptions in Room constructor') RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
+  }) {
+    Future<void> connect() => _connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+    );
+    return telemetry?.connect(url, token, connect) ?? connect();
+  }
+
+  Future<void> _connect(
+    String url,
+    String token, {
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) async {
     var effectiveRoomOptions = roomOptions ?? this.roomOptions;

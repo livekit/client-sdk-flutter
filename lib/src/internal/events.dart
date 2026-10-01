@@ -210,10 +210,12 @@ class EngineDisconnectedEvent with InternalEvent, EngineEvent {
 
 @internal
 class EngineClosingEvent with InternalEvent, EngineEvent {
-  const EngineClosingEvent();
+  /// Why the engine closes: [DisconnectReason.clientInitiated] for the app's own `disconnect()`.
+  final DisconnectReason reason;
+  const EngineClosingEvent({this.reason = DisconnectReason.clientInitiated});
 
   @override
-  String toString() => '${runtimeType}()';
+  String toString() => '${runtimeType}(reason: $reason)';
 }
 
 @internal

@@ -58,13 +58,15 @@ class E2EContainer {
   /// is rewritten so the local participant's [Participant.clientProtocol] takes
   /// that value (used to exercise v1 vs v2 caller paths in self-loop tests).
   /// When [captureOutbound] is true, all DataPackets sent over the reliable
-  /// data channel are recorded in [capturedDataPackets].
+  /// data channel are recorded in [capturedDataPackets]. [otherParticipants]
+  /// are already in the room when it joins.
   Future<void> connectRoom({
     int? localClientProtocol,
     bool captureOutbound = false,
     ConnectOptions? connectOptions,
     @Deprecated('mirrors the deprecated Room.connect parameter') RoomOptions? roomOptions,
     lk_models.ClientConfiguration? clientConfiguration,
+    List<lk_models.ParticipantInfo> otherParticipants = const [],
   }) async {
     final connectFuture = room.connect(
       exampleUri,
@@ -73,7 +75,13 @@ class E2EContainer {
       // ignore: deprecated_member_use_from_same_package
       roomOptions: roomOptions,
     );
-    unawaited(answerJoin(localClientProtocol: localClientProtocol, clientConfiguration: clientConfiguration));
+    unawaited(
+      answerJoin(
+        localClientProtocol: localClientProtocol,
+        clientConfiguration: clientConfiguration,
+        otherParticipants: otherParticipants,
+      ),
+    );
 
     await connectFuture;
 
@@ -115,10 +123,15 @@ class E2EContainer {
   Future<void> answerJoin({
     int? localClientProtocol,
     lk_models.ClientConfiguration? clientConfiguration,
+    List<lk_models.ParticipantInfo> otherParticipants = const [],
   }) async {
     // Give the SDK a tick to start waiting for the join response.
     await Future<void>.delayed(const Duration(milliseconds: 1));
-    final resp = _buildJoinResponse(localClientProtocol, clientConfiguration);
+    var resp = _buildJoinResponse(localClientProtocol, clientConfiguration);
+    if (otherParticipants.isNotEmpty) {
+      // A copy: the default response is shared by every test.
+      resp = lk_rtc.SignalResponse(join: resp.join.deepCopy()..otherParticipants.addAll(otherParticipants));
+    }
     wsConnector.onData(resp.writeToBuffer());
     wsConnector.onData(offerResponse.writeToBuffer());
   }
