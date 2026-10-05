@@ -82,6 +82,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
   rtc.RTCVideoRenderer? _renderer;
   bool _ownsRenderer = false;
   bool _disposed = false;
+  bool _trackMuted = false;
   int _generation = 0;
   Future<void>? _initializing;
   Future<rtc.RTCVideoRenderer?>? _rendererFuture;
@@ -108,9 +109,13 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     final renderer = _renderer!;
     await _initializing;
     if (identical(renderer, _renderer)) _initializing = null;
-    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return null;
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) {
+      return null;
+    }
     await _attach(generation, renderer);
-    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return null;
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) {
+      return null;
+    }
     return renderer;
   }
 
@@ -118,7 +123,9 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     final future = _rendererFuture = _startRenderer();
     unawaited(() async {
       final renderer = await future;
-      if (renderer == null || !mounted || !identical(future, _rendererFuture)) return;
+      if (renderer == null || !mounted || !identical(future, _rendererFuture)) {
+        return;
+      }
       setState(() => _rendererReadyForWeb = true);
     }());
   }
@@ -156,7 +163,9 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
   @override
   void initState() {
     super.initState();
-    _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
+    _viewRegistration = widget.track.addViewRegistration(
+      pixelDensity: widget.adaptiveStreamPixelDensity,
+    );
     _scheduleRenderer();
   }
 
@@ -172,24 +181,58 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     super.dispose();
   }
 
+  void _setTrackMuted(rtc.RTCVideoRenderer renderer, bool muted) {
+    _trackMuted = muted;
+    _setVideoElementVisible(renderer, !muted);
+  }
+
+  void _setVideoElementVisible(rtc.RTCVideoRenderer renderer, bool visible) {
+    // Keep both the HTML element and its MediaStream attached. Detaching
+    // srcObject makes Safari reconfigure video compositing for all tiles.
+    // CSS visibility hides only this element while preserving its layout,
+    // decoder, and the other participants' video surfaces.
+    renderer.findHtmlView()?.style.visibility = visible ? 'visible' : 'hidden';
+  }
+
   Future<void> _attach(int generation, rtc.RTCVideoRenderer renderer) async {
     final oldListener = _listener;
     _listener = null;
     await oldListener?.dispose();
-    if (_disposed || generation != _generation || !identical(renderer, _renderer)) return;
+    if (_disposed || generation != _generation || !identical(renderer, _renderer)) {
+      return;
+    }
+
     final track = widget.track;
     renderer.srcObject = track.mediaStream;
+    _setVideoElementVisible(renderer, !_trackMuted);
+
     _listener = track.createListener()
       ..on<TrackStreamUpdatedEvent>((event) {
-        if (_disposed || generation != _generation || !identical(renderer, _renderer)) return;
+        if (_disposed || generation != _generation || !identical(renderer, _renderer)) {
+          return;
+        }
+
+        // Keep the media stream attached even while hidden. Safari retains
+        // stable composition for the other HtmlElementView video tiles this
+        // way, and the element becomes visible immediately on unmute.
         renderer.srcObject = event.stream;
+        _setVideoElementVisible(renderer, !_trackMuted);
+      })
+      ..on<InternalTrackMuteUpdatedEvent>((event) {
+        if (_disposed || generation != _generation || !identical(renderer, _renderer)) {
+          return;
+        }
+        _setTrackMuted(renderer, event.muted);
       })
       ..on<LocalTrackOptionsUpdatedEvent>((event) {
         if (_disposed || generation != _generation || !mounted) return;
         setState(() {});
       });
+
     renderer.onResize = () {
-      if (_disposed || generation != _generation || !identical(renderer, _renderer) || !mounted) return;
+      if (_disposed || generation != _generation || !identical(renderer, _renderer) || !mounted) {
+        return;
+      }
       setState(() => _aspectRatio = _rendererAspectRatio);
     };
   }
@@ -197,12 +240,18 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
   @override
   void didUpdateWidget(covariant _WebVideoTrackRenderer oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final cachedChanged = !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
+    final cachedChanged = !identical(
+      oldWidget.cachedRenderer,
+      widget.cachedRenderer,
+    );
     final trackChanged = !identical(oldWidget.track, widget.track);
+
     if (cachedChanged || trackChanged) {
       _generation++;
       _rendererReadyForWeb = false;
+      if (trackChanged) _trackMuted = false;
     }
+
     if (cachedChanged) {
       final listener = _listener;
       _listener = null;
@@ -210,19 +259,28 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
       _aspectRatio = null;
       _releaseRenderer(dispose: oldWidget.autoDisposeRenderer);
     }
+
     if (trackChanged) {
       oldWidget.track.removeViewRegistration(_viewRegistration);
-      _viewRegistration = widget.track.addViewRegistration(pixelDensity: widget.adaptiveStreamPixelDensity);
+      _viewRegistration = widget.track.addViewRegistration(
+        pixelDensity: widget.adaptiveStreamPixelDensity,
+      );
     } else if (widget.adaptiveStreamPixelDensity != oldWidget.adaptiveStreamPixelDensity) {
       _viewRegistration.pixelDensity = widget.adaptiveStreamPixelDensity;
     }
+
     if (cachedChanged || trackChanged) {
       _scheduleRenderer();
     }
+
     if (!cachedChanged &&
         [BrowserType.safari, BrowserType.firefox].contains(lkBrowser()) &&
         oldWidget.key != widget.key) {
-      _renderer?.srcObject = widget.track.mediaStream;
+      final renderer = _renderer;
+      if (renderer != null) {
+        renderer.srcObject = widget.track.mediaStream;
+        _setVideoElementVisible(renderer, !_trackMuted);
+      }
     }
   }
 
@@ -233,7 +291,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
         : Builder(
             key: _viewRegistration.key,
             builder: (context) {
-              WidgetsBindingCompatible.instance?.addPostFrameCallback((timeStamp) {
+              WidgetsBindingCompatible.instance?.addPostFrameCallback((_) {
                 widget.track.onVideoViewBuild?.call();
               });
               return rtc.RTCVideoView(
@@ -245,18 +303,24 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
               );
             },
           );
+
     if (widget.fit == VideoViewFit.cover) return child;
+
     final videoView = LayoutBuilder(
       builder: (context, constraints) {
-        if (!constraints.hasBoundedWidth && !constraints.hasBoundedHeight || _aspectRatio == null) return child;
+        if ((!constraints.hasBoundedWidth && !constraints.hasBoundedHeight) || _aspectRatio == null) {
+          return child;
+        }
+
         final fixHeight =
             !constraints.hasBoundedWidth ||
-            constraints.hasBoundedHeight && constraints.maxWidth / constraints.maxHeight > _aspectRatio!;
+            (constraints.hasBoundedHeight && constraints.maxWidth / constraints.maxHeight > _aspectRatio!);
         final width = fixHeight ? constraints.maxHeight * _aspectRatio! : constraints.maxWidth;
         final height = fixHeight ? constraints.maxHeight : constraints.maxWidth / _aspectRatio!;
         return SizedBox(width: width, height: height, child: child);
       },
     );
+
     return widget.autoCenter ? Center(child: videoView) : videoView;
   }
 }
