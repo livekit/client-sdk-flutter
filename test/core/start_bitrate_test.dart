@@ -21,6 +21,7 @@ import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
 
 import 'package:livekit_client/src/options.dart' show ConnectOptions, VideoPublishOptions;
 import 'package:livekit_client/src/utils.dart' show computeStartTargetBitrate;
+import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
 
 import 'package:livekit_client/src/core/transport.dart'
@@ -29,6 +30,7 @@ import 'package:livekit_client/src/core/transport.dart'
         Transport,
         applyVideoStartBitrate,
         computeConnectionStartBitrate,
+        computeStartBitrateCap,
         computeTrackStartBitrate,
         findTrackCodecPayload;
 
@@ -226,6 +228,88 @@ void main() {
       expect(transport.bitrateTrackers.length, 1);
     });
 
+    test('ramps the cap down with connection setup time', () {
+      // A 3 Mbps camera target, so only the cap moves.
+      final camera = TrackBitrateInfo(cid: 'c', transceiver: null, codec: 'VP8', maxbr: 3000);
+      int? startBitrateAt(int setupMs) => computeTrackStartBitrate(camera, Duration(milliseconds: setupMs));
+
+      expect(startBitrateAt(0), 1000, reason: 'instant setup keeps the ceiling');
+      expect(startBitrateAt(471), 1000, reason: 'unshaped baseline keeps the ceiling');
+      expect(startBitrateAt(1273), 1000, reason: '1 Mbps link median keeps the ceiling');
+      expect(startBitrateAt(1500), 1000, reason: 'the fast anchor keeps the ceiling');
+      expect(startBitrateAt(1724), 922, reason: '1 Mbps link slow attempt barely moves');
+      expect(startBitrateAt(2334), 708, reason: '500 kbps link median lands mid-ramp');
+      expect(startBitrateAt(2500), 650, reason: 'midpoint of the ramp');
+      expect(startBitrateAt(3093), 442, reason: '300 kbps link fastest attempt');
+      expect(startBitrateAt(3500), 300, reason: 'the slow anchor reaches the floor');
+      expect(startBitrateAt(18131), 300, reason: 'anything slower stays at the floor');
+
+      expect(
+        computeTrackStartBitrate(
+          TrackBitrateInfo(cid: 'c', transceiver: null, codec: 'VP8', maxbr: 500),
+          const Duration(milliseconds: 2500),
+        ),
+        450,
+        reason: '90% of the target still wins when it is lower than the cap',
+      );
+      expect(
+        computeTrackStartBitrate(
+          TrackBitrateInfo(cid: 'c', transceiver: null, codec: 'VP8', maxbr: 300),
+          const Duration(milliseconds: 3500),
+        ),
+        270,
+        reason: 'the hint is still written at the floor rather than skipped',
+      );
+      expect(computeTrackStartBitrate(camera), 1000, reason: 'no setup time keeps the 1 Mbps cap');
+      expect(computeStartBitrateCap(null), 1000);
+    });
+
+    test('caps screen share too once a slow setup lowers the cap', () {
+      final screenShare = TrackBitrateInfo(
+        cid: 'c',
+        transceiver: null,
+        codec: 'VP8',
+        maxbr: 3000,
+        isScreenShare: true,
+      );
+      int? startBitrateAt(int setupMs) => computeTrackStartBitrate(screenShare, Duration(milliseconds: setupMs));
+
+      expect(startBitrateAt(1273), 2700, reason: 'a fast setup leaves screen share uncapped');
+      expect(startBitrateAt(2500), 650, reason: 'below the ceiling the cap applies to it too');
+      expect(startBitrateAt(4061), 300, reason: 'the slowest setups seed it at the floor');
+    });
+
+    test('applies the setup time to the connection-level value', () {
+      final trackBitrates = [
+        TrackBitrateInfo(cid: 'camera-cid', transceiver: null, codec: 'VP8', maxbr: 1000),
+        TrackBitrateInfo(cid: 'other-track', transceiver: null, codec: 'VP8', maxbr: 3000, isScreenShare: true),
+      ];
+
+      expect(computeConnectionStartBitrate(mediaOf(twoVideoSections), trackBitrates), 2700);
+      expect(
+        computeConnectionStartBitrate(mediaOf(twoVideoSections), trackBitrates, const Duration(milliseconds: 2500)),
+        650,
+      );
+    });
+
+    test('uses the elapsed attempt time until the setup completes', () async {
+      final transport = await Transport.create(MockPeerConnection.create, connectOptions: const ConnectOptions());
+      addTearDown(transport.dispose);
+
+      expect(transport.connectionSetupTimeForOffer, isNull, reason: 'no attempt timed yet');
+
+      final stopwatch = Stopwatch()..start();
+      transport.setConnectStopwatch(stopwatch);
+      final elapsed = transport.connectionSetupTimeForOffer;
+      expect(elapsed, isNotNull);
+      expect(elapsed! <= stopwatch.elapsed, isTrue, reason: 'a lower bound on the eventual setup time');
+
+      stopwatch.stop();
+      final setupTime = transport.connectionSetupTimeForOffer;
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(transport.connectionSetupTimeForOffer, setupTime, reason: 'fixed once the setup completes');
+    });
+
     test('gives no connection value when nothing sending matches', () {
       expect(computeConnectionStartBitrate(mediaOf(twoVideoSections), []), isNull);
       expect(
@@ -233,6 +317,24 @@ void main() {
           TrackBitrateInfo(cid: 'other-track', transceiver: null, codec: 'VP8', maxbr: 8000, isScreenShare: true),
         ]),
         isNull,
+      );
+    });
+  });
+
+  group('connection setup time', () {
+    test('the engine hands the publisher its setup time once connected', () async {
+      final container = E2EContainer();
+      addTearDown(container.dispose);
+
+      await container.connectRoom();
+
+      final setupTime = container.engine.publisher!.connectionSetupTimeForOffer;
+      expect(setupTime, isNotNull);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(
+        container.engine.publisher!.connectionSetupTimeForOffer,
+        setupTime,
+        reason: 'the completed setup time is fixed, not the still-running attempt timer',
       );
     });
   });
