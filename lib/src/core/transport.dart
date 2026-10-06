@@ -171,6 +171,22 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
+/// How the connection-level video start bitrate reaches libwebrtc.
+enum VideoStartBitrateMethod {
+  /// `RTCPeerConnection.setBitrate` once the offer is sent.
+  setBitrate,
+
+  /// `x-google-start-bitrate` written into the offer.
+  sdp,
+}
+
+/// `setBitrate` is implemented natively only on iOS, macOS and Android. Host unit tests use
+/// the SDP method unless a test picks one.
+VideoStartBitrateMethod _defaultVideoStartBitrateMethod() =>
+    !lkPlatformIsTest() && [PlatformType.iOS, PlatformType.macOS, PlatformType.android].contains(lkPlatform())
+    ? VideoStartBitrateMethod.setBitrate
+    : VideoStartBitrateMethod.sdp;
+
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
@@ -182,11 +198,16 @@ class Transport extends Disposable {
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];
   final List<TrackBitrateInfo> _bitrateTrackers = [];
 
-  /// Whether an offer carrying the connection-level `x-google-start-bitrate` has been
-  /// accepted locally. The hint is written once per peer connection: libwebrtc retains
-  /// `start_bitrate_bps` in `RtpBitrateConfigurator` and re-applies it on network route
-  /// changes, so a later rewrite is at best a no-op and at worst restarts a converged
-  /// bandwidth estimator. A new peer connection (full reconnect) seeds a new estimator.
+  final VideoStartBitrateMethod _videoStartBitrateMethod;
+
+  /// Whether the connection-level video start bitrate has been applied. With
+  /// [VideoStartBitrateMethod.sdp] that is an accepted offer carrying `x-google-start-bitrate`.
+  /// With [VideoStartBitrateMethod.setBitrate] it is set while the call is in flight and
+  /// cleared again if the call fails. The value is applied once per peer connection:
+  /// libwebrtc retains `start_bitrate_bps` in `RtpBitrateConfigurator` and re-applies it on
+  /// network route changes, so a later rewrite is at best a no-op and at worst restarts a
+  /// converged bandwidth estimator. A new peer connection (full reconnect) seeds a new
+  /// estimator.
   bool _hasAppliedVideoStartBitrate = false;
 
   bool restartingIce = false;
@@ -197,7 +218,7 @@ class Transport extends Disposable {
   ConnectOptions connectOptions;
 
   // private constructor
-  Transport._(this.pc, this.connectOptions) {
+  Transport._(this.pc, this.connectOptions, this._videoStartBitrateMethod) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -235,11 +256,16 @@ class Transport extends Disposable {
     PeerConnectionCreate peerConnectionCreate, {
     RTCConfiguration? rtcConfig,
     required ConnectOptions connectOptions,
+    @visibleForTesting VideoStartBitrateMethod? videoStartBitrateMethod,
   }) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(pc, connectOptions);
+    return Transport._(
+      pc,
+      connectOptions,
+      videoStartBitrateMethod ?? _defaultVideoStartBitrateMethod(),
+    );
   }
 
   late final negotiate = Utils.createDebounceFunc(
@@ -335,13 +361,16 @@ class Transport extends Disposable {
     }
 
     final sdpParsed = sdp_transform.parse(offer.sdp ?? '');
-    // One value for every video m-section, written only on the first offer that carries local
-    // video: the hint is connection-level in libwebrtc, so differing per-section values would
-    // be last-writer-wins on m-section order. Offers before any video is published (data
-    // channel or audio only) find no target and leave the latch unset.
+    // One connection-level value, applied only for the first offer that carries local video:
+    // libwebrtc keeps a single start bitrate per connection, so differing per-section values
+    // would be last-writer-wins on m-section order. The sdp method writes it into every video
+    // m-section. The setBitrate method passes it to the peer connection once the offer is sent.
+    // Offers before any video is published (data channel or audio only) find no target and
+    // leave the latch unset.
     final connectionStartBitrate = _hasAppliedVideoStartBitrate
         ? null
         : computeConnectionStartBitrate(sdpParsed['media'] ?? const [], _bitrateTrackers);
+    final sdpStartBitrate = _videoStartBitrateMethod == VideoStartBitrateMethod.sdp ? connectionStartBitrate : null;
     var appliedVideoStartBitrate = false;
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {
@@ -357,8 +386,8 @@ class Transport extends Disposable {
           if (codecPayload == null) {
             continue;
           }
-          if (codecPayload > 0 && connectionStartBitrate != null) {
-            applyVideoStartBitrate(media, codecPayload, connectionStartBitrate);
+          if (codecPayload > 0 && sdpStartBitrate != null) {
+            applyVideoStartBitrate(media, codecPayload, sdpStartBitrate);
             appliedVideoStartBitrate = true;
           }
           break;
@@ -378,6 +407,29 @@ class Transport extends Disposable {
       _hasAppliedVideoStartBitrate = true;
     }
     onOffer?.call(offer);
+
+    if (_videoStartBitrateMethod == VideoStartBitrateMethod.setBitrate &&
+        connectionStartBitrate != null &&
+        !_hasAppliedVideoStartBitrate) {
+      await _setVideoStartBitrate(connectionStartBitrate);
+    }
+  }
+
+  /// Never throws: a failure here would be reported as a failed negotiation although the offer
+  /// was already sent.
+  Future<void> _setVideoStartBitrate(int startBitrateKbps) async {
+    // Latch before awaiting so an offer created meanwhile does not seed again.
+    _hasAppliedVideoStartBitrate = true;
+    try {
+      if (await pc.setBitrate(startBitrate: startBitrateKbps * 1000)) {
+        logger.fine('[$objectId] video start bitrate set to $startBitrateKbps kbps');
+        return;
+      }
+      logger.warning('[$objectId] setBitrate() rejected video start bitrate $startBitrateKbps kbps');
+    } catch (error) {
+      logger.warning('[$objectId] setBitrate() failed with error: $error');
+    }
+    _hasAppliedVideoStartBitrate = false;
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
