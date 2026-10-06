@@ -125,6 +125,9 @@ jobs:
           ln -s "$RUNNER_TEMP/example-build" build
       - name: Build for iOS
         working-directory: ./example
+        # The example disables SwiftPM in its pubspec; keep building the plugin as a Swift package.
+        env:
+          FLUTTER_SWIFT_PACKAGE_MANAGER: true
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
@@ -156,6 +159,9 @@ jobs:
           ln -s "$RUNNER_TEMP/example-build" build
       - name: Build for macOS
         working-directory: ./example
+        # See the iOS job, the example disables SwiftPM in its pubspec.
+        env:
+          FLUTTER_SWIFT_PACKAGE_MANAGER: true
         run: flutter build macos --release
 
   build-for-linux:
