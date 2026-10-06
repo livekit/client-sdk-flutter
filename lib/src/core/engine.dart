@@ -250,6 +250,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     //reset state
     _isClosed = false;
 
+    final connectStopwatch = Stopwatch()..start();
+
     try {
       // wait for socket to connect rtc server
       await signalClient.connect(
@@ -267,6 +269,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           reason: ConnectionErrorReason.Timeout,
         ),
       );
+      // The join response created the publisher. It derives the start bitrate hint from this
+      // attempt's setup time, or from the time elapsed so far for an offer created before then.
+      publisher?.setConnectStopwatch(connectStopwatch);
 
       logger.fine('Waiting for engine to connect...');
 
@@ -278,6 +283,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      connectStopwatch.stop();
+      logger.info('connection setup took ${connectStopwatch.elapsedMilliseconds} ms');
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
