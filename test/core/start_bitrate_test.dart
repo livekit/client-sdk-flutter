@@ -15,6 +15,8 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
@@ -27,6 +29,7 @@ import 'package:livekit_client/src/core/transport.dart'
     show
         TrackBitrateInfo,
         Transport,
+        VideoStartBitrateMethod,
         applyVideoStartBitrate,
         computeConnectionStartBitrate,
         computeTrackStartBitrate,
@@ -102,7 +105,57 @@ a=mid:1
 a=msid:stream other-track
 a=rtpmap:96 VP8/90000''';
 
+// An offer before any video is published: only the data channel.
+const dataChannelOnly = '''v=0
+o=- 0 0 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=group:BUNDLE 0
+m=application 9 UDP/DTLS/SCTP webrtc-datachannel
+c=IN IP4 0.0.0.0
+a=mid:0
+a=sctp-port:5000''';
+
 List<dynamic> mediaOf(String sdp) => sdp_transform.parse(sdp)['media'] as List<dynamic>;
+
+// [twoVideoSections] as a real offer lists it, with more than one payload per video section.
+// `createAndSendOffer` reads the payload list as a string, and a single payload parses as an int.
+final videoOffer = twoVideoSections.replaceAll('SAVPF 96', 'SAVPF 96 97');
+
+/// Offers [offerSdp] and can hold [setBitrate] open until [setBitrateGate] completes.
+class _OfferingPeerConnection extends MockPeerConnection {
+  String offerSdp = videoOffer;
+  Completer<void>? setBitrateGate;
+
+  @override
+  Future<rtc.RTCSessionDescription> createOffer([Map<String, dynamic>? constraints]) async =>
+      rtc.RTCSessionDescription(offerSdp, 'offer');
+
+  @override
+  Future<bool> setBitrate({int? minBitrate, int? startBitrate, int? maxBitrate}) async {
+    final result = await super.setBitrate(minBitrate: minBitrate, startBitrate: startBitrate, maxBitrate: maxBitrate);
+    await setBitrateGate?.future;
+    return result;
+  }
+
+  /// Answers the pending offer so the next one is sent rather than deferred.
+  Future<void> answer() => setRemoteDescription(rtc.RTCSessionDescription('v=0', 'answer'));
+}
+
+Future<(Transport, _OfferingPeerConnection)> createTransport(VideoStartBitrateMethod method) async {
+  final pc = _OfferingPeerConnection();
+  final transport = await Transport.create(
+    (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+    connectOptions: const ConnectOptions(),
+    videoStartBitrateMethod: method,
+  );
+  addTearDown(transport.dispose);
+  transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
+  return (transport, pc);
+}
+
+// The camera on mid 1 of [videoOffer] targets 1000 kbps, so the connection value is 900.
+TrackBitrateInfo cameraTracker() => TrackBitrateInfo(cid: 'camera-cid', transceiver: null, codec: 'VP8', maxbr: 1000);
 
 void main() {
   group('video start bitrate', () {
@@ -234,6 +287,138 @@ void main() {
         ]),
         isNull,
       );
+    });
+  });
+
+  group('video start bitrate through setBitrate', () {
+    test('the first offer with video calls setBitrate once, after onOffer, without the SDP hint', () async {
+      final (transport, pc) = await createTransport(VideoStartBitrateMethod.setBitrate);
+      transport.setTrackBitrateInfo(cameraTracker());
+      final callsAtOffer = <int>[];
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = (offer) {
+        callsAtOffer.add(pc.setBitrateCalls.length);
+        offers.add(offer);
+      };
+
+      await transport.createAndSendOffer();
+
+      expect(callsAtOffer, [0]);
+      expect(pc.setBitrateCalls, [(minBitrate: null, startBitrate: 900000, maxBitrate: null)]);
+      expect(offers.single.sdp, isNot(contains('x-google-start-bitrate')));
+      expect((await pc.getLocalDescription())!.sdp, isNot(contains('x-google-start-bitrate')));
+    });
+
+    test('a later offer does not call setBitrate again', () async {
+      final (transport, pc) = await createTransport(VideoStartBitrateMethod.setBitrate);
+      transport.setTrackBitrateInfo(cameraTracker());
+      transport.onOffer = (_) {};
+
+      await transport.createAndSendOffer();
+      await pc.answer();
+      await transport.createAndSendOffer();
+
+      expect(pc.setBitrateCalls, hasLength(1));
+    });
+
+    test('an offer created while setBitrate is pending does not call it again', () async {
+      final (transport, pc) = await createTransport(VideoStartBitrateMethod.setBitrate);
+      transport.setTrackBitrateInfo(cameraTracker());
+      transport.onOffer = (_) {};
+      final gate = pc.setBitrateGate = Completer<void>();
+
+      final first = transport.createAndSendOffer();
+      while (pc.setBitrateCalls.isEmpty) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      await pc.answer();
+      await transport.createAndSendOffer();
+      gate.complete();
+      await first;
+
+      expect(pc.setBitrateCalls, hasLength(1));
+    });
+
+    test('an offer before any video does not call it, the first offer with video does', () async {
+      final (transport, pc) = await createTransport(VideoStartBitrateMethod.setBitrate);
+      transport.onOffer = (_) {};
+
+      pc.offerSdp = dataChannelOnly;
+      await transport.createAndSendOffer();
+      expect(pc.setBitrateCalls, isEmpty);
+
+      await pc.answer();
+      pc.offerSdp = videoOffer;
+      transport.setTrackBitrateInfo(cameraTracker());
+      await transport.createAndSendOffer();
+      expect(pc.setBitrateCalls.map((c) => c.startBitrate), [900000]);
+    });
+
+    for (final (name, fail) in <(String, void Function(_OfferingPeerConnection))>[
+      ('a false result', (pc) => pc.setBitrateResult = false),
+      ('a thrown error', (pc) => pc.setBitrateError = Exception('setBitrate failed')),
+    ]) {
+      test('$name does not consume it, and the next offer retries', () async {
+        final (transport, pc) = await createTransport(VideoStartBitrateMethod.setBitrate);
+        transport.setTrackBitrateInfo(cameraTracker());
+        final offers = <rtc.RTCSessionDescription>[];
+        transport.onOffer = offers.add;
+        final reported = <Object>[];
+        transport.onNegotiationError = reported.add;
+        fail(pc);
+
+        // The debounced path reports anything createAndSendOffer throws as a negotiation error.
+        transport.negotiate(null);
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        expect(offers, hasLength(1));
+        expect(reported, isEmpty);
+        expect(pc.setBitrateCalls, hasLength(1));
+
+        pc
+          ..setBitrateResult = true
+          ..setBitrateError = null;
+        await pc.answer();
+        await transport.createAndSendOffer();
+        expect(pc.setBitrateCalls.map((c) => c.startBitrate), [900000, 900000]);
+
+        await pc.answer();
+        await transport.createAndSendOffer();
+        expect(pc.setBitrateCalls, hasLength(2));
+      });
+    }
+  });
+
+  group('video start bitrate through the SDP', () {
+    test('the first offer with video carries the hint and setBitrate is never called', () async {
+      final (transport, pc) = await createTransport(VideoStartBitrateMethod.sdp);
+      transport.setTrackBitrateInfo(cameraTracker());
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = offers.add;
+
+      await transport.createAndSendOffer();
+      await pc.answer();
+      await transport.createAndSendOffer();
+
+      expect(paramSet(fmtpOf(mediaOf(offers[0].sdp!), '1', 96)!), contains('x-google-start-bitrate=900'));
+      expect(offers[1].sdp, isNot(contains('x-google-start-bitrate')));
+      expect(pc.setBitrateCalls, isEmpty);
+    });
+
+    test('is the default in host tests', () async {
+      final pc = _OfferingPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      transport.setTrackBitrateInfo(cameraTracker());
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = offers.add;
+
+      await transport.createAndSendOffer();
+
+      expect(offers.single.sdp, contains('x-google-start-bitrate=900'));
+      expect(pc.setBitrateCalls, isEmpty);
     });
   });
 

@@ -294,6 +294,23 @@ a=rtpmap:32 MPV/90000
     appliedConfiguration = configuration;
   }
 
+  /// Arguments of every [setBitrate] call, in order.
+  final List<({int? minBitrate, int? startBitrate, int? maxBitrate})> setBitrateCalls = [];
+
+  /// What [setBitrate] returns, unless [setBitrateError] is set, in which case it throws that.
+  bool setBitrateResult = true;
+  Object? setBitrateError;
+
+  @override
+  Future<bool> setBitrate({int? minBitrate, int? startBitrate, int? maxBitrate}) async {
+    setBitrateCalls.add((minBitrate: minBitrate, startBitrate: startBitrate, maxBitrate: maxBitrate));
+    final error = setBitrateError;
+    if (error != null) {
+      throw error;
+    }
+    return setBitrateResult;
+  }
+
   static Future<RTCPeerConnection> create(
     Map<String, dynamic> configuration, [
     Map<String, dynamic>? constraints,

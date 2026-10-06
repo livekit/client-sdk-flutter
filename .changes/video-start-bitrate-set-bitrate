@@ -1,0 +1,1 @@
+patch type="changed" "On iOS, macOS and Android the video start bitrate is now set through the peer connection's bitrate API instead of an SDP edit, while web, Windows and Linux keep writing it into the offer"
