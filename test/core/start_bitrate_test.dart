@@ -264,7 +264,7 @@ void main() {
       expect(computeStartBitrateCap(null), 1000);
     });
 
-    test('caps screen share too once a slow setup lowers the cap', () {
+    test('leaves screen share uncapped however slow the setup', () {
       final screenShare = TrackBitrateInfo(
         cid: 'c',
         transceiver: null,
@@ -274,9 +274,9 @@ void main() {
       );
       int? startBitrateAt(int setupMs) => computeTrackStartBitrate(screenShare, Duration(milliseconds: setupMs));
 
-      expect(startBitrateAt(1273), 2700, reason: 'a fast setup leaves screen share uncapped');
-      expect(startBitrateAt(2500), 650, reason: 'below the ceiling the cap applies to it too');
-      expect(startBitrateAt(4061), 300, reason: 'the slowest setups seed it at the floor');
+      expect(startBitrateAt(1273), 2700, reason: 'a fast setup');
+      expect(startBitrateAt(2500), 2700, reason: 'mid-ramp');
+      expect(startBitrateAt(4061), 2700, reason: 'past the slow anchor');
     });
 
     test('applies the setup time to the connection-level value', () {
@@ -286,8 +286,17 @@ void main() {
       ];
 
       expect(computeConnectionStartBitrate(mediaOf(twoVideoSections), trackBitrates), 2700);
+      // The screen share is exempt from the cap, so a slow setup lowers only the camera's hint.
       expect(
         computeConnectionStartBitrate(mediaOf(twoVideoSections), trackBitrates, const Duration(milliseconds: 2500)),
+        2700,
+      );
+      expect(
+        computeConnectionStartBitrate(
+          mediaOf(twoVideoSections),
+          [TrackBitrateInfo(cid: 'camera-cid', transceiver: null, codec: 'VP8', maxbr: 3000)],
+          const Duration(milliseconds: 2500),
+        ),
         650,
       );
     });

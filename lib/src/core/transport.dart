@@ -120,17 +120,14 @@ int computeStartBitrateCap(Duration? connectionSetupTime) {
 /// is used for every codec because the target already reflects the codec's efficiency.
 /// Camera is capped at 1 Mbps, lowered for a slow [connectionSetupTime] (see
 /// [computeStartBitrateCap]), so the estimator does not open too aggressively. Screen share is
-/// exempt from the 1 Mbps ceiling, because its content needs the bitrate immediately to stay
-/// legible, but once the cap is below it, a connection that slow cannot carry an uncapped
-/// screen-share seed either.
+/// exempt from both caps, because its content needs the bitrate immediately to stay legible.
 @internal
 int? computeTrackStartBitrate(TrackBitrateInfo trackbr, [Duration? connectionSetupTime]) {
   if (trackbr.maxbr < minTargetBitrateKbps) {
     return null;
   }
   final calculated = (trackbr.maxbr * startBitrateMultiplier).round();
-  final cap = computeStartBitrateCap(connectionSetupTime);
-  return trackbr.isScreenShare && cap >= maxStartBitrateKbps ? calculated : math.min(calculated, cap);
+  return trackbr.isScreenShare ? calculated : math.min(calculated, computeStartBitrateCap(connectionSetupTime));
 }
 
 /// The single start bitrate for this peer connection: the largest hint among the video
