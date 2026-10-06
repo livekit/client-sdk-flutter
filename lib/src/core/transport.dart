@@ -172,6 +172,7 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
 
@@ -191,6 +192,7 @@ class Transport extends Disposable {
   bool restartingIce = false;
   bool renegotiate = false;
   TransportOnOffer? onOffer;
+  TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
 
@@ -241,10 +243,22 @@ class Transport extends Disposable {
   }
 
   late final negotiate = Utils.createDebounceFunc(
-    (void _) => createAndSendOffer(),
+    (void _) => _createAndSendOfferReportingErrors(),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: connectOptions.timeouts.debounce,
   );
+
+  /// The debouncer and the offer deferred until the answer arrives have no caller that handles
+  /// errors, so a failure here would surface as an unhandled error. Hand it to
+  /// [onNegotiationError] instead. Direct [createAndSendOffer] callers still get the error.
+  Future<void> _createAndSendOfferReportingErrors() async {
+    try {
+      await createAndSendOffer();
+    } catch (error) {
+      logger.warning('[$objectId] negotiate() failed with error: $error');
+      onNegotiationError?.call(error);
+    }
+  }
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {
@@ -267,7 +281,14 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
-      await createAndSendOffer(); // await or un-awaited ?
+      // The signal listener that awaits this call has no reconnect handling, so a failed deferred
+      // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
+      // error propagates to the caller instead of being dropped.
+      if (onNegotiationError == null) {
+        await createAndSendOffer();
+      } else {
+        await _createAndSendOfferReportingErrors();
+      }
     }
   }
 

@@ -344,17 +344,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
     _hasPublished = true;
-    try {
-      publisher!.negotiate(null);
-    } catch (error) {
-      if (error is NegotiationError) {
-        fullReconnectOnNext = true;
-      }
-      await handleReconnect(
-        ClientDisconnectReason.negotiationFailed,
-        reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
-      );
+    publisher!.negotiate(null);
+  }
+
+  Future<void> _onPublisherNegotiationError(Object error) async {
+    if (error is NegotiationError) {
+      fullReconnectOnNext = true;
     }
+    await handleReconnect(
+      ClientDisconnectReason.negotiationFailed,
+      reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
+    );
   }
 
   bool? isBufferStatusLow(Reliability kind) {
@@ -697,6 +697,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
     };
+
+    publisher?.onNegotiationError = _onPublisherNegotiationError;
 
     // in subscriber primary mode, server side opens sub data channels.
     if (_subscriberPrimary) {
