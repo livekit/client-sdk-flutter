@@ -47,9 +47,19 @@ const startBitrateMultiplier = 0.9;
 /// Maximum x-google-start-bitrate in kbps. 1 Mbps prevents BWE from starting too aggressively.
 const maxStartBitrateKbps = 1000;
 
-/// Minimum target bitrate in kbps for the start bitrate hint. Below this, seeding above the
-/// real capacity costs more than the ramp it saves, so libwebrtc's default is left in place.
+/// Minimum x-google-start-bitrate in kbps: libwebrtc's own default starting estimate. A target
+/// below this gets no hint, since seeding above the real capacity costs more than the ramp it
+/// saves, and a slow connection is seeded no higher than this.
 const minTargetBitrateKbps = 300;
+
+/// Connection setup times bounding the ramp in [computeTrackStartBitrate]: at or below the first
+/// the hint is capped at [maxStartBitrateKbps], at or above the second at [minTargetBitrateKbps].
+/// Measured on shaped links (CLT-3380): healthy links set up in under 860 ms, a 1 Mbps link with
+/// 150 ms RTT took 1.1–1.7 s, a 500 kbps link ~2.3 s at the median, and a 300 kbps link never
+/// under 3 s. The first sits above the 1 Mbps link, which a lower seed only slows down, and the
+/// second above the 500 kbps link's median, so only links that cannot carry more land at the floor.
+const setupTimeForMaxStartBitrate = Duration(milliseconds: 1500);
+const setupTimeForMinStartBitrate = Duration(milliseconds: 3500);
 
 class TrackBitrateInfo {
   String? cid;
@@ -84,21 +94,40 @@ int? findTrackCodecPayload(Map<String, dynamic> media, String cid, String codec)
   return 0;
 }
 
+/// Cap on the start bitrate for a connection that took [connectionSetupTime] to set up.
+///
+/// Connection setup time (signaling join plus ICE/DTLS) is the only network signal there is
+/// before the first video offer, since libwebrtc cannot probe the path until a video sender
+/// exists. It grows with round-trip time and loss, which also mark the links where a 1 Mbps
+/// seed overshoots, so the cap ramps linearly from [maxStartBitrateKbps] at
+/// [setupTimeForMaxStartBitrate] down to [minTargetBitrateKbps] at [setupTimeForMinStartBitrate].
+/// Without a setup time the cap stays at the 1 Mbps ceiling.
+@internal
+int computeStartBitrateCap(Duration? connectionSetupTime) {
+  if (connectionSetupTime == null) {
+    return maxStartBitrateKbps;
+  }
+  final fast = setupTimeForMaxStartBitrate.inMilliseconds;
+  final slow = setupTimeForMinStartBitrate.inMilliseconds;
+  final ramp = ((connectionSetupTime.inMilliseconds - fast) / (slow - fast)).clamp(0.0, 1.0);
+  return (maxStartBitrateKbps - ramp * (maxStartBitrateKbps - minTargetBitrateKbps)).round();
+}
+
 /// Start bitrate hinted for a single track, or `null` when its target is too low to be
 /// worth seeding.
 ///
 /// 90% of the target leaves ~10% headroom for the estimator to settle. The same multiplier
 /// is used for every codec because the target already reflects the codec's efficiency.
-/// Camera is capped at 1 Mbps so the estimator does not open too aggressively on a
-/// high-bitrate track; screen share is exempt, because its content needs the bitrate
-/// immediately to stay legible.
+/// Camera is capped at 1 Mbps, lowered for a slow [connectionSetupTime] (see
+/// [computeStartBitrateCap]), so the estimator does not open too aggressively. Screen share is
+/// exempt from both caps, because its content needs the bitrate immediately to stay legible.
 @internal
-int? computeTrackStartBitrate(TrackBitrateInfo trackbr) {
+int? computeTrackStartBitrate(TrackBitrateInfo trackbr, [Duration? connectionSetupTime]) {
   if (trackbr.maxbr < minTargetBitrateKbps) {
     return null;
   }
   final calculated = (trackbr.maxbr * startBitrateMultiplier).round();
-  return trackbr.isScreenShare ? calculated : math.min(calculated, maxStartBitrateKbps);
+  return trackbr.isScreenShare ? calculated : math.min(calculated, computeStartBitrateCap(connectionSetupTime));
 }
 
 /// The single start bitrate for this peer connection: the largest hint among the video
@@ -119,7 +148,11 @@ int? computeTrackStartBitrate(TrackBitrateInfo trackbr) {
 /// moves sendonly to inactive and sendrecv to recvonly); everything else sends, including a
 /// section with no direction attribute, which SDP defaults to `sendrecv`.
 @internal
-int? computeConnectionStartBitrate(List<dynamic> media, List<TrackBitrateInfo> trackBitrates) {
+int? computeConnectionStartBitrate(
+  List<dynamic> media,
+  List<TrackBitrateInfo> trackBitrates, [
+  Duration? connectionSetupTime,
+]) {
   int? connectionStartBitrate;
   for (final m in media) {
     final direction = m['direction'];
@@ -135,7 +168,7 @@ int? computeConnectionStartBitrate(List<dynamic> media, List<TrackBitrateInfo> t
       if (codecPayload == null) {
         continue;
       }
-      final startBitrate = codecPayload > 0 ? computeTrackStartBitrate(trackbr) : null;
+      final startBitrate = codecPayload > 0 ? computeTrackStartBitrate(trackbr, connectionSetupTime) : null;
       if (startBitrate != null && (connectionStartBitrate == null || startBitrate > connectionStartBitrate)) {
         connectionStartBitrate = startBitrate;
       }
@@ -172,6 +205,7 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
 }
 
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
 
@@ -188,9 +222,16 @@ class Transport extends Disposable {
   /// bandwidth estimator. A new peer connection (full reconnect) seeds a new estimator.
   bool _hasAppliedVideoStartBitrate = false;
 
+  /// Times the connection attempt that created this transport, from the top of
+  /// `Engine.connect` until the primary transport connects, when the engine stops it.
+  /// [computeTrackStartBitrate] lowers the hint for slow connections. A full reconnect builds
+  /// a new transport and times itself again; a resume keeps this one and its estimator.
+  Stopwatch? _connectStopwatch;
+
   bool restartingIce = false;
   bool renegotiate = false;
   TransportOnOffer? onOffer;
+  TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
 
@@ -240,11 +281,34 @@ class Transport extends Disposable {
     return Transport._(pc, connectOptions);
   }
 
+  void setConnectStopwatch(Stopwatch stopwatch) {
+    _connectStopwatch = stopwatch;
+  }
+
+  /// The setup time the start bitrate hint is derived from: the completed setup time once the
+  /// engine has stopped the stopwatch, or, for a video offer created before then (an app that
+  /// publishes as soon as the join completes), the time elapsed so far. That is a lower bound
+  /// on the eventual setup time, so it can only err toward the 1 Mbps ceiling.
+  @internal
+  Duration? get connectionSetupTimeForOffer => _connectStopwatch?.elapsed;
+
   late final negotiate = Utils.createDebounceFunc(
-    (void _) => createAndSendOffer(),
+    (void _) => _createAndSendOfferReportingErrors(),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: connectOptions.timeouts.debounce,
   );
+
+  /// The debouncer and the offer deferred until the answer arrives have no caller that handles
+  /// errors, so a failure here would surface as an unhandled error. Hand it to
+  /// [onNegotiationError] instead. Direct [createAndSendOffer] callers still get the error.
+  Future<void> _createAndSendOfferReportingErrors() async {
+    try {
+      await createAndSendOffer();
+    } catch (error) {
+      logger.warning('[$objectId] negotiate() failed with error: $error');
+      onNegotiationError?.call(error);
+    }
+  }
 
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {
@@ -267,7 +331,14 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
-      await createAndSendOffer(); // await or un-awaited ?
+      // The signal listener that awaits this call has no reconnect handling, so a failed deferred
+      // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
+      // error propagates to the caller instead of being dropped.
+      if (onNegotiationError == null) {
+        await createAndSendOffer();
+      } else {
+        await _createAndSendOfferReportingErrors();
+      }
     }
   }
 
@@ -318,9 +389,17 @@ class Transport extends Disposable {
     // video: the hint is connection-level in libwebrtc, so differing per-section values would
     // be last-writer-wins on m-section order. Offers before any video is published (data
     // channel or audio only) find no target and leave the latch unset.
+    final setupCompleted = !(_connectStopwatch?.isRunning ?? false);
+    final connectionSetupTime = connectionSetupTimeForOffer;
     final connectionStartBitrate = _hasAppliedVideoStartBitrate
         ? null
-        : computeConnectionStartBitrate(sdpParsed['media'] ?? const [], _bitrateTrackers);
+        : computeConnectionStartBitrate(sdpParsed['media'] ?? const [], _bitrateTrackers, connectionSetupTime);
+    if (connectionStartBitrate != null) {
+      logger.info(
+        'Applying x-google-start-bitrate=$connectionStartBitrate kbps '
+        '(connection setup ${connectionSetupTime?.inMilliseconds} ms${setupCompleted ? '' : ', still connecting'})',
+      );
+    }
     var appliedVideoStartBitrate = false;
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {

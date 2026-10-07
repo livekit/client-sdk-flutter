@@ -1,0 +1,1 @@
+patch type="fixed" "Prevent overlapping stats polls when a receiver takes longer than the monitoring interval"
