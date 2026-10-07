@@ -123,11 +123,16 @@ jobs:
           mkdir -p "$RUNNER_TEMP/example-build"
           rm -rf build
           ln -s "$RUNNER_TEMP/example-build" build
+      - name: Enable Swift Package Manager for the example
+        working-directory: ./example
+        # The example disables SwiftPM in its pubspec for local builds; CI keeps building the
+        # plugin as a Swift package. A pubspec setting takes precedence over flutter config and
+        # FLUTTER_SWIFT_PACKAGE_MANAGER, so flip it in place.
+        run: |
+          sed -i '' 's/enable-swift-package-manager: false/enable-swift-package-manager: true/' pubspec.yaml
+          grep -q 'enable-swift-package-manager: true' pubspec.yaml
       - name: Build for iOS
         working-directory: ./example
-        # The example disables SwiftPM in its pubspec; keep building the plugin as a Swift package.
-        env:
-          FLUTTER_SWIFT_PACKAGE_MANAGER: true
         run: flutter build ios --release --no-codesign
 
   build-for-windows:
@@ -157,11 +162,14 @@ jobs:
           mkdir -p "$RUNNER_TEMP/example-build"
           rm -rf build
           ln -s "$RUNNER_TEMP/example-build" build
+      - name: Enable Swift Package Manager for the example
+        working-directory: ./example
+        # See the iOS job.
+        run: |
+          sed -i '' 's/enable-swift-package-manager: false/enable-swift-package-manager: true/' pubspec.yaml
+          grep -q 'enable-swift-package-manager: true' pubspec.yaml
       - name: Build for macOS
         working-directory: ./example
-        # See the iOS job, the example disables SwiftPM in its pubspec.
-        env:
-          FLUTTER_SWIFT_PACKAGE_MANAGER: true
         run: flutter build macos --release
 
   build-for-linux:
