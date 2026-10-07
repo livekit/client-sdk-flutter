@@ -2,6 +2,7 @@
 
 ## 2.13.1
 
+* Changed: Bump flutter_webrtc to 1.6.2+hotfix.4, which fixes a crash on iOS and macOS when a video renderer is disposed while frames are still arriving
 * Changed: Scale the video start bitrate hint by connection setup time: the 1 Mbps camera cap now applies to connections that set up within 1.5 s and ramps linearly down to 300 kbps at 3.5 s or slower; screen share stays uncapped
 * Fixed: Associate inbound RTP receiver stats with the referenced codec report rather than the first codec
 * Fixed: A failed publisher negotiation (for example a `setLocalDescription` rejection) is now routed to the reconnect path instead of escaping as an unhandled `NegotiationError`
