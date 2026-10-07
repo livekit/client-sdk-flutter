@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2.13.1
+
+* Changed: Scale the video start bitrate hint by connection setup time: the 1 Mbps camera cap now applies to connections that set up within 1.5 s and ramps linearly down to 300 kbps at 3.5 s or slower; screen share stays uncapped
+* Fixed: Associate inbound RTP receiver stats with the referenced codec report rather than the first codec
+* Fixed: A failed publisher negotiation (for example a `setLocalDescription` rejection) is now routed to the reconnect path instead of escaping as an unhandled `NegotiationError`
+* Fixed: Prevent overlapping stats polls when a receiver takes longer than the monitoring interval
+* Fixed: The video start bitrate hint is now one connection-level value written once per publisher connection, capped at 1 Mbps for camera tracks (screen share stays uncapped so its content is legible immediately) and skipped below a 300 kbps target. libwebrtc applies this hint to the whole peer connection, so a per-track value rewritten on every offer resolved to last-writer-wins on m-section order, and an unpublished track could still seed the connection through the section it left behind. The target is also taken from the sum of the simulcast encodings rather than the lowest layer alone
+
 ## 2.13.0
 
 * Changed: Bump libwebrtc to m150(flutter-webrtc 1.6.2), added `enableWARP` and `zeroPlayoutDelay` options to LiveKitClient.initialize
