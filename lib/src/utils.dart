@@ -545,18 +545,32 @@ class Utils {
   static List<rtc.RTCRtpEncoding>? computeTrackBackupEncodings(
     LocalVideoTrack track,
     BackupVideoCodec backupOpts,
-  ) {
+  ) => computeBackupVideoEncodings(
+    isScreenShare: track.source == TrackSource.screenShareVideo,
+    dimensions: track.currentOptions.params.dimensions,
+    backupOpts: backupOpts,
+  );
+
+  /// Encodings for the backup codec sender of a video track.
+  @internal
+  static List<rtc.RTCRtpEncoding>? computeBackupVideoEncodings({
+    required bool isScreenShare,
+    required VideoDimensions dimensions,
+    required BackupVideoCodec backupOpts,
+  }) {
     final opts = VideoPublishOptions(
       videoCodec: backupOpts.codec,
       videoEncoding: backupOpts.encoding,
+      // computeVideoEncodings reads screenShareEncoding for a screen share, so the backup
+      // codec's own encoding has to be passed there too.
+      screenShareEncoding: backupOpts.encoding,
       simulcast: backupOpts.simulcast,
     );
-    final encodings = computeVideoEncodings(
-      isScreenShare: track.source == TrackSource.screenShareVideo,
-      dimensions: track.currentOptions.params.dimensions,
+    return computeVideoEncodings(
+      isScreenShare: isScreenShare,
+      dimensions: dimensions,
       options: opts,
     );
-    return encodings;
   }
 
   @internal
