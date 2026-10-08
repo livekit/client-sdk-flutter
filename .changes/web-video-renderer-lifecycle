@@ -1,0 +1,1 @@
+patch type="fixed" "Prevent stale video renderer attachments and listener leaks during async initialization, track changes, and disposal"
