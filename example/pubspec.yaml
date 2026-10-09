@@ -25,6 +25,7 @@ dependencies:
   livekit_client:
     path: ../
 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
