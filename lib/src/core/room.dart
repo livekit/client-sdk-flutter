@@ -130,6 +130,23 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   RegionUrlProvider? _regionUrlProvider;
   String? _regionUrl;
 
+  /// Identities seen in the server's post-resume roster snapshot, used to
+  /// reconcile the roster (see [_reconcileAbsentParticipants]). Non-null only
+  /// while a resume is waiting for that snapshot.
+  Set<String>? _resumeRosterSnapshot;
+
+  /// Disarms [_resumeRosterSnapshot] if the snapshot never arrives. Without
+  /// this the arming would sit there indefinitely and the next *ordinary*
+  /// participant update — which lists only what changed — would be mistaken
+  /// for a full roster and evict everyone else.
+  Timer? _resumeRosterSnapshotTimeout;
+
+  /// How long after a resume the next qualifying participant update is treated
+  /// as the roster snapshot. The server sends it immediately after the
+  /// `ReconnectResponse` on the same socket, so this only has to cover
+  /// scheduling, never a real wait.
+  static const _resumeRosterSnapshotWindow = Duration(seconds: 5);
+
   // Agents
   final Map<String, DateTime> _transcriptionReceivedTimes = {};
 
@@ -400,6 +417,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
+    ..on<SignalReconnectResponseEvent>((event) {
+      // The server answers a resume with the `ReconnectResponse` followed
+      // immediately by a full roster snapshot on the same socket. Arm the
+      // reconciliation here, off the raw signal message, so it is ordered
+      // against the update that follows — `SignalReconnectedEvent` is emitted
+      // only after the engine's async ReconnectResponse handling and can lose
+      // that race.
+      _armResumeRosterSnapshot();
+    })
     ..on<SignalParticipantUpdateEvent>((event) => _onParticipantUpdateEvent(event.participants))
     ..on<SignalSpeakersChangedEvent>((event) => _onSignalSpeakersChangedEvent(event.speakers))
     ..on<SignalConnectionQualityUpdateEvent>((event) => _onSignalConnectionQualityUpdateEvent(event.updates))
@@ -598,6 +624,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<EngineFullRestartingEvent>((event) async {
       events.emit(const RoomReconnectingEvent());
+
+      // a full reconnect rebuilds the roster from the JoinResponse, so any
+      // armed resume reconciliation is moot
+      _disarmResumeRosterSnapshot();
 
       // reset params
       _name = null;
@@ -817,6 +847,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
+    // Captured before the loop: if a resume armed the reconciliation, this
+    // batch may be the server's post-resume roster snapshot. The snapshot
+    // always carries the local participant (the server includes it so metadata
+    // changes propagate), which is what distinguishes it from an ordinary
+    // partial update listing only what changed.
+    final rosterSnapshot = _resumeRosterSnapshot;
+    var sawLocalParticipant = false;
     for (final info in updates) {
       // The local participant is not ready yet, waiting for the
       // `RoomConnectedEvent` to create the local participant.
@@ -827,8 +864,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
 
       if (localParticipant?.identity == info.identity) {
+        sawLocalParticipant = true;
         await localParticipant?.updateFromInfo(info);
         continue;
+      }
+
+      if (info.identity.isNotEmpty) {
+        _resumeRosterSnapshot?.add(info.identity);
       }
 
       final isNew = !_remoteParticipants.containsIdentity(info.identity);
@@ -865,9 +907,52 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     }
 
+    // Disarm before reconciling so a nested update can't reconcile twice. The
+    // identity check keeps a concurrent re-arm (another resume) intact.
+    if (rosterSnapshot != null && sawLocalParticipant && identical(rosterSnapshot, _resumeRosterSnapshot)) {
+      _disarmResumeRosterSnapshot();
+      hasChanged = await _reconcileAbsentParticipants(rosterSnapshot) || hasChanged;
+    }
+
     if (hasChanged) {
       notifyListeners();
     }
+  }
+
+  void _armResumeRosterSnapshot() {
+    _resumeRosterSnapshotTimeout?.cancel();
+    _resumeRosterSnapshot = <String>{};
+    _resumeRosterSnapshotTimeout = Timer(_resumeRosterSnapshotWindow, () {
+      if (_resumeRosterSnapshot != null) {
+        logger.fine('resume roster snapshot never arrived, skipping reconciliation');
+      }
+      _disarmResumeRosterSnapshot();
+    });
+  }
+
+  void _disarmResumeRosterSnapshot() {
+    _resumeRosterSnapshotTimeout?.cancel();
+    _resumeRosterSnapshotTimeout = null;
+    _resumeRosterSnapshot = null;
+  }
+
+  /// Remove participants who left while the signal link was down.
+  ///
+  /// A resume, unlike a full reconnect, never rebuilds the roster from a
+  /// `JoinResponse`, and the `DISCONNECTED` update for anyone who left during
+  /// the outage was delivered to a socket we no longer had. The server answers
+  /// a resume with a full roster snapshot, so any participant we still hold
+  /// that is absent from [presentIdentities] is a ghost and its disconnect has
+  /// to be synthesized. Mirrors `reconcile_absent_participants` in rust-sdks.
+  Future<bool> _reconcileAbsentParticipants(Set<String> presentIdentities) async {
+    var hasChanged = false;
+    for (final participant in _remoteParticipants.toList()) {
+      if (presentIdentities.contains(participant.identity)) continue;
+      logger.info('synthesizing disconnect for absent participant: ${participant.identity}');
+      final removed = await _handleParticipantDisconnect(participant.identity);
+      hasChanged = removed || hasChanged;
+    }
+    return hasChanged;
   }
 
   void _onSignalSpeakersChangedEvent(List<lk_models.SpeakerInfo> speakers) {
@@ -1092,6 +1177,8 @@ extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
   Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
     logger.fine('[${objectId}] cleanUp()');
+
+    _disarmResumeRosterSnapshot();
 
     // clean up RemoteParticipants
     final participants = _remoteParticipants.toList();
