@@ -50,6 +50,8 @@ class SimulcastTrackInfo {
   });
 }
 
+bool _hasPausedLayer(lk_rtc.SubscribedCodec codec) => codec.qualities.any((q) => !q.enabled);
+
 /// A video track from the local device. Use static methods in this class to create
 /// video tracks.
 class LocalVideoTrack extends LocalTrack with VideoTrack {
@@ -323,15 +325,48 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     });
   }
 
+  /// Re-applies the last subscribed codecs to the sender. A publisher answer
+  /// re-enables every layer, and dynacast only signals changes, so without this
+  /// the layers it paused keep uploading.
+  ///
+  /// Re-applying a pause needs a forced write: the answer re-enabled the layers
+  /// without going through `setParameters`, so where `sender.parameters` is a
+  /// local cache it still reports the layers as paused, and a conditional write
+  /// would find no change and send nothing. Only the codecs that actually have
+  /// a paused layer are forced; see [setPublishingCodecs].
+  @internal
+  Future<void> refreshSubscribedCodecs() async {
+    if (subscribedCodecs.isEmpty) {
+      return;
+    }
+    try {
+      await setPublishingCodecs(subscribedCodecs, this, force: true);
+    } catch (e) {
+      logger.warning('Failed to refresh subscribed codecs: $e');
+    }
+  }
+
+  /// Re-applies [codecs] to the senders publishing them.
+  ///
+  /// [force] asks for a write even where the sender already reports the state
+  /// being applied, for a caller re-asserting a pause the sender lost without
+  /// being told. It is narrowed per codec: one with every layer subscribed has
+  /// nothing to re-assert, so its sender is left alone.
   Future<List<String>> setPublishingCodecs(
     List<lk_rtc.SubscribedCodec> codecs,
-    LocalTrack track,
-  ) async {
+    LocalTrack track, {
+    bool force = false,
+  }) async {
     logger.fine('setPublishingCodecs $codecs');
 
     // only enable simulcast codec for preference codec setted
     if (codec == null && codecs.isNotEmpty) {
-      await setPublishingLayers(track, codecs[0].qualities, isSVC: isSVCCodec(codecs[0].codec));
+      await setPublishingLayers(
+        track,
+        codecs[0].qualities,
+        isSVC: isSVCCodec(codecs[0].codec),
+        force: force && _hasPausedLayer(codecs[0]),
+      );
       return [];
     }
 
@@ -340,8 +375,9 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     final List<String> newCodecs = [];
 
     for (var codec in codecs) {
+      final forceCodec = force && _hasPausedLayer(codec);
       if (this.codec?.toLowerCase() == codec.codec.toLowerCase()) {
-        await setPublishingLayers(track, codec.qualities, isSVC: isSVCCodec(codec.codec));
+        await setPublishingLayers(track, codec.qualities, isSVC: isSVCCodec(codec.codec), force: forceCodec);
       } else {
         final simulcastCodecInfo = simulcastCodecs[codec.codec];
         logger.fine('setPublishingCodecs $codecs');
@@ -359,6 +395,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
             simulcastCodecInfo.encodings!,
             codec.qualities,
             isSVC: isSVCCodec(codec.codec),
+            force: forceCodec,
           );
         }
       }
@@ -371,6 +408,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     LocalTrack? track,
     List<lk_rtc.SubscribedQuality> layers, {
     bool isSVC = false,
+    bool force = false,
   }) async {
     logger.fine('Update publishing layers: $layers');
 
@@ -391,7 +429,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
       return;
     }
 
-    return setPublishingLayersForSender(track!.sender!, encodings, layers, isSVC: isSVC);
+    return setPublishingLayersForSender(track!.sender!, encodings, layers, isSVC: isSVC, force: force);
   }
 
   lk_models.VideoQuality _videoQualityForRid(String rid) {
@@ -412,12 +450,13 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     List<rtc.RTCRtpEncoding> encodings,
     List<lk_rtc.SubscribedQuality> layers, {
     bool isSVC = false,
+    bool force = false,
   }) async {
     logger.fine('Update publishing layers: $layers');
 
     final params = sender.parameters;
 
-    var hasChanged = false;
+    var hasChanged = force;
 
     // NOTE: closable spatial layer is disabled due to video blur / frozen issues
     // with Chrome 113+ and LiveKit SFU PLI handling. See JS SDK LocalVideoTrack.ts:529-568.
