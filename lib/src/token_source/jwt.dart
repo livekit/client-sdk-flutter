@@ -144,8 +144,14 @@ class LiveKitVideoGrant {
   final bool? canSubscribe;
   final bool? canPublishData;
   final List<String>? canPublishSources;
+  final bool? canUpdateOwnMetadata;
+  final bool? ingressAdmin;
   final bool? hidden;
   final bool? recorder;
+  final bool? agent;
+  final bool? canSubscribeMetrics;
+  final bool? canManageAgentSession;
+  final String? destinationRoom;
 
   const LiveKitVideoGrant({
     this.room,
@@ -158,8 +164,14 @@ class LiveKitVideoGrant {
     this.canSubscribe,
     this.canPublishData,
     this.canPublishSources,
+    this.canUpdateOwnMetadata,
+    this.ingressAdmin,
     this.hidden,
     this.recorder,
+    this.agent,
+    this.canSubscribeMetrics,
+    this.canManageAgentSession,
+    this.destinationRoom,
   });
 
   factory LiveKitVideoGrant.fromJson(Map<String, dynamic> json) => _$LiveKitVideoGrantFromJson(json);

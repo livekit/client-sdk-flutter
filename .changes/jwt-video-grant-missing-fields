@@ -1,0 +1,1 @@
+patch type="added" "`LiveKitVideoGrant` now decodes the remaining `video` claim fields: `canUpdateOwnMetadata`, `ingressAdmin`, `agent`, `canSubscribeMetrics`, `canManageAgentSession` and `destinationRoom`"

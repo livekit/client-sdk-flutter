@@ -172,8 +172,14 @@ void main() {
           'canSubscribe': false,
           'canPublishData': true,
           'canPublishSources': ['camera', 'screen'],
+          'canUpdateOwnMetadata': true,
+          'ingressAdmin': true,
           'hidden': false,
           'recorder': true,
+          'agent': true,
+          'canSubscribeMetrics': true,
+          'canManageAgentSession': false,
+          'destinationRoom': 'other-room',
         },
         roomConfig: {
           'agents': [
@@ -209,8 +215,14 @@ void main() {
       expect(grant.canSubscribe, isFalse);
       expect(grant.canPublishData, isTrue);
       expect(grant.canPublishSources, ['camera', 'screen']);
+      expect(grant.canUpdateOwnMetadata, isTrue);
+      expect(grant.ingressAdmin, isTrue);
       expect(grant.hidden, isFalse);
       expect(grant.recorder, isTrue);
+      expect(grant.agent, isTrue);
+      expect(grant.canSubscribeMetrics, isTrue);
+      expect(grant.canManageAgentSession, isFalse);
+      expect(grant.destinationRoom, 'other-room');
 
       final config = payload.roomConfiguration;
       expect(config, isNotNull);

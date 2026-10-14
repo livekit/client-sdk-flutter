@@ -17,8 +17,14 @@ LiveKitVideoGrant _$LiveKitVideoGrantFromJson(Map<String, dynamic> json) => Live
   canSubscribe: json['canSubscribe'] as bool?,
   canPublishData: json['canPublishData'] as bool?,
   canPublishSources: (json['canPublishSources'] as List<dynamic>?)?.map((e) => e as String).toList(),
+  canUpdateOwnMetadata: json['canUpdateOwnMetadata'] as bool?,
+  ingressAdmin: json['ingressAdmin'] as bool?,
   hidden: json['hidden'] as bool?,
   recorder: json['recorder'] as bool?,
+  agent: json['agent'] as bool?,
+  canSubscribeMetrics: json['canSubscribeMetrics'] as bool?,
+  canManageAgentSession: json['canManageAgentSession'] as bool?,
+  destinationRoom: json['destinationRoom'] as String?,
 );
 
 Map<String, dynamic> _$LiveKitVideoGrantToJson(LiveKitVideoGrant instance) => <String, dynamic>{
@@ -32,6 +38,12 @@ Map<String, dynamic> _$LiveKitVideoGrantToJson(LiveKitVideoGrant instance) => <S
   'canSubscribe': ?instance.canSubscribe,
   'canPublishData': ?instance.canPublishData,
   'canPublishSources': ?instance.canPublishSources,
+  'canUpdateOwnMetadata': ?instance.canUpdateOwnMetadata,
+  'ingressAdmin': ?instance.ingressAdmin,
   'hidden': ?instance.hidden,
   'recorder': ?instance.recorder,
+  'agent': ?instance.agent,
+  'canSubscribeMetrics': ?instance.canSubscribeMetrics,
+  'canManageAgentSession': ?instance.canManageAgentSession,
+  'destinationRoom': ?instance.destinationRoom,
 };
