@@ -50,6 +50,7 @@ import '../track/local/video.dart';
 import '../track/track.dart';
 import '../track/web/_audio_api.dart' if (dart.library.js_interop) '../track/web/_audio_html.dart' as audio;
 import '../types/data_stream.dart';
+import '../types/internal.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
 import '../types/transcription_segment.dart';
@@ -759,6 +760,16 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         logger.warning('Unknown exception on addSubscribedMediaTrack() ${exception}');
       }
     });
+
+  /// Resumes the session on purpose, restarting ICE on both peer connections.
+  ///
+  /// Once UDP is blocked, media falls back to a TURN relay over TCP/TLS and
+  /// stays there after UDP comes back. An app that sees from the stats that a
+  /// better path is available again can call this to let ICE find it.
+  Future<void> restartIce() => engine.handleReconnect(
+    ClientDisconnectReason.reconnect,
+    reconnectReason: lk_models.ReconnectReason.RR_SWITCH_CANDIDATE,
+  );
 
   /// Disconnects from the room, notifying server of disconnection.
   Future<void> disconnect() async {
