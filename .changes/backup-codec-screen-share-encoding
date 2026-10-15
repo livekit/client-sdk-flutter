@@ -1,0 +1,1 @@
+patch type="fixed" "Fix the backup codec's encoding being ignored when the published track is a screen share"
