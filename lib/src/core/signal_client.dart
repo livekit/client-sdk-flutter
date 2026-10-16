@@ -43,6 +43,14 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState get connectionState => _connectionState;
 
   final WebSocketConnector _wsConnector;
+
+  // Id of the socket whose callbacks are honored. connect() gives each new
+  // socket the next id, and cleanUp() advances it too so the socket it disposes
+  // stops being current. A real socket reports its close a few milliseconds
+  // after dispose() returns, and that report used to be attributed to whatever
+  // connection was current by then, clobbering its state and starting a
+  // reconnect against a healthy socket.
+  int _socketId = 0;
   LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
@@ -154,13 +162,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
       // Clean up existing socket
       await cleanUp();
-      // Attempt to connect
+      // Attempt to connect. Callbacks carry the id of the socket they belong to
+      // so a late report from a replaced socket is ignored.
+      final socketId = ++_socketId;
       var future = _wsConnector(
         rtcUri,
         options: WebSocketEventHandlers(
-          onData: _onSocketData,
-          onDispose: _onSocketDispose,
-          onError: _onSocketError,
+          onData: (data) => _ifCurrentSocket(socketId, () => _onSocketData(data)),
+          onDispose: () => _ifCurrentSocket(socketId, _onSocketDispose),
+          onError: (error) => _ifCurrentSocket(socketId, () => _onSocketError(error)),
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -242,6 +252,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
+    _socketId++;
     _connectionState = ConnectionState.disconnected;
     await _ws?.dispose();
     _ws = null;
@@ -407,6 +418,24 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       default:
         logger.warning('received unknown signal message');
     }
+  }
+
+  void _ifCurrentSocket(int socketId, void Function() action) {
+    if (socketId != _socketId) {
+      logger.fine('[$objectId] ignoring a callback from a socket that was already replaced');
+      return;
+    }
+    action();
+  }
+
+  /// Drops the signal socket the way a server side close does: the socket goes
+  /// away and the engine sees a disconnect it has to recover from. For the
+  /// debug scenarios and the connection checker. [cleanUp] alone is a quiet
+  /// teardown, the disposed socket's own close is ignored.
+  @internal
+  Future<void> simulateSignalDrop() async {
+    await cleanUp();
+    _onSocketDispose();
   }
 
   void _onSocketError(dynamic error) {
