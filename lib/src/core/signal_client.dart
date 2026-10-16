@@ -44,11 +44,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   final WebSocketConnector _wsConnector;
 
-  // Bumped whenever the current socket is replaced or disposed. A real socket
-  // reports its close a few milliseconds after dispose() returns, and that
-  // report used to be attributed to whatever connection was current by then,
-  // clobbering its state and starting a reconnect against a healthy socket.
-  int _socketGeneration = 0;
+  // Id of the socket whose callbacks are honored. connect() gives each new
+  // socket the next id, and cleanUp() advances it too so the socket it disposes
+  // stops being current. A real socket reports its close a few milliseconds
+  // after dispose() returns, and that report used to be attributed to whatever
+  // connection was current by then, clobbering its state and starting a
+  // reconnect against a healthy socket.
+  int _socketId = 0;
   LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
@@ -160,15 +162,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
       // Clean up existing socket
       await cleanUp();
-      // Attempt to connect. Callbacks carry the generation of the socket they
-      // belong to so a late report from a replaced socket is ignored.
-      final generation = ++_socketGeneration;
+      // Attempt to connect. Callbacks carry the id of the socket they belong to
+      // so a late report from a replaced socket is ignored.
+      final socketId = ++_socketId;
       var future = _wsConnector(
         rtcUri,
         options: WebSocketEventHandlers(
-          onData: (data) => _ifCurrentSocket(generation, () => _onSocketData(data)),
-          onDispose: () => _ifCurrentSocket(generation, _onSocketDispose),
-          onError: (error) => _ifCurrentSocket(generation, () => _onSocketError(error)),
+          onData: (data) => _ifCurrentSocket(socketId, () => _onSocketData(data)),
+          onDispose: () => _ifCurrentSocket(socketId, _onSocketDispose),
+          onError: (error) => _ifCurrentSocket(socketId, () => _onSocketError(error)),
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -250,7 +252,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
-    _socketGeneration++;
+    _socketId++;
     _connectionState = ConnectionState.disconnected;
     await _ws?.dispose();
     _ws = null;
@@ -418,8 +420,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     }
   }
 
-  void _ifCurrentSocket(int generation, void Function() action) {
-    if (generation != _socketGeneration) {
+  void _ifCurrentSocket(int socketId, void Function() action) {
+    if (socketId != _socketId) {
       logger.fine('[$objectId] ignoring a callback from a socket that was already replaced');
       return;
     }
