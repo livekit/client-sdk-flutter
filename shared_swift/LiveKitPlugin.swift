@@ -61,6 +61,31 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     // second Flutter engine does not wipe the pushed policy / management mode.
     private static var sharedAudioEngineObserver: LKAudioEngineObserver?
 
+    // WebRTC plugin instance captured at the first registration. Each Flutter engine registers its own
+    // instance and the process-wide singleton may move to a later one that never creates a peer connection
+    // factory, so it is not read per call.
+    private static let webrtcPluginLock = NSLock()
+    private static var registeredWebRTCPlugin: FlutterWebRTCPlugin?
+
+    /// The WebRTC plugin instance that owns the peer connection factory.
+    static var webrtcPlugin: FlutterWebRTCPlugin? {
+        webrtcPluginLock.lock()
+        let registered = registeredWebRTCPlugin
+        webrtcPluginLock.unlock()
+        // Fall back to the process singleton while the captured instance has no factory.
+        if let registered, registered.peerConnectionFactory != nil {
+            return registered
+        }
+        return FlutterWebRTCPlugin.sharedSingleton() ?? registered
+    }
+
+    private static func captureWebRTCPluginIfNeeded() {
+        webrtcPluginLock.lock()
+        defer { webrtcPluginLock.unlock() }
+        guard registeredWebRTCPlugin == nil else { return }
+        registeredWebRTCPlugin = FlutterWebRTCPlugin.sharedSingleton()
+    }
+
     #if os(iOS)
     var cancellable = Set<AnyCancellable>()
     #endif
@@ -100,11 +125,11 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         instance.audioEngineObserver = audioEngineObserver
         FlutterWebRTCPlugin.setAudioDeviceModuleObserver(audioEngineObserver)
 
-        // An AppDelegate may have gated engine availability before the Flutter
-        // engine existed (CallKit killed-state wake). Apply it now, before any
-        // audio operation can start the engine. This must run after the engine
-        // observer above, since applying forces creation of the peer
-        // connection factory, which attaches the observer.
+        captureWebRTCPluginIfNeeded()
+
+        // An AppDelegate may have gated engine availability before the Flutter engine existed (CallKit
+        // killed-state wake). Apply it now if the audio device module already exists, before any audio
+        // operation can start the engine.
         applyPendingEngineAvailabilityIfNeeded()
 
         #if os(iOS)
@@ -169,7 +194,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return existing
         }
 
-        let webrtc = FlutterWebRTCPlugin.sharedSingleton()
+        let webrtc = LiveKitPlugin.webrtcPlugin
 
         var audioTrack: AudioTrack?
         if let track = webrtc?.localTracks![trackId] as? LocalAudioTrack {
@@ -440,7 +465,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        let webrtc = FlutterWebRTCPlugin.sharedSingleton()
+        let webrtc = LiveKitPlugin.webrtcPlugin
         guard let localTrack = webrtc?.localTracks?[trackId] as? LocalAudioTrack,
               let audioTrack = localTrack.track() as? RTCAudioTrack
         else {
@@ -481,7 +506,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         pendingEngineAvailability = availability
         engineAvailabilityLock.unlock()
 
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             return false
         }
         return adm.setEngineAvailability(availability) == 0
@@ -493,10 +518,9 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         engineAvailabilityLock.unlock()
         guard let pending else { return }
 
-        // Accessing peerConnectionFactory creates it (and the audio device
-        // module) if needed. That is intentional here, so the gate is in
-        // place before anything else can start the engine.
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        // The factory is created by the WebRTC initialize call, not on access. Until then the value stays
+        // pending and ensureMicrophoneAccess honors it.
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             print("[LiveKit] engine availability pending but audio device module is unavailable")
             return
         }
@@ -509,9 +533,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         let isInputAvailable = (args["isInputAvailable"] as? Bool) ?? true
         let isOutputAvailable = (args["isOutputAvailable"] as? Bool) ?? true
 
-        // Accessing peerConnectionFactory creates the audio device module if
-        // needed, so the gate is effective even before any track exists.
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        // The audio device module exists once LiveKitClient.initialize has run.
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "setEngineAvailability", message: "audio device module is unavailable", details: nil))
             return
         }
@@ -627,7 +650,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "setMicrophoneMuteMode", message: "audio device module is unavailable", details: nil))
             return
         }
@@ -650,7 +673,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 
     public func handleGetMicrophoneMuteMode(result: @escaping FlutterResult) {
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "getMicrophoneMuteMode", message: "audio device module is unavailable", details: nil))
             return
         }
@@ -658,7 +681,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 
     public func handleStartLocalRecording(args: [String: Any?], result: @escaping FlutterResult) {
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "rejectedPlatformUnavailable", message: "audio device module is unavailable", details: nil))
             return
         }
@@ -680,7 +703,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 
     public func handleStopLocalRecording(result: @escaping FlutterResult) {
-        guard let adm = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory?.audioDeviceModule else {
+        guard let adm = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
             result(FlutterError(code: "stopLocalRecording", message: "audio device module is unavailable", details: nil))
             return
         }
@@ -740,7 +763,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 
     public func handleGetAudioProcessingState(result: @escaping FlutterResult) {
-        guard let factory = FlutterWebRTCPlugin.sharedSingleton()?.peerConnectionFactory else {
+        guard let factory = LiveKitPlugin.webrtcPlugin?.peerConnectionFactory else {
             result(nil)
             return
         }
@@ -1227,7 +1250,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     func audioDeviceModule(_: RTCAudioDeviceModule, engine _: AVAudioEngine, configureOutputFromSource _: AVAudioNode, toDestination _: AVAudioNode?, format _: AVAudioFormat, context _: [AnyHashable: Any]) -> Int { 0 }
     func audioDeviceModule(_: RTCAudioDeviceModule, didReceiveSpeechActivityEvent _: RTCSpeechActivityEvent) {}
     func audioDeviceModuleDidUpdateDevices(_ audioDeviceModule: RTCAudioDeviceModule) {
-        FlutterWebRTCPlugin.sharedSingleton()?.audioDeviceModuleDidUpdateDevices(audioDeviceModule)
+        LiveKitPlugin.webrtcPlugin?.audioDeviceModuleDidUpdateDevices(audioDeviceModule)
     }
 
     private func notifyEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
