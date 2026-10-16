@@ -32,6 +32,16 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  # Swift Package Manager is disabled for the example because this app lives inside the
+  # livekit_client plugin it depends on. With SPM enabled, the Flutter tool (>= 3.44) copies
+  # the whole plugin directory into build/<platform>/SourcePackages when the plugin's
+  # Package.swift depends on another plugin (flutter_webrtc). Since that destination is inside
+  # the plugin directory itself, every build copies the previous copy again and the build
+  # directory grows without bound. iOS/macOS use CocoaPods instead; CI flips this to true to
+  # keep building with SPM. Remove once the minimum Flutter excludes example/ from that copy
+  # (flutter/flutter#188647, expected in 3.49).
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - images/logo-dark.svg

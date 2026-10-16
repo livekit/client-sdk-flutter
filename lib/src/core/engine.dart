@@ -250,6 +250,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     //reset state
     _isClosed = false;
 
+    final connectStopwatch = Stopwatch()..start();
+
     try {
       // wait for socket to connect rtc server
       await signalClient.connect(
@@ -267,6 +269,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           reason: ConnectionErrorReason.Timeout,
         ),
       );
+      // The join response created the publisher. It derives the start bitrate hint from this
+      // attempt's setup time, or from the time elapsed so far for an offer created before then.
+      publisher?.setConnectStopwatch(connectStopwatch);
 
       logger.fine('Waiting for engine to connect...');
 
@@ -278,6 +283,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      connectStopwatch.stop();
+      logger.info('connection setup took ${connectStopwatch.elapsedMilliseconds} ms');
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
@@ -344,17 +351,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
     _hasPublished = true;
-    try {
-      publisher!.negotiate(null);
-    } catch (error) {
-      if (error is NegotiationError) {
-        fullReconnectOnNext = true;
-      }
-      await handleReconnect(
-        ClientDisconnectReason.negotiationFailed,
-        reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
-      );
+    publisher!.negotiate(null);
+  }
+
+  Future<void> _onPublisherNegotiationError(Object error) async {
+    if (error is NegotiationError) {
+      fullReconnectOnNext = true;
     }
+    await handleReconnect(
+      ClientDisconnectReason.negotiationFailed,
+      reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
+    );
   }
 
   bool? isBufferStatusLow(Reliability kind) {
@@ -697,6 +704,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
     };
+
+    publisher?.onNegotiationError = _onPublisherNegotiationError;
 
     // in subscriber primary mode, server side opens sub data channels.
     if (_subscriberPrimary) {

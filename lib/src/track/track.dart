@@ -183,9 +183,15 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
 
   @internal
   void startMonitor() {
-    _monitorTimer ??= Timer.periodic(const Duration(milliseconds: monitorFrequency), (_) async {
-      if (!await monitorStats()) {
-        stopMonitor();
+    if (_monitorTimer != null) return;
+    var inFlight = false;
+    _monitorTimer = Timer.periodic(const Duration(milliseconds: monitorFrequency), (timer) async {
+      if (inFlight || !identical(_monitorTimer, timer)) return;
+      inFlight = true;
+      try {
+        if (!await monitorStats() && identical(_monitorTimer, timer)) stopMonitor();
+      } finally {
+        inFlight = false;
       }
     });
   }

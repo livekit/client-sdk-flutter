@@ -56,8 +56,10 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/video_dimensions.dart';
-import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, isSVCCodec, isVideoCodec;
 import 'participant.dart';
+
+import '../utils.dart'
+    show buildStreamId, computeStartTargetBitrate, mimeTypeToVideoCodecString, Utils, isSVCCodec, isVideoCodec;
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
@@ -403,14 +405,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(options.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(
-          TrackBitrateInfo(
-            cid: track.getCid(),
-            transceiver: track.transceiver,
-            codec: options.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000,
-          ),
-        );
+        final targetBitrate = computeStartTargetBitrate(options.videoCodec, options, encodings);
+        if (targetBitrate > 0) {
+          room.engine.publisher?.setTrackBitrateInfo(
+            TrackBitrateInfo(
+              cid: track.getCid(),
+              transceiver: track.transceiver,
+              codec: options.videoCodec,
+              maxbr: targetBitrate ~/ 1000,
+              isScreenShare: track.source == TrackSource.screenShareVideo,
+            ),
+          );
+        }
       }
 
       await room.engine.negotiate();
@@ -505,14 +511,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(
-          TrackBitrateInfo(
-            cid: track.getCid(),
-            transceiver: track.transceiver,
-            codec: publishOptions.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000,
-          ),
-        );
+        final targetBitrate = computeStartTargetBitrate(publishOptions.videoCodec, publishOptions, encodings);
+        if (targetBitrate > 0) {
+          room.engine.publisher?.setTrackBitrateInfo(
+            TrackBitrateInfo(
+              cid: track.getCid(),
+              transceiver: track.transceiver,
+              codec: publishOptions.videoCodec,
+              maxbr: targetBitrate ~/ 1000,
+              isScreenShare: track.source == TrackSource.screenShareVideo,
+            ),
+          );
+        }
       }
 
       await room.engine.negotiate();
