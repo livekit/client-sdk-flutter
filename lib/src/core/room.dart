@@ -652,17 +652,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
+      // disconnect() tears down and reports the disconnect it started itself
+      if (_disconnecting) return;
       // Suppress while a full reconnect is either pending or running — the
       // engine is going to re-establish the session, this is not a real
       // disconnect. Both flags are needed since the attempt consumes the
       // pending one when it starts.
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
-        // disconnect() owns the teardown for the disconnect it started, so a
-        // connect() right after it returns cannot race this handler
-        if (!_disconnecting) {
-          await _cleanUp(disposeLocalParticipant: false);
-        }
+        await _cleanUp(disposeLocalParticipant: false);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -783,6 +781,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } finally {
       _disconnecting = false;
     }
+    // Reported only once the room is torn down, so a listener that connects
+    // again on this event cannot have its new session cleared by the teardown.
+    events.emit(RoomDisconnectedEvent(reason: DisconnectReason.clientInitiated));
+    notifyListeners();
   }
 
   Future<void> setE2EEEnabled(bool enabled) async {
