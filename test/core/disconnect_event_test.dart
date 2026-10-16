@@ -196,4 +196,27 @@ void main() {
     await container.room.disconnect().timeout(const Duration(seconds: 2));
     expect(container.room.connectionState, ConnectionState.disconnected);
   });
+
+  test('a connect started from the disconnected event survives the old teardown', () async {
+    // an app that rejoins as soon as it hears it was disconnected
+    await container.connectRoom();
+    Future<Object?>? rejoin;
+    final listener = container.room.createListener();
+    listener.once<RoomDisconnectedEvent>((_) {
+      rejoin = container.connectRoom().then<Object?>((_) => null, onError: (Object e) => e);
+    });
+
+    await container.room.disconnect();
+    final deadline = DateTime.now().add(const Duration(seconds: 2));
+    while (rejoin == null && DateTime.now().isBefore(deadline)) {
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    expect(rejoin, isNotNull, reason: 'the disconnected event must reach the app');
+    expect(await rejoin, isNull, reason: 'the rejoin must not fail');
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(container.room.connectionState, ConnectionState.connected);
+    expect(container.room.localParticipant, isNotNull);
+    await listener.dispose();
+  });
 }
