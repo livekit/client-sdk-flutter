@@ -1278,7 +1278,7 @@ extension RoomDebugMethods on Room {
     // The server only acts on the next resume, so start one now. Mirrors the
     // post action in client-sdk-js.
     if ((disconnectSignalOnResume ?? false) || (disconnectSignalOnResumeNoMessages ?? false)) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
     }
   }
 }

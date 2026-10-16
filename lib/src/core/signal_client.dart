@@ -426,8 +426,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     action();
   }
 
-  /// Debug only. Drops the signal socket the way a server side close does: the
-  /// socket goes away and the engine sees a disconnect it has to recover from.
+  /// Drops the signal socket the way a server side close does: the socket goes
+  /// away and the engine sees a disconnect it has to recover from. For the
+  /// debug scenarios and the connection checker. [cleanUp] alone is a quiet
+  /// teardown, the disposed socket's own close is ignored.
   @internal
   Future<void> simulateSignalDrop() async {
     await cleanUp();

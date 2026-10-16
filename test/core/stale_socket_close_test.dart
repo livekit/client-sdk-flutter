@@ -18,6 +18,7 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/connection_check/checks/reconnect.dart';
 import '../mock/e2e_container.dart';
 
 void main() {
@@ -69,4 +70,37 @@ void main() {
     );
     expect(events, isNotEmpty);
   });
+
+  test('the disconnectSignalOnResume debug action still starts a resume', () async {
+    // the real sockets report their close a few milliseconds after dispose()
+    container.wsConnector.closeLatency = const Duration(milliseconds: 50);
+    await container.connectRoom();
+
+    await container.room.sendSimulateScenario(disconnectSignalOnResume: true);
+
+    expect(await _resumeStarted(container), isTrue, reason: 'the server only acts on the next resume');
+  });
+
+  test('the connection checker reconnect check still sees a resume', () async {
+    container.wsConnector.closeLatency = const Duration(milliseconds: 50);
+    await container.connectRoom();
+
+    final check = ReconnectCheck('ws://www.example.com', 'token', room: container.room);
+    final info = await check.run();
+
+    expect(
+      info.logs.map((l) => l.message),
+      isNot(contains('Did not attempt to reconnect')),
+      reason: 'the check drops the signal socket and expects the engine to notice',
+    );
+  });
+}
+
+Future<bool> _resumeStarted(E2EContainer container) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 3));
+  while (DateTime.now().isBefore(deadline)) {
+    if (container.wsConnector.uri?.queryParameters['reconnect'] == '1') return true;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+  return false;
 }
