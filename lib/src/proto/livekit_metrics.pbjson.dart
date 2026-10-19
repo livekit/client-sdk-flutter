@@ -190,8 +190,14 @@ const MetricsRecordingHeader$json = {
     {'1': 'room_tags', '3': 5, '4': 3, '5': 11, '6': '.livekit.MetricsRecordingHeader.RoomTagsEntry', '10': 'roomTags'},
     {'1': 'room_name', '3': 6, '4': 1, '5': 9, '10': 'roomName'},
     {'1': 'room_start_time', '3': 7, '4': 1, '5': 11, '6': '.google.protobuf.Timestamp', '10': 'roomStartTime'},
+    {'1': 'job_id', '3': 8, '4': 1, '5': 9, '10': 'jobId'},
+    {'1': 'simulated', '3': 9, '4': 1, '5': 8, '10': 'simulated'},
+    {'1': 'redaction_enabled', '3': 10, '4': 1, '5': 8, '10': 'redactionEnabled'},
   ],
   '3': [MetricsRecordingHeader_RoomTagsEntry$json],
+  '9': [
+    {'1': 2, '2': 3},
+  ],
 };
 
 @$core.Deprecated('Use metricsRecordingHeaderDescriptor instead')
@@ -211,5 +217,7 @@ final $typed_data.Uint8List metricsRecordingHeaderDescriptor =
         'Z29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcFIJc3RhcnRUaW1lEkoKCXJvb21fdGFncxgFIAMoCz'
         'ItLmxpdmVraXQuTWV0cmljc1JlY29yZGluZ0hlYWRlci5Sb29tVGFnc0VudHJ5Ughyb29tVGFn'
         'cxIbCglyb29tX25hbWUYBiABKAlSCHJvb21OYW1lEkIKD3Jvb21fc3RhcnRfdGltZRgHIAEoCz'
-        'IaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSDXJvb21TdGFydFRpbWUaOwoNUm9vbVRhZ3NF'
-        'bnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6AjgB');
+        'IaLmdvb2dsZS5wcm90b2J1Zi5UaW1lc3RhbXBSDXJvb21TdGFydFRpbWUSFQoGam9iX2lkGAgg'
+        'ASgJUgVqb2JJZBIcCglzaW11bGF0ZWQYCSABKAhSCXNpbXVsYXRlZBIrChFyZWRhY3Rpb25fZW'
+        '5hYmxlZBgKIAEoCFIQcmVkYWN0aW9uRW5hYmxlZBo7Cg1Sb29tVGFnc0VudHJ5EhAKA2tleRgB'
+        'IAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAFKBAgCEAM=');

@@ -242,6 +242,15 @@ extension DisconnectReasonExt on lk_models.DisconnectReason {
     lk_models.DisconnectReason.ROOM_DELETED => DisconnectReason.roomDeleted,
     lk_models.DisconnectReason.STATE_MISMATCH => DisconnectReason.stateMismatch,
     lk_models.DisconnectReason.JOIN_FAILURE => DisconnectReason.joinFailure,
+    lk_models.DisconnectReason.MIGRATION => DisconnectReason.migration,
+    lk_models.DisconnectReason.SIGNAL_CLOSE => DisconnectReason.signalClose,
+    lk_models.DisconnectReason.ROOM_CLOSED => DisconnectReason.roomClosed,
+    lk_models.DisconnectReason.USER_UNAVAILABLE => DisconnectReason.userUnavailable,
+    lk_models.DisconnectReason.USER_REJECTED => DisconnectReason.userRejected,
+    lk_models.DisconnectReason.SIP_TRUNK_FAILURE => DisconnectReason.sipTrunkFailure,
+    lk_models.DisconnectReason.CONNECTION_TIMEOUT => DisconnectReason.connectionTimeout,
+    lk_models.DisconnectReason.MEDIA_FAILURE => DisconnectReason.mediaFailure,
+    lk_models.DisconnectReason.AGENT_ERROR => DisconnectReason.agentError,
     _ => DisconnectReason.unknown,
   };
 }

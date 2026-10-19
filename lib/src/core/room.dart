@@ -43,7 +43,6 @@ import '../support/disposable.dart';
 import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/region_url_provider.dart';
-import '../support/websocket.dart' show WebSocketException;
 import '../track/audio_management.dart';
 import '../track/local/audio.dart';
 import '../track/local/video.dart';
@@ -275,9 +274,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     @Deprecated('deprecated, please use roomOptions in Room constructor') RoomOptions? roomOptions,
     FastConnectOptions? fastConnectOptions,
   }) async {
-    // The deprecated `roomOptions` parameter still has to take effect when supplied. It was
-    // previously shadowed by a local of the same name declared right here — which Dart allows
-    // silently, with the local winning — so anything callers passed was discarded.
     var effectiveRoomOptions = roomOptions ?? this.roomOptions;
     if (lkPlatformIs(PlatformType.web) &&
         (effectiveRoomOptions.networkOptions.certificatePinning?.isEnabled ?? false)) {
@@ -370,8 +366,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       didConnect = true;
     } catch (e) {
       logger.warning('could not connect to $url $e');
-      if (_regionUrlProvider != null &&
-          (e is WebSocketException || (e is ConnectException && e.reason != ConnectionErrorReason.NotAllowed))) {
+      if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -510,7 +505,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         info: event.response.participant,
       );
 
-      if (engine.fullReconnectOnNext) {
+      if (engine.isFullReconnectInProgress) {
         await _localParticipant!.updateFromInfo(event.response.participant);
       }
 
@@ -525,7 +520,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
       if (connectOptions.protocolVersion.index >= ProtocolVersion.v8.index &&
           engine.fastConnectOptions != null &&
-          !engine.fullReconnectOnNext) {
+          !engine.isFullReconnectInProgress) {
         final options = engine.fastConnectOptions!;
 
         final audio = options.microphone;
@@ -654,7 +649,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
-      if (!engine.fullReconnectOnNext || event.reason == DisconnectReason.clientInitiated) {
+      // Suppress while a full reconnect is either pending or running — the
+      // engine is going to re-establish the session, this is not a real
+      // disconnect. Both flags are needed since the attempt consumes the
+      // pending one when it starts.
+      if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
+          event.reason == DisconnectReason.clientInitiated) {
         await _cleanUp(disposeLocalParticipant: false);
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
@@ -1221,6 +1221,21 @@ extension RoomPrivateMethods on Room {
 
 extension RoomDebugMethods on Room {
   /// To be used for internal testing purposes only.
+  ///
+  /// Client side scenarios, no server involvement:
+  /// - [signalReconnect] drops the signal socket, the engine resumes.
+  /// - [fullReconnect] drops the signal socket with a full reconnect pending.
+  ///
+  /// Server side scenarios, forwarded as a `SimulateScenario` request. What the
+  /// server does with them depends on the deployment; the open source server
+  /// and Cloud differ for [migration] and [nodeFailure].
+  /// - [disconnectSignalOnResume] arms the server to close the signal socket
+  ///   right after answering the next resume, once its response messages have
+  ///   been sent. The socket is dropped immediately after arming so the resume
+  ///   starts, matching client-sdk-js.
+  /// - [disconnectSignalOnResumeNoMessages] is the same, but the server closes
+  ///   the socket before sending anything, for the next three resumes.
+  /// - [leaveRequestFullReconnect] makes the server send a `Leave{RECONNECT}`.
   Future<void> sendSimulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,
@@ -1230,6 +1245,9 @@ extension RoomDebugMethods on Room {
     bool? signalReconnect,
     bool? fullReconnect,
     int? subscriberBandwidth,
+    bool? disconnectSignalOnResume,
+    bool? disconnectSignalOnResumeNoMessages,
+    bool? leaveRequestFullReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
       await engine.signalClient.cleanUp();
@@ -1246,7 +1264,16 @@ extension RoomDebugMethods on Room {
       migration: migration,
       serverLeave: serverLeave,
       switchCandidate: switchCandidate,
+      subscriberBandwidth: subscriberBandwidth,
+      disconnectSignalOnResume: disconnectSignalOnResume,
+      disconnectSignalOnResumeNoMessages: disconnectSignalOnResumeNoMessages,
+      leaveRequestFullReconnect: leaveRequestFullReconnect,
     );
+    // The server only acts on the next resume, so start one now. Mirrors the
+    // post action in client-sdk-js.
+    if ((disconnectSignalOnResume ?? false) || (disconnectSignalOnResumeNoMessages ?? false)) {
+      await engine.signalClient.cleanUp();
+    }
   }
 }
 

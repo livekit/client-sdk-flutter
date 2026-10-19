@@ -57,8 +57,7 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_V2`. Understands data streams v2 — in particular
   /// single-packet inline sends. Crossing this threshold is a baseline commitment with no opt-out;
   /// optional v2 features such as compression are negotiated separately via [ClientCapability].
-  v2(2)
-  ;
+  v2(2);
 
   const ClientProtocolVersion(this.wireValue);
 
@@ -161,18 +160,78 @@ enum StreamState {
   active,
 }
 
+/// The reason a participant was disconnected from the room.
+///
+/// Most values mirror the server's disconnect reasons from the LiveKit
+/// protocol. [disconnected], [signalingConnectionFailure] and
+/// [reconnectAttemptsExceeded] are produced by this SDK for client side
+/// conditions and are never sent by the server.
 enum DisconnectReason {
   unknown,
+
+  /// The client initiated the disconnect.
   clientInitiated,
+
+  /// Another participant with the same identity has joined the room.
   duplicateIdentity,
+
+  /// The server instance is shutting down.
   serverShutdown,
+
+  /// RoomService.RemoveParticipant was called.
   participantRemoved,
+
+  /// RoomService.DeleteRoom was called.
   roomDeleted,
+
+  /// The client attempted to resume a session, but the server is not aware
+  /// of it.
   stateMismatch,
+
+  /// The client was unable to connect fully.
   joinFailure,
+
+  /// The signaling connection was closed. Client side, not sent by the
+  /// server.
   disconnected,
+
+  /// The signaling connection could not be established. Client side, not
+  /// sent by the server.
   signalingConnectionFailure,
+
+  /// The client gave up reconnecting after exhausting all attempts. Client
+  /// side, not sent by the server.
   reconnectAttemptsExceeded,
+
+  /// Cloud only. The server requested the participant to migrate the
+  /// connection elsewhere.
+  migration,
+
+  /// The signal websocket was closed unexpectedly.
+  signalClose,
+
+  /// The room was closed, due to all Standard and Ingress participants
+  /// having left. Distinct from [roomDeleted], which is an explicit
+  /// RoomService.DeleteRoom call.
+  roomClosed,
+
+  /// SIP callee did not respond in time.
+  userUnavailable,
+
+  /// SIP callee rejected the call (busy).
+  userRejected,
+
+  /// SIP protocol failure or unexpected response.
+  sipTrunkFailure,
+
+  /// The server timed out the participant session.
+  connectionTimeout,
+
+  /// Media stream failure or media timeout.
+  mediaFailure,
+
+  /// The agent encountered an error.
+  agentError,
 }
 
 /// The reason why a track failed to publish.

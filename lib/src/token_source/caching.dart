@@ -135,13 +135,13 @@ class CachingTokenSource implements TokenSourceConfigurable {
       final cached = await _store.retrieve();
       if (cached != null && cached.options == options && _validator(cached.options, cached.response)) {
         completer.complete(cached.response);
-        return resultFuture;
+        return await resultFuture;
       }
 
       final response = await _wrapped.fetch(options);
       await _store.store(options, response);
       completer.complete(response);
-      return resultFuture;
+      return await resultFuture;
     } catch (e, stackTrace) {
       completer.completeError(e, stackTrace);
       rethrow;

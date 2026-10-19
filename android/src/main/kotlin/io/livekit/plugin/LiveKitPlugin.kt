@@ -19,6 +19,7 @@ package io.livekit.plugin
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.annotation.NonNull
 
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -276,8 +277,18 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
             result.success(null)
           }
         } catch (error: Throwable) {
+          // Pre-warming is best effort. prewarmRecording() applies the platform
+          // audio processing options before it prepares the recorder, so the
+          // options are in effect even when preparing fails, and WebRTC opens
+          // the recorder again on the real start path and reports its own
+          // init/start errors there. Surfacing this as applyFailed instead
+          // aborts startCapture() and fails the publish outright on devices
+          // that cannot open an AudioRecord yet (microphone held by another
+          // app, vendor capture restrictions) — an audio processing failure
+          // the requested options never caused.
+          Log.w(TAG, "Failed to prewarm local recording, continuing without it", error)
           mainHandler.post {
-            result.error("applyFailed", error.message, null)
+            result.success(null)
           }
         }
       }
@@ -478,5 +489,9 @@ class LiveKitPlugin : FlutterPlugin, MethodCallHandler {
     // Cleanup all processors
     audioProcessors.values.forEach { it.cleanup() }
     audioProcessors.clear()
+  }
+
+  companion object {
+    private const val TAG = "LiveKitPlugin"
   }
 }

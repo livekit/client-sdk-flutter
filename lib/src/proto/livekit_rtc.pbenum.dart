@@ -98,6 +98,8 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
       RequestResponse_Reason._(9, _omitEnumNames ? '' : 'DUPLICATE_HANDLE');
   static const RequestResponse_Reason DUPLICATE_NAME =
       RequestResponse_Reason._(10, _omitEnumNames ? '' : 'DUPLICATE_NAME');
+  static const RequestResponse_Reason INVALID_REQUEST =
+      RequestResponse_Reason._(11, _omitEnumNames ? '' : 'INVALID_REQUEST');
 
   static const $core.List<RequestResponse_Reason> values = <RequestResponse_Reason>[
     OK,
@@ -111,9 +113,10 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
     INVALID_NAME,
     DUPLICATE_HANDLE,
     DUPLICATE_NAME,
+    INVALID_REQUEST,
   ];
 
-  static final $core.List<RequestResponse_Reason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 10);
+  static final $core.List<RequestResponse_Reason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 11);
   static RequestResponse_Reason? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 

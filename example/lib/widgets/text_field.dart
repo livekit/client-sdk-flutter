@@ -5,9 +5,16 @@ import '../theme.dart';
 class LKTextField extends StatelessWidget {
   final String label;
   final TextEditingController? ctrl;
+  final IconData? icon;
+  final bool obscureText;
+  final TextInputType? keyboardType;
+
   const LKTextField({
     required this.label,
     this.ctrl,
+    this.icon,
+    this.obscureText = false,
+    this.keyboardType,
     super.key,
   });
 
@@ -21,28 +28,24 @@ class LKTextField extends StatelessWidget {
               label,
               style: const TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w600,
                 color: LKColors.fgDark,
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-            decoration: BoxDecoration(
-              color: LKColors.inputFillDark,
-              border: Border.all(width: 1, color: LKColors.inputDark),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: TextField(
-              controller: ctrl,
-              style: const TextStyle(
-                fontSize: 15,
-                color: LKColors.fgDark,
+          TextField(
+            controller: ctrl,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            autocorrect: false,
+            style: const TextStyle(fontSize: 15, color: LKColors.fgDark),
+            cursorColor: LKColors.fgDark,
+            decoration: InputDecoration(
+              prefixIcon: icon == null ? null : Icon(icon, size: 18),
+              prefixIconConstraints: const BoxConstraints(
+                minWidth: 42,
+                minHeight: 44,
               ),
-              cursorColor: LKColors.fgDark,
-              decoration: const InputDecoration.collapsed(hintText: ''),
-              keyboardType: TextInputType.url,
-              autocorrect: false,
             ),
           ),
         ],

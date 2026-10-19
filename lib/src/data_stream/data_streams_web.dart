@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -291,7 +292,7 @@ class WebDataStreams implements DataStreams {
   @override
   Future<TextStreamInfo> sendText(String text, SendTextOptions? options) async {
     final streamId = const Uuid().v4();
-    final totalTextLength = text.codeUnits.length;
+    final totalTextLength = utf8.encode(text).length;
 
     final fileIds = options?.attachments.map((f) => const Uuid().v4()).toList();
     final len = (fileIds != null && fileIds.isNotEmpty) ? fileIds.length + 1 : 1;

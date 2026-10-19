@@ -48,8 +48,10 @@ import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/video_dimensions.dart';
-import '../utils.dart' show buildStreamId, mimeTypeToVideoCodecString, Utils, isSVCCodec, isVideoCodec;
 import 'participant.dart';
+
+import '../utils.dart'
+    show buildStreamId, computeStartTargetBitrate, mimeTypeToVideoCodecString, Utils, isSVCCodec, isVideoCodec;
 
 /// Represents the current participant in the room. Instance of [LocalParticipant] is automatically
 /// created after successfully connecting to a [Room] and will be accessible from [Room.localParticipant].
@@ -395,14 +397,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(options.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(
-          TrackBitrateInfo(
-            cid: track.getCid(),
-            transceiver: track.transceiver,
-            codec: options.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000,
-          ),
-        );
+        final targetBitrate = computeStartTargetBitrate(options.videoCodec, options, encodings);
+        if (targetBitrate > 0) {
+          room.engine.publisher?.setTrackBitrateInfo(
+            TrackBitrateInfo(
+              cid: track.getCid(),
+              transceiver: track.transceiver,
+              codec: options.videoCodec,
+              maxbr: targetBitrate ~/ 1000,
+              isScreenShare: track.source == TrackSource.screenShareVideo,
+            ),
+          );
+        }
       }
 
       await room.engine.negotiate();
@@ -497,14 +503,18 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         //TOOD:
       } else if (isVideoCodec(publishOptions.videoCodec) && encodings?.first.maxBitrate != null) {
         // Apply start bitrate for all video codecs to prevent initial blurriness
-        room.engine.publisher?.setTrackBitrateInfo(
-          TrackBitrateInfo(
-            cid: track.getCid(),
-            transceiver: track.transceiver,
-            codec: publishOptions.videoCodec,
-            maxbr: encodings![0].maxBitrate! ~/ 1000,
-          ),
-        );
+        final targetBitrate = computeStartTargetBitrate(publishOptions.videoCodec, publishOptions, encodings);
+        if (targetBitrate > 0) {
+          room.engine.publisher?.setTrackBitrateInfo(
+            TrackBitrateInfo(
+              cid: track.getCid(),
+              transceiver: track.transceiver,
+              codec: publishOptions.videoCodec,
+              maxbr: targetBitrate ~/ 1000,
+              isScreenShare: track.source == TrackSource.screenShareVideo,
+            ),
+          );
+        }
       }
 
       await room.engine.negotiate();
@@ -558,23 +568,41 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       }
 
       final sender = track.transceiver?.sender;
+      var didRemoveSender = false;
       if (sender != null) {
         try {
           await room.engine.publisher?.pc.removeTrack(sender);
-          if (track is LocalVideoTrack) {
-            track.simulcastCodecs.forEach((key, simulcastTrack) async {
-              await room.engine.publisher?.pc.removeTrack(simulcastTrack.sender!);
-            });
-          }
         } catch (e) {
           logger.warning('[$objectId] rtc.removeTrack() did throw $e');
         }
+        didRemoveSender = true;
+      }
 
-        // doesn't make sense to negotiate if already disposed
-        if (!isDisposed) {
-          // manual negotiation since track changed
-          await room.engine.negotiate();
+      // not gated on the primary sender, stale backup codec state must not
+      // survive unpublish even when the track never got a live sender
+      if (track is LocalVideoTrack) {
+        // remove each backup sender on its own, one failure should not
+        // prevent removal of the others
+        for (final simulcastTrack in track.simulcastCodecs.values.toList()) {
+          final simulcastSender = simulcastTrack.sender;
+          if (simulcastSender == null) {
+            continue;
+          }
+          try {
+            await room.engine.publisher?.pc.removeTrack(simulcastSender);
+          } catch (e) {
+            logger.warning('[$objectId] rtc.removeTrack() did throw $e');
+          }
+          simulcastTrack.sender = null;
+          didRemoveSender = true;
         }
+        track.clearSimulcastState();
+      }
+
+      // doesn't make sense to negotiate if already disposed
+      if (didRemoveSender && !isDisposed) {
+        // manual negotiation since track changed
+        await room.engine.negotiate();
       }
 
       // did unpublish
@@ -613,7 +641,11 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       if (track.track is LocalAudioTrack) {
         await publishAudioTrack(track.track as LocalAudioTrack);
       } else if (track.track is LocalVideoTrack) {
-        await publishVideoTrack(track.track as LocalVideoTrack);
+        final videoTrack = track.track as LocalVideoTrack;
+        // a full reconnect replaced the peer connection, so any simulcast
+        // codec senders the track still holds belong to the old one
+        videoTrack.clearSimulcastState();
+        await publishVideoTrack(videoTrack);
       }
     }
   }

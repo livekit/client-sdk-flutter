@@ -13,9 +13,9 @@ RoomAgentDispatch _$RoomAgentDispatchFromJson(Map<String, dynamic> json) => Room
 );
 
 Map<String, dynamic> _$RoomAgentDispatchToJson(RoomAgentDispatch instance) => <String, dynamic>{
-  if (instance.agentName case final value?) 'agent_name': value,
-  if (instance.metadata case final value?) 'metadata': value,
-  if (instance.deployment case final value?) 'deployment': value,
+  'agent_name': ?instance.agentName,
+  'metadata': ?instance.metadata,
+  'deployment': ?instance.deployment,
 };
 
 RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) => RoomConfiguration(
@@ -33,13 +33,13 @@ RoomConfiguration _$RoomConfigurationFromJson(Map<String, dynamic> json) => Room
 );
 
 Map<String, dynamic> _$RoomConfigurationToJson(RoomConfiguration instance) => <String, dynamic>{
-  if (instance.name case final value?) 'name': value,
-  if (instance.emptyTimeout case final value?) 'empty_timeout': value,
-  if (instance.departureTimeout case final value?) 'departure_timeout': value,
-  if (instance.maxParticipants case final value?) 'max_participants': value,
-  if (instance.metadata case final value?) 'metadata': value,
-  if (instance.minPlayoutDelay case final value?) 'min_playout_delay': value,
-  if (instance.maxPlayoutDelay case final value?) 'max_playout_delay': value,
-  if (instance.syncStreams case final value?) 'sync_streams': value,
-  if (instance.agents?.map((e) => e.toJson()).toList() case final value?) 'agents': value,
+  'name': ?instance.name,
+  'empty_timeout': ?instance.emptyTimeout,
+  'departure_timeout': ?instance.departureTimeout,
+  'max_participants': ?instance.maxParticipants,
+  'metadata': ?instance.metadata,
+  'min_playout_delay': ?instance.minPlayoutDelay,
+  'max_playout_delay': ?instance.maxPlayoutDelay,
+  'sync_streams': ?instance.syncStreams,
+  'agents': ?instance.agents?.map((e) => e.toJson()).toList(),
 };

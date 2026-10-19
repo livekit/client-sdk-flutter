@@ -201,6 +201,26 @@ final $typed_data.Uint8List disconnectReasonDescriptor =
         'IVChFTSVBfVFJVTktfRkFJTFVSRRANEhYKEkNPTk5FQ1RJT05fVElNRU9VVBAOEhEKDU1FRElB'
         'X0ZBSUxVUkUQDxIPCgtBR0VOVF9FUlJPUhAQ');
 
+@$core.Deprecated('Use roomEndReasonDescriptor instead')
+const RoomEndReason$json = {
+  '1': 'RoomEndReason',
+  '2': [
+    {'1': 'ROOM_END_UNKNOWN', '2': 0},
+    {'1': 'ROOM_END_API_DELETE', '2': 1},
+    {'1': 'ROOM_END_IDLE_TIMEOUT', '2': 2},
+    {'1': 'ROOM_END_SERVER_SHUTDOWN', '2': 3},
+    {'1': 'ROOM_END_SUPERSEDED', '2': 4},
+    {'1': 'ROOM_END_OPEN_FAILED', '2': 5},
+  ],
+};
+
+/// Descriptor for `RoomEndReason`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List roomEndReasonDescriptor =
+    $convert.base64Decode('Cg1Sb29tRW5kUmVhc29uEhQKEFJPT01fRU5EX1VOS05PV04QABIXChNST09NX0VORF9BUElfRE'
+        'VMRVRFEAESGQoVUk9PTV9FTkRfSURMRV9USU1FT1VUEAISHAoYUk9PTV9FTkRfU0VSVkVSX1NI'
+        'VVRET1dOEAMSFwoTUk9PTV9FTkRfU1VQRVJTRURFRBAEEhgKFFJPT01fRU5EX09QRU5fRkFJTE'
+        'VEEAU=');
+
 @$core.Deprecated('Use reconnectReasonDescriptor instead')
 const ReconnectReason$json = {
   '1': 'ReconnectReason',
@@ -261,13 +281,14 @@ const PacketTrailerFeature$json = {
   '2': [
     {'1': 'PTF_USER_TIMESTAMP', '2': 0},
     {'1': 'PTF_FRAME_ID', '2': 1},
+    {'1': 'PTF_USER_DATA', '2': 2},
   ],
 };
 
 /// Descriptor for `PacketTrailerFeature`. Decode as a `google.protobuf.EnumDescriptorProto`.
 final $typed_data.Uint8List packetTrailerFeatureDescriptor =
     $convert.base64Decode('ChRQYWNrZXRUcmFpbGVyRmVhdHVyZRIWChJQVEZfVVNFUl9USU1FU1RBTVAQABIQCgxQVEZfRl'
-        'JBTUVfSUQQAQ==');
+        'JBTUVfSUQQARIRCg1QVEZfVVNFUl9EQVRBEAI=');
 
 @$core.Deprecated('Use paginationDescriptor instead')
 const Pagination$json = {
@@ -497,6 +518,7 @@ const ParticipantInfo_KindDetail$json = {
     {'1': 'CONNECTOR_WHATSAPP', '2': 2},
     {'1': 'CONNECTOR_TWILIO', '2': 3},
     {'1': 'BRIDGE_RTSP', '2': 4},
+    {'1': 'SIMULATION', '2': 5},
   ],
 };
 
@@ -522,9 +544,10 @@ final $typed_data.Uint8List participantInfoDescriptor =
         'RyaWJ1dGVzRW50cnkSEAoDa2V5GAEgASgJUgNrZXkSFAoFdmFsdWUYAiABKAlSBXZhbHVlOgI4'
         'ASI+CgVTdGF0ZRILCgdKT0lOSU5HEAASCgoGSk9JTkVEEAESCgoGQUNUSVZFEAISEAoMRElTQ0'
         '9OTkVDVEVEEAMiXAoES2luZBIMCghTVEFOREFSRBAAEgsKB0lOR1JFU1MQARIKCgZFR1JFU1MQ'
-        'AhIHCgNTSVAQAxIJCgVBR0VOVBAEEg0KCUNPTk5FQ1RPUhAHEgoKBkJSSURHRRAIImsKCktpbm'
+        'AhIHCgNTSVAQAxIJCgVBR0VOVBAEEg0KCUNPTk5FQ1RPUhAHEgoKBkJSSURHRRAIInsKCktpbm'
         'REZXRhaWwSDwoLQ0xPVURfQUdFTlQQABINCglGT1JXQVJERUQQARIWChJDT05ORUNUT1JfV0hB'
-        'VFNBUFAQAhIUChBDT05ORUNUT1JfVFdJTElPEAMSDwoLQlJJREdFX1JUU1AQBA==');
+        'VFNBUFAQAhIUChBDT05ORUNUT1JfVFdJTElPEAMSDwoLQlJJREdFX1JUU1AQBBIOCgpTSU1VTE'
+        'FUSU9OEAU=');
 
 @$core.Deprecated('Use encryptionDescriptor instead')
 const Encryption$json = {
@@ -665,6 +688,21 @@ const DataTrackInfo$json = {
     {'1': 'sid', '3': 2, '4': 1, '5': 9, '10': 'sid'},
     {'1': 'name', '3': 3, '4': 1, '5': 9, '10': 'name'},
     {'1': 'encryption', '3': 4, '4': 1, '5': 14, '6': '.livekit.Encryption.Type', '10': 'encryption'},
+    {
+      '1': 'frame_encoding',
+      '3': 5,
+      '4': 1,
+      '5': 11,
+      '6': '.livekit.DataTrackFrameEncoding',
+      '9': 0,
+      '10': 'frameEncoding',
+      '17': true
+    },
+    {'1': 'schema', '3': 6, '4': 1, '5': 11, '6': '.livekit.DataTrackSchemaId', '9': 1, '10': 'schema', '17': true},
+  ],
+  '8': [
+    {'1': '_frame_encoding'},
+    {'1': '_schema'},
   ],
 };
 
@@ -672,7 +710,121 @@ const DataTrackInfo$json = {
 final $typed_data.Uint8List dataTrackInfoDescriptor =
     $convert.base64Decode('Cg1EYXRhVHJhY2tJbmZvEh0KCnB1Yl9oYW5kbGUYASABKA1SCXB1YkhhbmRsZRIQCgNzaWQYAi'
         'ABKAlSA3NpZBISCgRuYW1lGAMgASgJUgRuYW1lEjgKCmVuY3J5cHRpb24YBCABKA4yGC5saXZl'
-        'a2l0LkVuY3J5cHRpb24uVHlwZVIKZW5jcnlwdGlvbg==');
+        'a2l0LkVuY3J5cHRpb24uVHlwZVIKZW5jcnlwdGlvbhJLCg5mcmFtZV9lbmNvZGluZxgFIAEoCz'
+        'IfLmxpdmVraXQuRGF0YVRyYWNrRnJhbWVFbmNvZGluZ0gAUg1mcmFtZUVuY29kaW5niAEBEjcK'
+        'BnNjaGVtYRgGIAEoCzIaLmxpdmVraXQuRGF0YVRyYWNrU2NoZW1hSWRIAVIGc2NoZW1hiAEBQh'
+        'EKD19mcmFtZV9lbmNvZGluZ0IJCgdfc2NoZW1h');
+
+@$core.Deprecated('Use dataTrackFrameEncodingDescriptor instead')
+const DataTrackFrameEncoding$json = {
+  '1': 'DataTrackFrameEncoding',
+  '2': [
+    {
+      '1': 'well_known',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DataTrackFrameEncoding.WellKnownFrameEncoding',
+      '9': 0,
+      '10': 'wellKnown'
+    },
+    {'1': 'custom', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'custom'},
+  ],
+  '4': [DataTrackFrameEncoding_WellKnownFrameEncoding$json],
+  '8': [
+    {'1': 'value'},
+  ],
+};
+
+@$core.Deprecated('Use dataTrackFrameEncodingDescriptor instead')
+const DataTrackFrameEncoding_WellKnownFrameEncoding$json = {
+  '1': 'WellKnownFrameEncoding',
+  '2': [
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_UNSPECIFIED', '2': 0},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_ROS1', '2': 1},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_CDR', '2': 2},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_PROTOBUF', '2': 3},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_FLATBUFFER', '2': 4},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_CBOR', '2': 5},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_MSGPACK', '2': 6},
+    {'1': 'WELL_KNOWN_FRAME_ENCODING_JSON', '2': 7},
+  ],
+};
+
+/// Descriptor for `DataTrackFrameEncoding`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataTrackFrameEncodingDescriptor =
+    $convert.base64Decode('ChZEYXRhVHJhY2tGcmFtZUVuY29kaW5nElcKCndlbGxfa25vd24YASABKA4yNi5saXZla2l0Lk'
+        'RhdGFUcmFja0ZyYW1lRW5jb2RpbmcuV2VsbEtub3duRnJhbWVFbmNvZGluZ0gAUgl3ZWxsS25v'
+        'd24SGAoGY3VzdG9tGAIgASgJSABSBmN1c3RvbSLLAgoWV2VsbEtub3duRnJhbWVFbmNvZGluZx'
+        'IpCiVXRUxMX0tOT1dOX0ZSQU1FX0VOQ09ESU5HX1VOU1BFQ0lGSUVEEAASIgoeV0VMTF9LTk9X'
+        'Tl9GUkFNRV9FTkNPRElOR19ST1MxEAESIQodV0VMTF9LTk9XTl9GUkFNRV9FTkNPRElOR19DRF'
+        'IQAhImCiJXRUxMX0tOT1dOX0ZSQU1FX0VOQ09ESU5HX1BST1RPQlVGEAMSKAokV0VMTF9LTk9X'
+        'Tl9GUkFNRV9FTkNPRElOR19GTEFUQlVGRkVSEAQSIgoeV0VMTF9LTk9XTl9GUkFNRV9FTkNPRE'
+        'lOR19DQk9SEAUSJQohV0VMTF9LTk9XTl9GUkFNRV9FTkNPRElOR19NU0dQQUNLEAYSIgoeV0VM'
+        'TF9LTk9XTl9GUkFNRV9FTkNPRElOR19KU09OEAdCBwoFdmFsdWU=');
+
+@$core.Deprecated('Use dataTrackSchemaEncodingDescriptor instead')
+const DataTrackSchemaEncoding$json = {
+  '1': 'DataTrackSchemaEncoding',
+  '2': [
+    {
+      '1': 'well_known',
+      '3': 1,
+      '4': 1,
+      '5': 14,
+      '6': '.livekit.DataTrackSchemaEncoding.WellKnownSchemaEncoding',
+      '9': 0,
+      '10': 'wellKnown'
+    },
+    {'1': 'custom', '3': 2, '4': 1, '5': 9, '9': 0, '10': 'custom'},
+  ],
+  '4': [DataTrackSchemaEncoding_WellKnownSchemaEncoding$json],
+  '8': [
+    {'1': 'value'},
+  ],
+};
+
+@$core.Deprecated('Use dataTrackSchemaEncodingDescriptor instead')
+const DataTrackSchemaEncoding_WellKnownSchemaEncoding$json = {
+  '1': 'WellKnownSchemaEncoding',
+  '2': [
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_UNSPECIFIED', '2': 0},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_PROTOBUF', '2': 1},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_FLATBUFFER', '2': 2},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_ROS1_MSG', '2': 3},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_ROS2_MSG', '2': 4},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_ROS2_IDL', '2': 5},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_OMG_IDL', '2': 6},
+    {'1': 'WELL_KNOWN_SCHEMA_ENCODING_JSON_SCHEMA', '2': 7},
+  ],
+};
+
+/// Descriptor for `DataTrackSchemaEncoding`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataTrackSchemaEncodingDescriptor =
+    $convert.base64Decode('ChdEYXRhVHJhY2tTY2hlbWFFbmNvZGluZxJZCgp3ZWxsX2tub3duGAEgASgOMjgubGl2ZWtpdC'
+        '5EYXRhVHJhY2tTY2hlbWFFbmNvZGluZy5XZWxsS25vd25TY2hlbWFFbmNvZGluZ0gAUgl3ZWxs'
+        'S25vd24SGAoGY3VzdG9tGAIgASgJSABSBmN1c3RvbSLoAgoXV2VsbEtub3duU2NoZW1hRW5jb2'
+        'RpbmcSKgomV0VMTF9LTk9XTl9TQ0hFTUFfRU5DT0RJTkdfVU5TUEVDSUZJRUQQABInCiNXRUxM'
+        'X0tOT1dOX1NDSEVNQV9FTkNPRElOR19QUk9UT0JVRhABEikKJVdFTExfS05PV05fU0NIRU1BX0'
+        'VOQ09ESU5HX0ZMQVRCVUZGRVIQAhInCiNXRUxMX0tOT1dOX1NDSEVNQV9FTkNPRElOR19ST1Mx'
+        'X01TRxADEicKI1dFTExfS05PV05fU0NIRU1BX0VOQ09ESU5HX1JPUzJfTVNHEAQSJwojV0VMTF'
+        '9LTk9XTl9TQ0hFTUFfRU5DT0RJTkdfUk9TMl9JREwQBRImCiJXRUxMX0tOT1dOX1NDSEVNQV9F'
+        'TkNPRElOR19PTUdfSURMEAYSKgomV0VMTF9LTk9XTl9TQ0hFTUFfRU5DT0RJTkdfSlNPTl9TQ0'
+        'hFTUEQB0IHCgV2YWx1ZQ==');
+
+@$core.Deprecated('Use dataTrackSchemaIdDescriptor instead')
+const DataTrackSchemaId$json = {
+  '1': 'DataTrackSchemaId',
+  '2': [
+    {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
+    {'1': 'encoding', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataTrackSchemaEncoding', '10': 'encoding'},
+  ],
+};
+
+/// Descriptor for `DataTrackSchemaId`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataTrackSchemaIdDescriptor =
+    $convert.base64Decode('ChFEYXRhVHJhY2tTY2hlbWFJZBISCgRuYW1lGAEgASgJUgRuYW1lEjwKCGVuY29kaW5nGAIgAS'
+        'gLMiAubGl2ZWtpdC5EYXRhVHJhY2tTY2hlbWFFbmNvZGluZ1IIZW5jb2Rpbmc=');
 
 @$core.Deprecated('Use dataTrackExtensionParticipantSidDescriptor instead')
 const DataTrackExtensionParticipantSid$json = {
@@ -704,6 +856,39 @@ const DataTrackSubscriptionOptions$json = {
 final $typed_data.Uint8List dataTrackSubscriptionOptionsDescriptor =
     $convert.base64Decode('ChxEYXRhVHJhY2tTdWJzY3JpcHRpb25PcHRpb25zEiIKCnRhcmdldF9mcHMYASABKA1IAFIJdG'
         'FyZ2V0RnBziAEBQg0KC190YXJnZXRfZnBz');
+
+@$core.Deprecated('Use dataBlobKeyDescriptor instead')
+const DataBlobKey$json = {
+  '1': 'DataBlobKey',
+  '2': [
+    {'1': 'generic', '3': 1, '4': 1, '5': 9, '9': 0, '10': 'generic'},
+    {'1': 'schema_id', '3': 2, '4': 1, '5': 11, '6': '.livekit.DataTrackSchemaId', '8': {}, '9': 0, '10': 'schemaId'},
+  ],
+  '8': [
+    {'1': 'key'},
+  ],
+};
+
+/// Descriptor for `DataBlobKey`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataBlobKeyDescriptor =
+    $convert.base64Decode('CgtEYXRhQmxvYktleRIaCgdnZW5lcmljGAEgASgJSABSB2dlbmVyaWMSRgoJc2NoZW1hX2lkGA'
+        'IgASgLMhoubGl2ZWtpdC5EYXRhVHJhY2tTY2hlbWFJZEILulAIc2NoZW1hSURIAFIIc2NoZW1h'
+        'SWRCBQoDa2V5');
+
+@$core.Deprecated('Use dataBlobDescriptor instead')
+const DataBlob$json = {
+  '1': 'DataBlob',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 11, '6': '.livekit.DataBlobKey', '10': 'key'},
+    {'1': 'contents', '3': 2, '4': 1, '5': 12, '8': {}, '10': 'contents'},
+  ],
+};
+
+/// Descriptor for `DataBlob`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List dataBlobDescriptor =
+    $convert.base64Decode('CghEYXRhQmxvYhImCgNrZXkYASABKAsyFC5saXZla2l0LkRhdGFCbG9iS2V5UgNrZXkSQAoIY2'
+        '9udGVudHMYAiABKAxCJLJQHjxyZWRhY3RlZCAoe3sgLlNpemUgfX0gYnl0ZXMpPsBQAVIIY29u'
+        'dGVudHM=');
 
 @$core.Deprecated('Use videoLayerDescriptor instead')
 const VideoLayer$json = {

@@ -4,7 +4,7 @@ Flutter client SDK for LiveKit (`livekit_client` on pub.dev), built on top of `f
 
 ## Commands
 
-Requires Dart >= 3.6 / Flutter >= 3.27.
+Requires Dart >= 3.10 / Flutter >= 3.38 (floor set by stable native assets support).
 
 ```sh
 flutter pub get
@@ -49,7 +49,7 @@ Two things to know when touching the native path:
 
 ### Local development loop
 
-`livekit_uniffi` is not on pub.dev yet, so both `pubspec.yaml` and `example/pubspec.yaml` override it to a path in a sibling `rust-sdks` checkout (overrides don't propagate from a dependency, hence both). To produce or refresh it:
+`livekit_uniffi` is published on pub.dev and the normal dependency resolves it; its build hook downloads the matching prebuilt library from the `livekit-uniffi` GitHub release, so no Rust toolchain is needed. To develop against unreleased crate changes, point both `pubspec.yaml` and `example/pubspec.yaml` at a sibling `rust-sdks` checkout with a `dependency_overrides` entry (`path: ../rust-sdks/livekit-uniffi/packages/dart`, overrides do not propagate from a dependency, hence both) and produce or refresh the package with:
 
 ```sh
 cd ../rust-sdks/livekit-uniffi
@@ -61,7 +61,7 @@ flutter test test/uniffi/  # smoke test: calls buildVersion() across the FFI bou
 
 Requires `cargo-make`, `protoc` and `tera`. Re-run `cargo make dart-package` whenever the crate's exported surface changes — the build hook tracks the copied library, so a stale one won't be silently reused.
 
-Two things to know about that hook: it picks the locally built library purely on target *OS*, not architecture, so a host build can be bundled into an iOS or Android build by mistake — verify the desktop target first when debugging. And its download mode (used when no local library is present) fetches `build-<triple>.zip` from a `livekit-uniffi` GitHub release; no release currently carries those assets, so download mode fails until the `cdylib` job is re-enabled in `rust-sdks`.
+Two things to know about that hook: it picks the locally built library purely on target *OS*, not architecture, so a host build can be bundled into an iOS or Android build by mistake — verify the desktop target first when debugging. And its download mode (used when no local library is present) fetches `build-<triple>.zip` from the `livekit-uniffi` GitHub release matching the package version and verifies its SHA-256, so a version whose release lacks assets fails at build time rather than at runtime.
 
 ## Common pitfalls (from issue history)
 

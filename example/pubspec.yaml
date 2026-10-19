@@ -25,14 +25,6 @@ dependencies:
   livekit_client:
     path: ../
 
-dependency_overrides:
-  # Pin packages that use Apple APIs unavailable on CI runner's Xcode version.
-  connectivity_plus: '>=7.0.0 <7.1.0' # NWPath.isUltraConstrained
-  device_info_plus: '>=12.3.0 <12.4.0' # NSProcessInfo.isiOSAppOnVision
-  # Overrides do not propagate from a dependency, so livekit_client's override of
-  # livekit_uniffi has to be repeated here. Drop both once it is on pub.dev.
-  livekit_uniffi:
-    path: ../../rust-sdks/livekit-uniffi/packages/dart
 
 dev_dependencies:
   flutter_test:
@@ -41,6 +33,16 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  # Swift Package Manager is disabled for the example because this app lives inside the
+  # livekit_client plugin it depends on. With SPM enabled, the Flutter tool (>= 3.44) copies
+  # the whole plugin directory into build/<platform>/SourcePackages when the plugin's
+  # Package.swift depends on another plugin (flutter_webrtc). Since that destination is inside
+  # the plugin directory itself, every build copies the previous copy again and the build
+  # directory grows without bound. iOS/macOS use CocoaPods instead; CI flips this to true to
+  # keep building with SPM. Remove once the minimum Flutter excludes example/ from that copy
+  # (flutter/flutter#188647, expected in 3.49).
+  config:
+    enable-swift-package-manager: false
   uses-material-design: true
   assets:
     - images/logo-dark.svg

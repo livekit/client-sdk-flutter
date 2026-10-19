@@ -73,7 +73,7 @@ public:
                 &flutter::StandardMethodCodec::GetInstance())),
         media_track_(media_track), is_centered_(is_centered),
         bar_count_(bar_count) {
-    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerLinux>();
+    task_runner_ = std::make_shared<livekit_client_plugin::TaskRunnerLinux>();
     auto handler = std::make_unique<
         flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
         [&](const flutter::EncodableValue *arguments,
@@ -151,7 +151,7 @@ public:
 
 private:
   std::unique_ptr<AudioVisualizer> audio_visualizer_;
-  std::unique_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
+  std::shared_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> channel_;
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   std::list<flutter::EncodableValue> event_queue_;
@@ -172,7 +172,7 @@ public:
                 messenger, event_channel_name,
                 &flutter::StandardMethodCodec::GetInstance())),
         media_track_(media_track), format_(format) {
-    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerLinux>();
+    task_runner_ = std::make_shared<livekit_client_plugin::TaskRunnerLinux>();
     auto handler = std::make_unique<
         flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
         [&](const flutter::EncodableValue *arguments,
@@ -250,7 +250,7 @@ private:
     }
   }
 
-  std::unique_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
+  std::shared_ptr<livekit_client_plugin::TaskRunnerLinux> task_runner_;
   std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> channel_;
   std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
   bool on_listen_called_ = false;
