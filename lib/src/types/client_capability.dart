@@ -26,8 +26,7 @@ enum ClientCapability {
   packetTrailer(1),
 
   /// The client can decompress a deflate-raw compressed data stream.
-  compressionDeflateRaw(2)
-  ;
+  compressionDeflateRaw(2);
 
   const ClientCapability(this.wireValue);
 
