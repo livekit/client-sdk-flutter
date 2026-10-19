@@ -644,6 +644,30 @@ bool isVideoCodec(String codec) => ['vp8', 'vp9', 'av1', 'h264', 'h265'].contain
 
 bool isAV1Codec(String codec) => codec.toLowerCase() == 'av1';
 
+/// Whether [codec] is being published as SVC-flavoured simulcast rather than as a single
+/// SVC stream: an `L1T*` scalability mode with simulcast on means the encodings are
+/// independent streams, not the spatial layers of one.
+bool isSVCSimulcast(String codec, VideoPublishOptions? options) =>
+    isSVCCodec(codec) && (options?.simulcast ?? false) && (options?.scalabilityMode?.startsWith('L1T') ?? false);
+
+/// The publish target the `x-google-start-bitrate` hint is derived from, in bps.
+///
+/// A single SVC stream declares its whole budget on the first encoding, so that one value is
+/// the target. Everything else — plain simulcast, and SVC published as simulcast — spreads
+/// the budget across independent encodings, so the target is their sum. Taking only the first
+/// encoding there would read the lowest simulcast layer (rids are ordered `q`, `h`, `f`) and
+/// understate the target by roughly an order of magnitude.
+@internal
+int computeStartTargetBitrate(String codec, VideoPublishOptions? options, List<rtc.RTCRtpEncoding>? encodings) {
+  if (encodings == null || encodings.isEmpty) {
+    return 0;
+  }
+  if (isSVCCodec(codec) && !isSVCSimulcast(codec, options)) {
+    return encodings.first.maxBitrate ?? 0;
+  }
+  return encodings.fold<int>(0, (sum, e) => sum + (e.maxBitrate ?? 0));
+}
+
 class ScalabilityMode {
   late num spatial;
 

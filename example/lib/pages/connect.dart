@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../exts.dart';
 import '../utils.dart';
 
-enum _ConnectOption { autoSubscribe, e2ee }
+enum _ConnectOption { autoSubscribe, e2ee, tokenServer }
 
 enum _RoomOption { simulcast, adaptiveStream, dynacast, multiCodec }
 
@@ -36,17 +36,21 @@ class _ConnectPageState extends State<ConnectPage> {
   static const _storeKeyMultiCodec = 'multi-codec';
   static const _storeKeyPreferredCodec = 'preferred-codec';
   static const _storeKeyAutoSubscribe = 'auto-subscribe';
+  static const _storeKeyTokenServer = 'token-server';
+  static const _storeKeyRoomName = 'room-name';
   static const _storeKeyConnectionHistory = 'connection-history';
   static const _codecOptions = ['AV1', 'VP9', 'VP8', 'H264', 'H265'];
 
   final _uriCtrl = TextEditingController();
   final _tokenCtrl = TextEditingController();
+  final _roomNameCtrl = TextEditingController();
   final _sharedKeyCtrl = TextEditingController();
 
   bool _simulcast = true;
   bool _adaptiveStream = true;
   bool _dynacast = true;
   bool _autoSubscribe = true;
+  bool _useTokenServer = false;
   bool _busy = false;
   bool _e2ee = false;
   bool _multiCodec = false;
@@ -66,6 +70,7 @@ class _ConnectPageState extends State<ConnectPage> {
   void dispose() {
     _uriCtrl.dispose();
     _tokenCtrl.dispose();
+    _roomNameCtrl.dispose();
     _sharedKeyCtrl.dispose();
     super.dispose();
   }
@@ -104,6 +109,9 @@ class _ConnectPageState extends State<ConnectPage> {
     _sharedKeyCtrl.text = const bool.hasEnvironment('E2EEKEY')
         ? const String.fromEnvironment('E2EEKEY')
         : prefs.getString(_storeKeySharedKey) ?? '';
+    _roomNameCtrl.text = const bool.hasEnvironment('ROOM')
+        ? const String.fromEnvironment('ROOM')
+        : prefs.getString(_storeKeyRoomName) ?? '';
 
     if (!mounted) return;
     setState(() {
@@ -111,6 +119,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _adaptiveStream = prefs.getBool(_storeKeyAdaptiveStream) ?? true;
       _dynacast = prefs.getBool(_storeKeyDynacast) ?? true;
       _autoSubscribe = prefs.getBool(_storeKeyAutoSubscribe) ?? true;
+      _useTokenServer = prefs.getBool(_storeKeyTokenServer) ?? false;
       _e2ee = prefs.getBool(_storeKeyE2EE) ?? false;
       _multiCodec = prefs.getBool(_storeKeyMultiCodec) ?? false;
       _preferredCodec = prefs.getString(_storeKeyPreferredCodec) ?? 'VP8';
@@ -122,11 +131,13 @@ class _ConnectPageState extends State<ConnectPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_storeKeyUri, _uriCtrl.text);
     await prefs.setString(_storeKeyToken, _tokenCtrl.text);
+    await prefs.setString(_storeKeyRoomName, _roomNameCtrl.text);
     await prefs.setString(_storeKeySharedKey, _sharedKeyCtrl.text);
     await prefs.setBool(_storeKeySimulcast, _simulcast);
     await prefs.setBool(_storeKeyAdaptiveStream, _adaptiveStream);
     await prefs.setBool(_storeKeyDynacast, _dynacast);
     await prefs.setBool(_storeKeyAutoSubscribe, _autoSubscribe);
+    await prefs.setBool(_storeKeyTokenServer, _useTokenServer);
     await prefs.setBool(_storeKeyE2EE, _e2ee);
     await prefs.setBool(_storeKeyMultiCodec, _multiCodec);
     await prefs.setString(_storeKeyPreferredCodec, _preferredCodec);
@@ -140,6 +151,44 @@ class _ConnectPageState extends State<ConnectPage> {
     );
   }
 
+  Future<TokenSourceResponse> _resolveCredentials() async {
+    final url = _uriCtrl.text.trim();
+    final token = _tokenCtrl.text.trim();
+    if (!_useTokenServer) {
+      return TokenSourceResponse(serverUrl: url, participantToken: token);
+    }
+    if (url.isEmpty) {
+      throw Exception('Enter a token server URL (e.g. https://example.com/api/token) or a development token server ID');
+    }
+    final roomName = _roomNameCtrl.text.trim();
+    final options = TokenRequestOptions(roomName: roomName.isEmpty ? null : roomName);
+    return _tokenSourceFor(url).fetch(options);
+  }
+
+  static const _sandboxHostSuffix = '.sandbox.livekit.io';
+
+  static TokenSourceConfigurable _tokenSourceFor(String input) {
+    if (RegExp(r'^[a-zA-Z0-9][a-zA-Z0-9_-]*$').hasMatch(input)) {
+      return DevelopmentTokenSource(id: input);
+    }
+
+    final uri = Uri.tryParse(input);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      throw Exception('Enter a valid token server URL (e.g. https://example.com/api/token)');
+    }
+    if (!['http', 'https'].contains(uri.scheme)) {
+      throw Exception('Token server URL must use http or https (got ${uri.scheme}://)');
+    }
+
+    final host = uri.host.toLowerCase();
+    if (host.endsWith(_sandboxHostSuffix) && (uri.path.isEmpty || uri.path == '/')) {
+      final id = host.substring(0, host.length - _sandboxHostSuffix.length);
+      if (id.isNotEmpty) return DevelopmentTokenSource(id: id);
+    }
+
+    return EndpointTokenSource(url: uri);
+  }
+
   Future<void> _connect(BuildContext ctx) async {
     try {
       setState(() {
@@ -149,8 +198,9 @@ class _ConnectPageState extends State<ConnectPage> {
       await _writePrefs();
       await _saveCurrentConnectionToHistory();
 
-      final url = _uriCtrl.text.trim();
-      final token = _tokenCtrl.text.trim();
+      final credentials = await _resolveCredentials();
+      final url = credentials.serverUrl;
+      final token = credentials.participantToken;
       final e2eeKey = _sharedKeyCtrl.text;
       if (!ctx.mounted) return;
       await Navigator.push<void>(
@@ -188,13 +238,22 @@ class _ConnectPageState extends State<ConnectPage> {
   Future<void> _connectionCheck(BuildContext ctx) async {
     // Save URL and Token for convenience
     await _writePrefs();
+    final TokenSourceResponse credentials;
+    try {
+      credentials = await _resolveCredentials();
+    } catch (error) {
+      print('Could not resolve credentials $error');
+      if (!ctx.mounted) return;
+      await ctx.showErrorDialog(error);
+      return;
+    }
     if (!ctx.mounted) return;
     await Navigator.push<void>(
       ctx,
       MaterialPageRoute(
           builder: (_) => ConnectionCheckPage(
-                url: _uriCtrl.text,
-                token: _tokenCtrl.text,
+                url: credentials.serverUrl,
+                token: credentials.participantToken,
               )),
     );
   }
@@ -203,12 +262,14 @@ class _ConnectPageState extends State<ConnectPage> {
     final entry = _ConnectionHistoryEntry(
       url: _uriCtrl.text.trim(),
       token: _tokenCtrl.text.trim(),
+      roomName: _roomNameCtrl.text.trim(),
       e2ee: _e2ee,
       e2eeKey: _sharedKeyCtrl.text,
       simulcast: _simulcast,
       adaptiveStream: _adaptiveStream,
       dynacast: _dynacast,
       autoSubscribe: _autoSubscribe,
+      useTokenServer: _useTokenServer,
       multiCodec: _multiCodec,
       preferredCodec: _preferredCodec,
       updatedAt: DateTime.now(),
@@ -238,6 +299,7 @@ class _ConnectPageState extends State<ConnectPage> {
   void _applyHistory(_ConnectionHistoryEntry entry) {
     _uriCtrl.text = entry.url;
     _tokenCtrl.text = entry.token;
+    _roomNameCtrl.text = entry.roomName;
     _sharedKeyCtrl.text = entry.e2eeKey;
     setState(() {
       _e2ee = entry.e2ee;
@@ -245,6 +307,7 @@ class _ConnectPageState extends State<ConnectPage> {
       _adaptiveStream = entry.adaptiveStream;
       _dynacast = entry.dynacast;
       _autoSubscribe = entry.autoSubscribe;
+      _useTokenServer = entry.useTokenServer;
       _multiCodec = entry.multiCodec;
       _preferredCodec = entry.preferredCodec;
     });
@@ -256,6 +319,8 @@ class _ConnectPageState extends State<ConnectPage> {
         _autoSubscribe = !_autoSubscribe;
       } else if (option == _ConnectOption.e2ee) {
         _e2ee = !_e2ee;
+      } else if (option == _ConnectOption.tokenServer) {
+        _useTokenServer = !_useTokenServer;
       }
     });
     unawaited(_writePrefs());
@@ -339,18 +404,25 @@ class _ConnectPageState extends State<ConnectPage> {
             ),
             const SizedBox(height: 24),
             LKTextField(
-              label: 'Server URL',
+              label: _useTokenServer ? 'Token Server URL' : 'Server URL',
               ctrl: _uriCtrl,
-              icon: Icons.link,
+              icon: _useTokenServer ? Icons.cloud : Icons.link,
               keyboardType: TextInputType.url,
             ),
             const SizedBox(height: 18),
-            LKTextField(
-              label: 'Token',
-              ctrl: _tokenCtrl,
-              icon: Icons.key,
-              obscureText: true,
-            ),
+            if (_useTokenServer)
+              LKTextField(
+                label: 'Room Name',
+                ctrl: _roomNameCtrl,
+                icon: Icons.meeting_room,
+              )
+            else
+              LKTextField(
+                label: 'Token',
+                ctrl: _tokenCtrl,
+                icon: Icons.key,
+                obscureText: true,
+              ),
             const SizedBox(height: 18),
             LKTextField(
               label: 'E2EE Key',
@@ -366,6 +438,7 @@ class _ConnectPageState extends State<ConnectPage> {
                 _ConnectOptionsMenu(
                   autoSubscribe: _autoSubscribe,
                   e2ee: _e2ee,
+                  tokenServer: _useTokenServer,
                   onSelected: _handleConnectOption,
                 ),
                 _RoomOptionsMenu(
@@ -452,11 +525,13 @@ class _ConnectOptionsMenu extends StatelessWidget {
   const _ConnectOptionsMenu({
     required this.autoSubscribe,
     required this.e2ee,
+    required this.tokenServer,
     required this.onSelected,
   });
 
   final bool autoSubscribe;
   final bool e2ee;
+  final bool tokenServer;
   final ValueChanged<_ConnectOption> onSelected;
 
   @override
@@ -473,6 +548,11 @@ class _ConnectOptionsMenu extends StatelessWidget {
             value: _ConnectOption.e2ee,
             checked: e2ee,
             child: const Text('Enable E2EE'),
+          ),
+          CheckedPopupMenuItem(
+            value: _ConnectOption.tokenServer,
+            checked: tokenServer,
+            child: const Text('Server URL is token server'),
           ),
         ],
         child: const _MenuButton(icon: Icons.bolt, label: 'Connect Options'),
@@ -621,12 +701,14 @@ class _ConnectionHistoryEntry {
   const _ConnectionHistoryEntry({
     required this.url,
     required this.token,
+    this.roomName = '',
     required this.e2ee,
     required this.e2eeKey,
     required this.simulcast,
     required this.adaptiveStream,
     required this.dynacast,
     required this.autoSubscribe,
+    this.useTokenServer = false,
     required this.multiCodec,
     required this.preferredCodec,
     required this.updatedAt,
@@ -635,12 +717,14 @@ class _ConnectionHistoryEntry {
   factory _ConnectionHistoryEntry.fromJson(Map<String, dynamic> json) => _ConnectionHistoryEntry(
         url: json['url'] as String? ?? '',
         token: json['token'] as String? ?? '',
+        roomName: json['roomName'] as String? ?? '',
         e2ee: json['e2ee'] as bool? ?? false,
         e2eeKey: json['e2eeKey'] as String? ?? '',
         simulcast: json['simulcast'] as bool? ?? true,
         adaptiveStream: json['adaptiveStream'] as bool? ?? true,
         dynacast: json['dynacast'] as bool? ?? true,
         autoSubscribe: json['autoSubscribe'] as bool? ?? true,
+        useTokenServer: json['useTokenServer'] as bool? ?? false,
         multiCodec: json['multiCodec'] as bool? ?? false,
         preferredCodec: json['preferredCodec'] as String? ?? 'VP8',
         updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
@@ -648,12 +732,14 @@ class _ConnectionHistoryEntry {
 
   final String url;
   final String token;
+  final String roomName;
   final bool e2ee;
   final String e2eeKey;
   final bool simulcast;
   final bool adaptiveStream;
   final bool dynacast;
   final bool autoSubscribe;
+  final bool useTokenServer;
   final bool multiCodec;
   final String preferredCodec;
   final DateTime updatedAt;
@@ -668,6 +754,7 @@ class _ConnectionHistoryEntry {
 
   String get displaySubtitle {
     final options = [
+      if (useTokenServer) roomName.isEmpty ? 'token server' : 'token server / $roomName',
       if (e2ee) 'E2EE',
       if (autoSubscribe) 'auto-subscribe',
       if (multiCodec) preferredCodec,
@@ -678,12 +765,14 @@ class _ConnectionHistoryEntry {
   Map<String, dynamic> toJson() => {
         'url': url,
         'token': token,
+        'roomName': roomName,
         'e2ee': e2ee,
         'e2eeKey': e2eeKey,
         'simulcast': simulcast,
         'adaptiveStream': adaptiveStream,
         'dynacast': dynacast,
         'autoSubscribe': autoSubscribe,
+        'useTokenServer': useTokenServer,
         'multiCodec': multiCodec,
         'preferredCodec': preferredCodec,
         'updatedAt': updatedAt.toIso8601String(),
