@@ -16,9 +16,9 @@ import 'package:meta/meta.dart';
 
 import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
 
-/// Facade over the Rust core exposed by the `livekit_uniffi` package.
+/// Facade over the Rust core exposed by the `livekit_ffi` package.
 ///
-/// `livekit_uniffi` reaches Rust through Dart's Native Assets: its build hook
+/// `livekit_ffi` reaches Rust through Dart's Native Assets: its build hook
 /// bundles a `cdylib` into the host app and the generated bindings call into it
 /// with `@Native`. None of that exists on the web, where there is no dynamic
 /// library to load, so every entry point here is split native/web through the

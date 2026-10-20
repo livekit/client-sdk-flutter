@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:livekit_uniffi/livekit_uniffi.dart' as uniffi;
+import 'package:livekit_ffi/livekit_ffi.dart' as uniffi;
 
 /// Native implementation of [LiveKitUniffi]. See `uniffi.dart`.
 ///

@@ -440,14 +440,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
-  livekit_uniffi:
+  livekit_ffi:
     dependency: "direct main"
     description:
-      name: livekit_uniffi
-      sha256: "8ff1402ed684ce09899d77faeb828676030fff2ebf5449678484e665440c6e14"
+      name: livekit_ffi
+      sha256: "7b2a95698497b4c572c8da64588fc295e609aea235faf0552fc7e5c8c013c410"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.2"
+    version: "0.13.0"
   logger:
     dependency: transitive
     description:

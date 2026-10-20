@@ -16,7 +16,7 @@
 ///
 /// Native Assets bundles a `cdylib`, which the web has no way to load, so the
 /// Rust core is simply absent here. This file deliberately does not import
-/// `package:livekit_uniffi/...` -- doing so would pull `dart:ffi` into a web
+/// `package:livekit_ffi/...` -- doing so would pull `dart:ffi` into a web
 /// compile and fail the build.
 const bool isAvailable = false;
 
