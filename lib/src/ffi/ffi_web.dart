@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Web implementation of [LiveKitFfi]. See `ffi.dart`.
+/// Web implementation of [LiveKitFFI]. See `ffi.dart`.
 ///
 /// Native Assets bundles a `cdylib`, which the web has no way to load, so the
 /// Rust core is simply absent here. This file deliberately does not import
@@ -21,7 +21,7 @@
 const bool isAvailable = false;
 
 Never buildVersion() => throw UnsupportedError(
-  'LiveKitFfi.buildVersion is not available on web: the Rust core is '
+  'LiveKitFFI.buildVersion is not available on web: the Rust core is '
   'delivered as a native library. Guard calls with '
-  'LiveKitFfi.isAvailable.',
+  'LiveKitFFI.isAvailable.',
 );

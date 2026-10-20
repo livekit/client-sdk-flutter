@@ -26,11 +26,11 @@ void main() {
   // bindgen or the hook regresses, this is what fails first.
   group('livekit_ffi', () {
     test('is available on native platforms', () {
-      expect(LiveKitFfi.isAvailable, isTrue);
+      expect(LiveKitFFI.isAvailable, isTrue);
     });
 
     test('buildVersion returns the Rust core version', () {
-      final version = LiveKitFfi.buildVersion;
+      final version = LiveKitFFI.buildVersion;
       expect(version, isNotEmpty);
       // The crate stamps its own semver, so assert the shape rather than a
       // literal that would need bumping on every livekit-ffi release.

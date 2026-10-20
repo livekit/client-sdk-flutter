@@ -29,7 +29,7 @@ import 'ffi_io.dart' if (dart.library.js_interop) 'ffi_web.dart' as impl;
 /// Callers get [isAvailable] to branch on, and platform-specific code paths
 /// stay out of the public API surface.
 @experimental
-abstract final class LiveKitFfi {
+abstract final class LiveKitFFI {
   /// Whether the Rust core can be called on this platform.
   ///
   /// False on web. Every other member throws [UnsupportedError] when this is

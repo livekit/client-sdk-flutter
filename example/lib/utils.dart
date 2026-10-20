@@ -10,11 +10,11 @@ FutureOr<void> Function()? onWindowShouldClose;
 /// example shows the result at startup and on the connect page as a smoke
 /// test that the native library was bundled and loads on this platform.
 String rustCoreVersionLabel() {
-  if (!LiveKitFfi.isAvailable) {
+  if (!LiveKitFFI.isAvailable) {
     return 'Rust core not available on this platform';
   }
   try {
-    return 'Rust core ${LiveKitFfi.buildVersion}';
+    return 'Rust core ${LiveKitFFI.buildVersion}';
   } catch (error) {
     return 'Rust core failed to load: $error';
   }
