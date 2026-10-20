@@ -14,7 +14,7 @@
 
 import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 
-/// Native implementation of [LiveKitUniffi]. See `ffi.dart`.
+/// Native implementation of [LiveKitFfi]. See `ffi.dart`.
 ///
 /// This is the only file in the SDK that may import the generated bindings:
 /// the conditional import in `ffi.dart` keeps it out of web builds.

@@ -6,15 +6,15 @@ import 'package:livekit_client/livekit_client.dart';
 
 FutureOr<void> Function()? onWindowShouldClose;
 
-/// One synchronous call into the Rust core through the uniffi facade. The
+/// One synchronous call into the Rust core through the ffi facade. The
 /// example shows the result at startup and on the connect page as a smoke
 /// test that the native library was bundled and loads on this platform.
 String rustCoreVersionLabel() {
-  if (!LiveKitUniffi.isAvailable) {
+  if (!LiveKitFfi.isAvailable) {
     return 'Rust core not available on this platform';
   }
   try {
-    return 'Rust core ${LiveKitUniffi.buildVersion}';
+    return 'Rust core ${LiveKitFfi.buildVersion}';
   } catch (error) {
     return 'Rust core failed to load: $error';
   }
