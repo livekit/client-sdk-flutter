@@ -34,9 +34,9 @@ Web/native divergence is handled with conditional imports (e.g. `track/processor
 
 ## The Rust core (`livekit_ffi`)
 
-`lib/src/uniffi/` wraps `livekit_ffi`, a Dart package generated from the `livekit-ffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
+`lib/src/ffi/` wraps `livekit_ffi`, a Dart package generated from the `livekit-ffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
 
-There is no dynamic library to load on the web, so `uniffi.dart` splits native/web the same way the rest of the SDK does. **`uniffi_io.dart` is the only file allowed to import `package:livekit_ffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. Guard calls with `LiveKitUniffi.isAvailable`.
+There is no dynamic library to load on the web, so `ffi.dart` splits native/web the same way the rest of the SDK does. **`ffi_io.dart` is the only file allowed to import `package:livekit_ffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. Guard calls with `LiveKitUniffi.isAvailable`.
 
 ### Local development loop
 
@@ -47,7 +47,7 @@ cd ../rust-sdks/livekit-ffi
 cargo make dart-package    # generates packages/dart/: bindings, pubspec, build hook, host cdylib
 cd -
 flutter pub get
-flutter test test/uniffi/  # smoke test: calls buildVersion() across the FFI boundary
+flutter test test/ffi/  # smoke test: calls buildVersion() across the FFI boundary
 ```
 
 Requires `cargo-make`, `protoc` and `tera`. Re-run `cargo make dart-package` whenever the crate's exported surface changes — the build hook tracks the copied library, so a stale one won't be silently reused.

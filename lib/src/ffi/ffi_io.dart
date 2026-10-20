@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/// Web implementation of [LiveKitUniffi]. See `uniffi.dart`.
-///
-/// Native Assets bundles a `cdylib`, which the web has no way to load, so the
-/// Rust core is simply absent here. This file deliberately does not import
-/// `package:livekit_ffi/...` -- doing so would pull `dart:ffi` into a web
-/// compile and fail the build.
-const bool isAvailable = false;
+import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 
-Never buildVersion() => throw UnsupportedError(
-  'LiveKitUniffi.buildVersion is not available on web: the Rust core is '
-  'delivered as a native library. Guard calls with '
-  'LiveKitUniffi.isAvailable.',
-);
+/// Native implementation of [LiveKitUniffi]. See `ffi.dart`.
+///
+/// This is the only file in the SDK that may import the generated bindings:
+/// the conditional import in `ffi.dart` keeps it out of web builds.
+const bool isAvailable = true;
+
+String buildVersion() => ffi.buildVersion();

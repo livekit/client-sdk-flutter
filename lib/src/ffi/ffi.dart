@@ -14,7 +14,7 @@
 
 import 'package:meta/meta.dart';
 
-import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
+import 'ffi_io.dart' if (dart.library.js_interop) 'ffi_web.dart' as impl;
 
 /// Facade over the Rust core exposed by the `livekit_ffi` package.
 ///

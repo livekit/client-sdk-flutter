@@ -58,7 +58,7 @@ dependencies:
   dart_webrtc: ^1.8.0
 
   # Rust core (livekit-ffi), delivered as a bundled cdylib via Native Assets.
-  # Native platforms only, see lib/src/uniffi/.
+  # Native platforms only, see lib/src/ffi/.
   livekit_ffi: ^0.13.0
 
 dev_dependencies:
