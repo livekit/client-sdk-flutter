@@ -50,9 +50,13 @@ abstract class KeyProvider {
 
 class BaseKeyProvider implements KeyProvider {
   final Map<String, int> _latestSetIndex = {};
+  int _latestSharedIndex = 0;
   final Map<String, Map<int, Uint8List>> _keys = {};
 
   int getLatestIndex(String participantId) {
+    if (options.sharedKey) {
+      return _latestSharedIndex;
+    }
     return _latestSetIndex[participantId] ?? 0;
   }
 
@@ -91,7 +95,8 @@ class BaseKeyProvider implements KeyProvider {
   @override
   Future<void> setSharedKey(String key, {int? keyIndex}) async {
     _sharedKey = Uint8List.fromList(key.codeUnits);
-    return _keyProvider.setSharedKey(key: _sharedKey!, index: keyIndex ?? 0);
+    _latestSharedIndex = keyIndex ?? 0;
+    return _keyProvider.setSharedKey(key: _sharedKey!, index: _latestSharedIndex);
   }
 
   @override
