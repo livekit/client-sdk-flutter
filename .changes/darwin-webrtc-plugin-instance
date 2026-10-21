@@ -1,0 +1,1 @@
+patch type="fixed" "iOS/macOS: audio device module calls no longer fail with platformUnavailable after a second Flutter engine registers in the process"
