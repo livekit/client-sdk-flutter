@@ -274,4 +274,44 @@ void main() {
       expect(topLayer.maxBitrate, 2500000);
     });
   });
+
+  group('backup codec encodings', () {
+    const dimensions = VideoDimensions(1920, 1080);
+    const backupEncoding = VideoEncoding(maxBitrate: 800000, maxFramerate: 5);
+
+    test('uses the backup codec encoding for a camera track', () {
+      final encodings = Utils.computeBackupVideoEncodings(
+        isScreenShare: false,
+        dimensions: dimensions,
+        backupOpts: const BackupVideoCodec(codec: 'vp8', encoding: backupEncoding, simulcast: false),
+      );
+
+      expect(encodings, hasLength(1));
+      expect(encodings![0].maxBitrate, 800000);
+      expect(encodings[0].maxFramerate, 5);
+    });
+
+    test('uses the backup codec encoding for a screen share', () {
+      final encodings = Utils.computeBackupVideoEncodings(
+        isScreenShare: true,
+        dimensions: dimensions,
+        backupOpts: const BackupVideoCodec(codec: 'vp8', encoding: backupEncoding, simulcast: false),
+      );
+
+      expect(encodings, hasLength(1));
+      expect(encodings![0].maxBitrate, 800000);
+      expect(encodings[0].maxFramerate, 5);
+    });
+
+    test('falls back to the screen share presets without a backup codec encoding', () {
+      final encodings = Utils.computeBackupVideoEncodings(
+        isScreenShare: true,
+        dimensions: dimensions,
+        backupOpts: const BackupVideoCodec(codec: 'vp8'),
+      );
+
+      expect(encodings, hasLength(2));
+      expect(encodings![1].maxBitrate, VideoParametersPresets.screenShareH1080FPS15.encoding?.maxBitrate);
+    });
+  });
 }
