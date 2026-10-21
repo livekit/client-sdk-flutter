@@ -667,6 +667,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         ),
       ),
     )
+    ..on<EngineSubscribedCodecRefreshRequestedEvent>((event) async {
+      if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
+        return;
+      }
+      final publications = localParticipant?.videoTrackPublications.toList() ?? [];
+      for (final publication in publications) {
+        await publication.track?.refreshSubscribedCodecs();
+      }
+    })
     ..on<EngineActiveSpeakersUpdateEvent>((event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
