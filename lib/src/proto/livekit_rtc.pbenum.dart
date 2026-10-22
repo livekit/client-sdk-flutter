@@ -44,6 +44,28 @@ class StreamState extends $pb.ProtobufEnum {
   const StreamState._(super.value, super.name);
 }
 
+class NegotiatedDataChannelID extends $pb.ProtobufEnum {
+  static const NegotiatedDataChannelID NDCI_INVALID =
+      NegotiatedDataChannelID._(0, _omitEnumNames ? '' : 'NDCI_INVALID');
+  static const NegotiatedDataChannelID NDCI_RELIABLE =
+      NegotiatedDataChannelID._(100, _omitEnumNames ? '' : 'NDCI_RELIABLE');
+  static const NegotiatedDataChannelID NDCI_LOSSY = NegotiatedDataChannelID._(101, _omitEnumNames ? '' : 'NDCI_LOSSY');
+  static const NegotiatedDataChannelID NDCI_DATA_TRACK =
+      NegotiatedDataChannelID._(102, _omitEnumNames ? '' : 'NDCI_DATA_TRACK');
+
+  static const $core.List<NegotiatedDataChannelID> values = <NegotiatedDataChannelID>[
+    NDCI_INVALID,
+    NDCI_RELIABLE,
+    NDCI_LOSSY,
+    NDCI_DATA_TRACK,
+  ];
+
+  static final $core.Map<$core.int, NegotiatedDataChannelID> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static NegotiatedDataChannelID? valueOf($core.int value) => _byValue[value];
+
+  const NegotiatedDataChannelID._(super.value, super.name);
+}
+
 class CandidateProtocol extends $pb.ProtobufEnum {
   static const CandidateProtocol UDP = CandidateProtocol._(0, _omitEnumNames ? '' : 'UDP');
   static const CandidateProtocol TCP = CandidateProtocol._(1, _omitEnumNames ? '' : 'TCP');
