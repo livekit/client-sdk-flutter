@@ -1548,6 +1548,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('received answer (type: ${event.sd.type})');
       logger.finer('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
+      events.emit(const EngineSubscribedCodecRefreshRequestedEvent());
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {

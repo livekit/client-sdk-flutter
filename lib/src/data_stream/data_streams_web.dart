@@ -40,7 +40,7 @@ DataStreams createDataStreams(Room room) => WebDataStreams(room);
 
 /// The original pure-Dart data-stream implementation, retained for web.
 ///
-/// `package:livekit_uniffi` ships a cdylib and cannot run in a browser, so web stays on the v1
+/// `package:livekit_ffi` ships a cdylib and cannot run in a browser, so web stays on the v1
 /// wire format: no single-packet inline sends, no compression. That interoperates cleanly — web
 /// advertises [ClientProtocolVersion.v1], and a v2 sender seeing a pre-v2 recipient falls back to
 /// uncompressed multi-packet framing, which this code understands.

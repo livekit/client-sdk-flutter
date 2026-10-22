@@ -32,11 +32,11 @@ CI (`build.yaml`) runs all of the above plus example-app builds for every platfo
 
 Web/native divergence is handled with conditional imports (e.g. `track/processor_native.dart` vs `processor_web.dart`) — new platform-specific code should follow that pattern.
 
-## The Rust core (`livekit_uniffi`)
+## The Rust core (`livekit_ffi`)
 
-`lib/src/uniffi/` wraps `livekit_uniffi`, a Dart package generated from the `livekit-uniffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
+`lib/src/ffi/` wraps `livekit_ffi`, a Dart package generated from the `livekit-ffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
 
-There is no dynamic library to load on the web, so `uniffi.dart` splits native/web the same way the rest of the SDK does. **Only `uniffi_io.dart` and files under `lib/src/data_stream/` whose names end in `_native.dart` (plus `ffi_bridged.dart`) may import `package:livekit_uniffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. No generated uniffi type may appear in a public API signature; convert at the boundary (`data_stream/ffi_bridged.dart`). Guard calls with `LiveKitUniffi.isAvailable`.
+There is no dynamic library to load on the web, so `ffi.dart` splits native/web the same way the rest of the SDK does. **Only `ffi_io.dart` and files under `lib/src/data_stream/` whose names end in `_native.dart` (plus `ffi_bridged.dart`) may import `package:livekit_ffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. No generated `livekit_ffi` type may appear in a public API signature; convert at the boundary (`data_stream/ffi_bridged.dart`). Guard calls with `LiveKitFFI.isAvailable`.
 
 ### Data streams
 
@@ -44,24 +44,24 @@ There is no dynamic library to load on the web, so `uniffi.dart` splits native/w
 
 Two things to know when touching the native path:
 
-- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`, which is not catchable. The managers are therefore built through the crate's `polled*` adapters (`livekit-uniffi/src/data_stream/polled.rs`), which implement the delegates *in Rust*, buffer into a channel, and expose an `async fn next_*` we await. `RemoteParticipantRegistryDelegate` is the one callback we implement directly, and it is safe: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
-- **Whoever awaits a uniffi object is the only thing that may dispose it.** Freeing the Rust handle while a `next()`/`nextPackets()` is in flight is a use-after-free that surfaces as a SIGBUS with no Dart stack. Hence readers are disposed by their pump rather than from a subscription's `onCancel`, and `dispose()` calls `close()` on the queues to wake their pumps instead of releasing them directly.
+- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`, which is not catchable. The managers are therefore built through the crate's `polled*` adapters (`livekit-ffi/src/core_modules/data_stream/polled.rs`), which implement the delegates *in Rust*, buffer into a channel, and expose an `async fn next_*` we await. `RemoteParticipantRegistryDelegate` is the one callback we implement directly, and it is safe: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
+- **Whoever awaits a `livekit_ffi` object is the only thing that may dispose it.** Freeing the Rust handle while a `next()`/`nextPackets()` is in flight is a use-after-free that surfaces as a SIGBUS with no Dart stack. Hence readers are disposed by their pump rather than from a subscription's `onCancel`, and `dispose()` calls `close()` on the queues to wake their pumps instead of releasing them directly.
 
 ### Local development loop
 
-`livekit_uniffi` is published on pub.dev and the normal dependency resolves it; its build hook downloads the matching prebuilt library from the `livekit-uniffi` GitHub release, so no Rust toolchain is needed. To develop against unreleased crate changes, point both `pubspec.yaml` and `example/pubspec.yaml` at a sibling `rust-sdks` checkout with a `dependency_overrides` entry (`path: ../rust-sdks/livekit-uniffi/packages/dart`, overrides do not propagate from a dependency, hence both) and produce or refresh the package with:
+`livekit_ffi` is published on pub.dev and the normal dependency resolves it; its build hook downloads the matching prebuilt library from the `livekit-ffi` GitHub release, so no Rust toolchain is needed. To develop against unreleased crate changes, point both `pubspec.yaml` and `example/pubspec.yaml` at a sibling `rust-sdks` checkout with a `dependency_overrides` entry (`path: ../rust-sdks/livekit-ffi/packages/dart`, overrides do not propagate from a dependency, hence both) and produce or refresh the package with:
 
 ```sh
-cd ../rust-sdks/livekit-uniffi
+cd ../rust-sdks/livekit-ffi
 cargo make dart-package    # generates packages/dart/: bindings, pubspec, build hook, host cdylib
 cd -
 flutter pub get
-flutter test test/uniffi/  # smoke test: calls buildVersion() across the FFI boundary
+flutter test test/ffi/  # smoke test: calls buildVersion() across the FFI boundary
 ```
 
 Requires `cargo-make`, `protoc` and `tera`. Re-run `cargo make dart-package` whenever the crate's exported surface changes — the build hook tracks the copied library, so a stale one won't be silently reused.
 
-Two things to know about that hook: it picks the locally built library purely on target *OS*, not architecture, so a host build can be bundled into an iOS or Android build by mistake — verify the desktop target first when debugging. And its download mode (used when no local library is present) fetches `build-<triple>.zip` from the `livekit-uniffi` GitHub release matching the package version and verifies its SHA-256, so a version whose release lacks assets fails at build time rather than at runtime.
+Two things to know about that hook: it picks the locally built library purely on target *OS*, not architecture, so a host build can be bundled into an iOS or Android build by mistake — verify the desktop target first when debugging. And its download mode (used when no local library is present) fetches `build-<triple>.zip` from the `livekit-ffi` GitHub release matching the package version and verifies its SHA-256, so a version whose release lacks assets fails at build time rather than at runtime.
 
 ## Common pitfalls (from issue history)
 

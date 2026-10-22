@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:livekit_uniffi/livekit_uniffi.dart' as ffi;
+import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 
 import '../e2ee/options.dart';
 import '../types/client_capability.dart';
 import '../types/data_stream.dart';
 import 'errors.dart';
 
-/// Conversions between this SDK's public data-stream types and the generated `livekit_uniffi`
+/// Conversions between this SDK's public data-stream types and the generated `livekit_ffi`
 /// ones.
 ///
 /// Mirrors the `FFIBridged` marker the Swift SDK uses: bridging lives here rather than on the
-/// public types, so those stay free of any `livekit_uniffi` import. Dart has no `internal import`
+/// public types, so those stay free of any `livekit_ffi` import. Dart has no `internal import`
 /// to enforce that, so the rule is by convention — see AGENTS.md.
 ///
 /// Incoming stream infos carry the encryption type the core was told the stream's header arrived

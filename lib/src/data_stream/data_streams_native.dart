@@ -18,7 +18,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
-import 'package:livekit_uniffi/livekit_uniffi.dart' as ffi;
+import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' show basename;
 import 'package:uuid/uuid.dart';
@@ -39,7 +39,7 @@ import 'stream_writer.dart';
 
 DataStreams createDataStreams(Room room) => NativeDataStreams(room);
 
-/// Data streams backed by the Rust core in `package:livekit_uniffi`, which implements v2:
+/// Data streams backed by the Rust core in `package:livekit_ffi`, which implements v2:
 /// single-packet inline sends, deflate-raw compression, UTF-8-aware chunking and MTU-bounded
 /// headers. This layer owns topic routing, the public type conversions, and the transport hop —
 /// the wire format itself is entirely Rust's.

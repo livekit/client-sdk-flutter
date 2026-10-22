@@ -27,7 +27,7 @@ import 'stream_writer.dart';
 /// Two implementations sit behind this interface, chosen by conditional import:
 ///
 /// - **native** ([createDataStreams] in `data_streams_native.dart`) delegates to the Rust core in
-///   `package:livekit_uniffi`, which implements data streams v2 — single-packet inline sends,
+///   `package:livekit_ffi`, which implements data streams v2 — single-packet inline sends,
 ///   deflate-raw compression, and MTU-bounded headers.
 /// - **web** (`data_streams_web.dart`) keeps the original Dart implementation. There is no way to
 ///   load a cdylib in a browser, so web stays on the v1 wire format. That interoperates: a v2
