@@ -17,23 +17,23 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:livekit_client/src/uniffi/uniffi.dart';
+import 'package:livekit_client/src/ffi/ffi.dart';
 
 void main() {
   // Exercises the whole delivery chain rather than any particular API: the
   // build hook resolved a cdylib for this target, Native Assets bundled it,
   // `@Native` bound the symbol, and a value crossed back from Rust. If the
   // bindgen or the hook regresses, this is what fails first.
-  group('livekit_uniffi', () {
+  group('livekit_ffi', () {
     test('is available on native platforms', () {
-      expect(LiveKitUniffi.isAvailable, isTrue);
+      expect(LiveKitFFI.isAvailable, isTrue);
     });
 
     test('buildVersion returns the Rust core version', () {
-      final version = LiveKitUniffi.buildVersion;
+      final version = LiveKitFFI.buildVersion;
       expect(version, isNotEmpty);
       // The crate stamps its own semver, so assert the shape rather than a
-      // literal that would need bumping on every livekit-uniffi release.
+      // literal that would need bumping on every livekit-ffi release.
       expect(version, matches(RegExp(r'^\d+\.\d+\.\d+')));
     });
   });
