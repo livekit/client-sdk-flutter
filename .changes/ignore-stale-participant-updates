@@ -1,0 +1,1 @@
+patch type="fixed" "A remote participant update with an older version than the one already applied is now ignored, so it no longer removes tracks published in the newer update"
