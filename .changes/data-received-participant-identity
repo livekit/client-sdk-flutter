@@ -1,0 +1,1 @@
+patch type="added" "`DataReceivedEvent.participantIdentity` reports the sender even when `participant` is null, which is the case for data sent through the Server API or by a participant that has already left"
