@@ -66,9 +66,13 @@ const defaultRetryDelaysInMs = [
   maxRetryDelay,
 ];
 
-/// Upper bound of the random delay used for the first retry, whose base delay is 0. It keeps a
-/// brief network blip recovering quickly while spreading out clients that disconnect together.
-const maxFirstRetryJitterInMs = 500;
+/// Upper bound of the random delay used for the first retry, whose base delay is 0.
+///
+/// Kept well under the 300ms of the second retry: the first attempt exists to recover from a
+/// brief blip straight away, so the window only has to be wide enough to pull a herd of clients
+/// apart, not to back off. The JS SDK uses 500ms here, which is longer than the next step in
+/// this schedule.
+const maxFirstRetryJitterInMs = 150;
 
 /// The delay to wait before reconnect attempt [retryCount], with jitter applied
 /// so that clients disconnected by the same event do not retry in lockstep.
