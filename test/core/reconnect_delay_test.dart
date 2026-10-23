@@ -31,11 +31,13 @@ void main() {
     });
 
     test('keeps the first retry inside a bounded window', () {
-      for (var i = 0; i < 100; i++) {
+      for (var i = 0; i < 1000; i++) {
         final delay = reconnectDelayInMs(0);
 
         expect(delay, greaterThanOrEqualTo(0));
-        expect(delay, lessThan(500));
+        // Inclusive: the window is rounded to whole milliseconds, so the top of
+        // the range rounds up to the bound itself.
+        expect(delay, lessThanOrEqualTo(maxFirstRetryJitterInMs));
       }
     });
 
