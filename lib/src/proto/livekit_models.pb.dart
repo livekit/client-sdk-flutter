@@ -4536,6 +4536,10 @@ class RTPStats extends $pb.GeneratedMessage {
     RTPDrift? ntpReportDrift,
     RTPDrift? rebasedReportDrift,
     RTPDrift? receivedReportDrift,
+    $core.int? fecPackets,
+    $fixnum.Int64? fecBytes,
+    $core.int? fecPacketsDiscarded,
+    $core.int? fecPacketsRecovered,
   }) {
     final result = create();
     if (startTime != null) result.startTime = startTime;
@@ -4583,6 +4587,10 @@ class RTPStats extends $pb.GeneratedMessage {
     if (ntpReportDrift != null) result.ntpReportDrift = ntpReportDrift;
     if (rebasedReportDrift != null) result.rebasedReportDrift = rebasedReportDrift;
     if (receivedReportDrift != null) result.receivedReportDrift = receivedReportDrift;
+    if (fecPackets != null) result.fecPackets = fecPackets;
+    if (fecBytes != null) result.fecBytes = fecBytes;
+    if (fecPacketsDiscarded != null) result.fecPacketsDiscarded = fecPacketsDiscarded;
+    if (fecPacketsRecovered != null) result.fecPacketsRecovered = fecPacketsRecovered;
     return result;
   }
 
@@ -4650,6 +4658,10 @@ class RTPStats extends $pb.GeneratedMessage {
     ..aOM<RTPDrift>(45, _omitFieldNames ? '' : 'ntpReportDrift', subBuilder: RTPDrift.create)
     ..aOM<RTPDrift>(46, _omitFieldNames ? '' : 'rebasedReportDrift', subBuilder: RTPDrift.create)
     ..aOM<RTPDrift>(47, _omitFieldNames ? '' : 'receivedReportDrift', subBuilder: RTPDrift.create)
+    ..aI(48, _omitFieldNames ? '' : 'fecPackets', fieldType: $pb.PbFieldType.OU3)
+    ..a<$fixnum.Int64>(49, _omitFieldNames ? '' : 'fecBytes', $pb.PbFieldType.OU6, defaultOrMaker: $fixnum.Int64.ZERO)
+    ..aI(50, _omitFieldNames ? '' : 'fecPacketsDiscarded', fieldType: $pb.PbFieldType.OU3)
+    ..aI(51, _omitFieldNames ? '' : 'fecPacketsRecovered', fieldType: $pb.PbFieldType.OU3)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5087,6 +5099,42 @@ class RTPStats extends $pb.GeneratedMessage {
   void clearReceivedReportDrift() => $_clearField(47);
   @$pb.TagNumber(47)
   RTPDrift ensureReceivedReportDrift() => $_ensure(44);
+
+  @$pb.TagNumber(48)
+  $core.int get fecPackets => $_getIZ(45);
+  @$pb.TagNumber(48)
+  set fecPackets($core.int value) => $_setUnsignedInt32(45, value);
+  @$pb.TagNumber(48)
+  $core.bool hasFecPackets() => $_has(45);
+  @$pb.TagNumber(48)
+  void clearFecPackets() => $_clearField(48);
+
+  @$pb.TagNumber(49)
+  $fixnum.Int64 get fecBytes => $_getI64(46);
+  @$pb.TagNumber(49)
+  set fecBytes($fixnum.Int64 value) => $_setInt64(46, value);
+  @$pb.TagNumber(49)
+  $core.bool hasFecBytes() => $_has(46);
+  @$pb.TagNumber(49)
+  void clearFecBytes() => $_clearField(49);
+
+  @$pb.TagNumber(50)
+  $core.int get fecPacketsDiscarded => $_getIZ(47);
+  @$pb.TagNumber(50)
+  set fecPacketsDiscarded($core.int value) => $_setUnsignedInt32(47, value);
+  @$pb.TagNumber(50)
+  $core.bool hasFecPacketsDiscarded() => $_has(47);
+  @$pb.TagNumber(50)
+  void clearFecPacketsDiscarded() => $_clearField(50);
+
+  @$pb.TagNumber(51)
+  $core.int get fecPacketsRecovered => $_getIZ(48);
+  @$pb.TagNumber(51)
+  set fecPacketsRecovered($core.int value) => $_setUnsignedInt32(48, value);
+  @$pb.TagNumber(51)
+  $core.bool hasFecPacketsRecovered() => $_has(48);
+  @$pb.TagNumber(51)
+  void clearFecPacketsRecovered() => $_clearField(51);
 }
 
 class RTCPSenderReportState extends $pb.GeneratedMessage {
@@ -5226,6 +5274,7 @@ class RTPForwarderState extends $pb.GeneratedMessage {
     RTPMungerState? rtpMunger,
     VP8MungerState? vp8Munger,
     $core.Iterable<RTCPSenderReportState>? senderReportState,
+    DependencyDescriptorForwarderState? dependencyDescriptorForwarder,
   }) {
     final result = create();
     if (started != null) result.started = started;
@@ -5236,6 +5285,7 @@ class RTPForwarderState extends $pb.GeneratedMessage {
     if (rtpMunger != null) result.rtpMunger = rtpMunger;
     if (vp8Munger != null) result.vp8Munger = vp8Munger;
     if (senderReportState != null) result.senderReportState.addAll(senderReportState);
+    if (dependencyDescriptorForwarder != null) result.dependencyDescriptorForwarder = dependencyDescriptorForwarder;
     return result;
   }
 
@@ -5266,6 +5316,8 @@ class RTPForwarderState extends $pb.GeneratedMessage {
     ..aOM<VP8MungerState>(7, _omitFieldNames ? '' : 'vp8Munger', subBuilder: VP8MungerState.create)
     ..pPM<RTCPSenderReportState>(8, _omitFieldNames ? '' : 'senderReportState',
         subBuilder: RTCPSenderReportState.create)
+    ..aOM<DependencyDescriptorForwarderState>(9, _omitFieldNames ? '' : 'dependencyDescriptorForwarder',
+        subBuilder: DependencyDescriptorForwarderState.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -5360,6 +5412,73 @@ class RTPForwarderState extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(8)
   $pb.PbList<RTCPSenderReportState> get senderReportState => $_getList(7);
+
+  @$pb.TagNumber(9)
+  DependencyDescriptorForwarderState get dependencyDescriptorForwarder => $_getN(8);
+  @$pb.TagNumber(9)
+  set dependencyDescriptorForwarder(DependencyDescriptorForwarderState value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasDependencyDescriptorForwarder() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearDependencyDescriptorForwarder() => $_clearField(9);
+  @$pb.TagNumber(9)
+  DependencyDescriptorForwarderState ensureDependencyDescriptorForwarder() => $_ensure(8);
+}
+
+/// State of a forwarder that writes the dependency descriptor for the subscriber, so
+/// its frame numbers continue on a migrated subscriber.
+class DependencyDescriptorForwarderState extends $pb.GeneratedMessage {
+  factory DependencyDescriptorForwarderState({
+    $fixnum.Int64? extLastFrameNumber,
+  }) {
+    final result = create();
+    if (extLastFrameNumber != null) result.extLastFrameNumber = extLastFrameNumber;
+    return result;
+  }
+
+  DependencyDescriptorForwarderState._();
+
+  factory DependencyDescriptorForwarderState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory DependencyDescriptorForwarderState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'DependencyDescriptorForwarderState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'livekit'), createEmptyInstance: create)
+    ..a<$fixnum.Int64>(1, _omitFieldNames ? '' : 'extLastFrameNumber', $pb.PbFieldType.OU6,
+        defaultOrMaker: $fixnum.Int64.ZERO)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DependencyDescriptorForwarderState clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  DependencyDescriptorForwarderState copyWith(void Function(DependencyDescriptorForwarderState) updates) =>
+      super.copyWith((message) => updates(message as DependencyDescriptorForwarderState))
+          as DependencyDescriptorForwarderState;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static DependencyDescriptorForwarderState create() => DependencyDescriptorForwarderState._();
+  @$core.override
+  DependencyDescriptorForwarderState createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static DependencyDescriptorForwarderState getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<DependencyDescriptorForwarderState>(create);
+  static DependencyDescriptorForwarderState? _defaultInstance;
+
+  /// highest extended frame number sent to the subscriber
+  @$pb.TagNumber(1)
+  $fixnum.Int64 get extLastFrameNumber => $_getI64(0);
+  @$pb.TagNumber(1)
+  set extLastFrameNumber($fixnum.Int64 value) => $_setInt64(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasExtLastFrameNumber() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearExtLastFrameNumber() => $_clearField(1);
 }
 
 class RTPMungerState extends $pb.GeneratedMessage {
