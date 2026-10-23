@@ -40,9 +40,7 @@ void main() {
     });
 
     test('scales jitter with the base delay', () {
-      for (var retryCount = 1;
-          retryCount < defaultRetryDelaysInMs.length;
-          retryCount++) {
+      for (var retryCount = 1; retryCount < defaultRetryDelaysInMs.length; retryCount++) {
         final base = defaultRetryDelaysInMs[retryCount];
 
         for (var i = 0; i < 100; i++) {
