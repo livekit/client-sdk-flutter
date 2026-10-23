@@ -66,6 +66,26 @@ const defaultRetryDelaysInMs = [
   maxRetryDelay,
 ];
 
+/// Upper bound of the random delay used for the first retry, whose base delay is 0. It keeps a
+/// brief network blip recovering quickly while spreading out clients that disconnect together.
+const maxFirstRetryJitterInMs = 500;
+
+/// The delay to wait before reconnect attempt [retryCount], with jitter applied
+/// so that clients disconnected by the same event do not retry in lockstep.
+@internal
+int reconnectDelayInMs(int retryCount) {
+  final retryDelay = defaultRetryDelaysInMs[retryCount];
+
+  // The first retry has no base delay to scale, so it gets a fixed window instead. A zero at a
+  // later index is an explicit request for an immediate retry and passes through the formula as zero.
+  if (retryCount == 0 && retryDelay == 0) {
+    return (math.Random().nextDouble() * maxFirstRetryJitterInMs).round();
+  }
+
+  // Jitter scales with the delay (+/-50%) so clients spread out further on later retries.
+  return (retryDelay * (0.5 + math.Random().nextDouble())).round();
+}
+
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
@@ -1118,11 +1138,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    var delay = defaultRetryDelaysInMs[_reconnectAttempts];
-    // Add random jitter to prevent thundering herd on reconnect
-    if (_reconnectAttempts > 1) {
-      delay += math.Random().nextInt(1000);
-    }
+    final delay = reconnectDelayInMs(_reconnectAttempts);
 
     events.emit(
       EngineAttemptReconnectEvent(
