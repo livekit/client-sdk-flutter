@@ -22,6 +22,7 @@ import '../proto/livekit_models.pb.dart' as lk_models;
 import '../types/data_stream.dart';
 import '../types/other.dart';
 import '../types/rpc.dart';
+import 'rpc_utils.dart';
 
 /// Handler-side RPC dispatcher. Owns the registered-method map and routes incoming
 /// requests (v1 packets and v2 data streams) to user handlers, choosing the response
@@ -274,15 +275,11 @@ class RpcServerManager {
     final originalMessage = error.message;
     final originalData = error.data;
 
-    final truncatedMessage = originalMessage.length > kRpcMaxPayloadBytes
-        ? originalMessage.substring(0, kRpcMaxPayloadBytes)
-        : originalMessage;
+    final truncatedMessage = truncateBytes(originalMessage, kRpcMaxPayloadBytes);
 
     String? truncatedData;
     if (originalData != null) {
-      truncatedData = originalData.length > kRpcMaxPayloadBytes
-          ? originalData.substring(0, kRpcMaxPayloadBytes)
-          : originalData;
+      truncatedData = truncateBytes(originalData, kRpcMaxPayloadBytes);
     }
 
     if (truncatedMessage.length != originalMessage.length ||
