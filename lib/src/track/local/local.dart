@@ -196,7 +196,7 @@ abstract class LocalTrack extends Track {
     if (muted) return false; // already muted
     await disable();
     if (!skipStopForTrackMute() && stopOnMute) {
-      await stop();
+      await _stopKeepingProcessor();
     }
     updateMuted(true, shouldSendSignal: true);
     return true;
@@ -218,7 +218,24 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    final didStop = await super.stop() || !_stopped;
+    final didStop = await _disposeMediaTrack(await super.stop());
+    // Also runs when a stop-on-mute already stopped the media track and kept
+    // the processor for the restart.
+    try {
+      await stopProcessor();
+    } catch (error) {
+      logger.severe('LocalTrack.stopProcessor did throw: $error');
+    }
+    return didStop;
+  }
+
+  // Keeps the processor, which restartTrack moves to the new media track.
+  Future<bool> _stopKeepingProcessor() async => _disposeMediaTrack(await super.stop());
+
+  // Takes the result of super.stop() because stop() has to call it directly
+  // (Track.stop is @mustCallSuper).
+  Future<bool> _disposeMediaTrack(bool trackStopped) async {
+    final didStop = trackStopped || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
@@ -232,13 +249,6 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
-      try {
-        if (_processor != null) {
-          await stopProcessor();
-        }
-      } catch (error) {
-        logger.severe('LocalTrack.stopProcessor did throw: $error');
-      }
     }
     return didStop;
   }
@@ -314,7 +324,7 @@ abstract class LocalTrack extends Track {
     currentOptions = options ?? currentOptions;
 
     // stop if not already stopped...
-    await stop();
+    await _stopKeepingProcessor();
 
     // create new track with options
     final newStream = await LocalTrack.createStream(currentOptions);
