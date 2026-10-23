@@ -24,6 +24,7 @@ import '../managers/event.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../publication/track_publication.dart';
 import '../support/disposable.dart';
+import '../types/client_capability.dart';
 import '../types/other.dart';
 import '../types/participant_permissions.dart';
 import '../types/participant_state.dart';
@@ -103,6 +104,16 @@ abstract class Participant<T extends TrackPublication> extends DisposableChangeN
   /// resolve to [ClientProtocolVersion.v0]; future values clamp to the highest
   /// supported version.
   ClientProtocolVersion get clientProtocol => ClientProtocolVersion.fromIntValue(_participantInfo?.clientProtocol);
+
+  /// Optional feature capabilities this participant advertises, mirrored by the server from its
+  /// `ClientInfo`. Consulted by the data-stream send path to decide per-recipient eligibility for
+  /// v2 features such as deflate-raw compression.
+  ///
+  /// The protocol's `CAP_UNUSED` placeholder and any value newer than this SDK are omitted.
+  List<ClientCapability> get capabilities => [
+    for (final value in _participantInfo?.capabilities ?? const <lk_models.ClientInfo_Capability>[])
+      ?ClientCapability.fromProto(value),
+  ];
 
   /// if [Participant] is currently speaking.
   bool get isSpeaking => _isSpeaking;

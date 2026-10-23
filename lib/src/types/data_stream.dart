@@ -20,12 +20,41 @@ class SendTextOptions {
   /// user defined attributes map that can carry additional info
   Map<String, String> attributes;
 
+  /// Whether to deflate-raw compress the payload when every recipient supports it. Defaults to
+  /// true; set false to opt out. Only honored on native platforms — web always sends uncompressed.
+  bool compress;
+
   SendTextOptions({
     this.topic,
     this.destinationIdentities = const [],
     this.attachments = const [],
     this.onProgress,
     this.attributes = const {},
+    this.compress = true,
+  });
+}
+
+/// Options for sending an in-memory byte payload with `sendBytes`.
+///
+/// Unlike a file send, nothing is inferred from the input: [name] defaults to `unknown` and the
+/// mime type to `application/octet-stream`.
+class SendBytesOptions {
+  String? topic;
+  String? name;
+  String? mimeType;
+  List<String> destinationIdentities = [];
+  Map<String, String> attributes;
+
+  /// See [SendTextOptions.compress].
+  bool compress;
+
+  SendBytesOptions({
+    this.topic,
+    this.name,
+    this.mimeType,
+    this.destinationIdentities = const [],
+    this.attributes = const {},
+    this.compress = true,
   });
 }
 
