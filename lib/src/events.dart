@@ -458,9 +458,9 @@ class DataReceivedEvent with RoomEvent, ParticipantEvent {
   final String? topic;
   const DataReceivedEvent({
     required this.participant,
-    required this.participantIdentity,
     required this.data,
     required this.topic,
+    this.participantIdentity = '',
   });
 
   @override
