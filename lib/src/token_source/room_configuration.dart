@@ -16,6 +16,14 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'room_configuration.g.dart';
 
+// Token endpoints use snake_case keys, while LiveKit tokens write the
+// `roomConfig` claim as protobuf JSON with camelCase keys. Read both.
+Map<String, dynamic> _withSnakeCaseKeys(Map<String, dynamic> json, Map<String, String> camelToSnake) => {
+  ...json,
+  for (final entry in camelToSnake.entries)
+    if (json[entry.value] == null && json[entry.key] != null) entry.value: json[entry.key],
+};
+
 /// Configuration for dispatching an agent to a room.
 @JsonSerializable()
 class RoomAgentDispatch {
@@ -35,7 +43,8 @@ class RoomAgentDispatch {
     this.deployment,
   });
 
-  factory RoomAgentDispatch.fromJson(Map<String, dynamic> json) => _$RoomAgentDispatchFromJson(json);
+  factory RoomAgentDispatch.fromJson(Map<String, dynamic> json) =>
+      _$RoomAgentDispatchFromJson(_withSnakeCaseKeys(json, const {'agentName': 'agent_name'}));
   Map<String, dynamic> toJson() => _$RoomAgentDispatchToJson(this);
 }
 
@@ -91,6 +100,15 @@ class RoomConfiguration {
     this.agents,
   });
 
-  factory RoomConfiguration.fromJson(Map<String, dynamic> json) => _$RoomConfigurationFromJson(json);
+  factory RoomConfiguration.fromJson(Map<String, dynamic> json) => _$RoomConfigurationFromJson(
+    _withSnakeCaseKeys(json, const {
+      'emptyTimeout': 'empty_timeout',
+      'departureTimeout': 'departure_timeout',
+      'maxParticipants': 'max_participants',
+      'minPlayoutDelay': 'min_playout_delay',
+      'maxPlayoutDelay': 'max_playout_delay',
+      'syncStreams': 'sync_streams',
+    }),
+  );
   Map<String, dynamic> toJson() => _$RoomConfigurationToJson(this);
 }
