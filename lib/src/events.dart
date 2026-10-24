@@ -450,12 +450,17 @@ class ParticipantConnectionQualityUpdatedEvent with RoomEvent, ParticipantEvent 
 class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
+
+  /// Identity of the sender, which is reported even when [participant] is null
+  /// because the sender is not (or is no longer) a participant in this room.
+  final String participantIdentity;
   final List<int> data;
   final String? topic;
   const DataReceivedEvent({
     required this.participant,
     required this.data,
     required this.topic,
+    this.participantIdentity = '',
   });
 
   @override
