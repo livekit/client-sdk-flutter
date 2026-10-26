@@ -14,11 +14,11 @@
 
 import 'package:meta/meta.dart';
 
-import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
+import 'ffi_io.dart' if (dart.library.js_interop) 'ffi_web.dart' as impl;
 
-/// Facade over the Rust core exposed by the `livekit_uniffi` package.
+/// Facade over the Rust core exposed by the `livekit_ffi` package.
 ///
-/// `livekit_uniffi` reaches Rust through Dart's Native Assets: its build hook
+/// `livekit_ffi` reaches Rust through Dart's Native Assets: its build hook
 /// bundles a `cdylib` into the host app and the generated bindings call into it
 /// with `@Native`. None of that exists on the web, where there is no dynamic
 /// library to load, so every entry point here is split native/web through the
@@ -29,7 +29,7 @@ import 'uniffi_io.dart' if (dart.library.js_interop) 'uniffi_web.dart' as impl;
 /// Callers get [isAvailable] to branch on, and platform-specific code paths
 /// stay out of the public API surface.
 @experimental
-abstract final class LiveKitUniffi {
+abstract final class LiveKitFFI {
   /// Whether the Rust core can be called on this platform.
   ///
   /// False on web. Every other member throws [UnsupportedError] when this is
