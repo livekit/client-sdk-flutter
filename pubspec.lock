@@ -292,10 +292,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_webrtc
-      sha256: ebf5ceef2897caae425ed65a38b2961c29d9d9a626159418ed460e1a65038c00
+      sha256: b98ef03376401e54ff87fc78907b38e562b15ca8424aba589c263eddc3c1ecf9
       url: "https://pub.dev"
     source: hosted
-    version: "1.6.2+hotfix.4"
+    version: "1.6.3"
   glob:
     dependency: transitive
     description:
@@ -444,10 +444,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_ffi
-      sha256: "98aa7389ac511481617966f2e26e87a29be54e004a97dc2923ffd7af0883c5f2"
+      sha256: "38ff93b4cb83239d2a4f5a57fe2ea68bd7ff845d1682c4f2c14713b6af04850d"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.1"
+    version: "0.13.2"
   logger:
     dependency: transitive
     description:

@@ -1072,6 +1072,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     final event = DataReceivedEvent(
       participant: senderParticipant,
+      participantIdentity: dataPacketEvent.identity,
       data: dataPacketEvent.packet.payload,
       topic: dataPacketEvent.packet.topic,
     );
