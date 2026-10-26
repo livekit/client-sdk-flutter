@@ -15,6 +15,8 @@
 @Timeout(Duration(seconds: 10))
 library;
 
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
@@ -495,6 +497,53 @@ void main() {
       expect(error?.data, 'extra');
 
       v2Room.unregisterRpcMethod('throws-rpc-error');
+    });
+
+    test('v2 oversize error message is truncated on a character boundary', () async {
+      v2Container.capturedDataPackets.clear();
+
+      // 'a' sits at index 0, so every following surrogate pair starts on an odd
+      // index. Cutting at a code-unit count lands on a high surrogate and splits
+      // the pair in half.
+      final longMessage = 'a${'😀' * 8000}';
+      expect(longMessage.length, greaterThan(kRpcMaxPayloadBytes));
+
+      v2Room.registerRpcMethod('throws-huge-error', (_) async {
+        throw RpcError(code: 101, message: longMessage);
+      });
+
+      RpcError? error;
+      try {
+        await v2Room.localParticipant!.performRpc(
+          PerformRpcParams(
+            destinationIdentity: v2Room.localParticipant!.identity,
+            method: 'throws-huge-error',
+            payload: 'x',
+          ),
+        );
+      } catch (e) {
+        if (e is RpcError) {
+          error = e;
+        }
+      }
+
+      expect(error?.code, 101);
+
+      final message = error!.message;
+      // A split surrogate pair cannot be encoded, so it reaches the peer as U+FFFD.
+      expect(
+        message.contains('�'),
+        isFalse,
+        reason: 'truncation split a surrogate pair',
+      );
+      // The cap exists to bound the wire packet, so it has to be counted in bytes.
+      expect(
+        utf8.encode(message).length,
+        lessThanOrEqualTo(kRpcMaxPayloadBytes),
+        reason: 'truncated message still exceeds the v1 payload budget',
+      );
+
+      v2Room.unregisterRpcMethod('throws-huge-error');
     });
 
     test('v2 response timeout', () async {
