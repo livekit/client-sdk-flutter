@@ -229,7 +229,7 @@ abstract class LocalTrack extends Track {
     return didStop;
   }
 
-  // Keeps the processor, which restartTrack moves to the new media track.
+  // Keeps the processor, which restartTrack restarts on the new media track.
   Future<bool> _stopKeepingProcessor() async => _disposeMediaTrack(await super.stop());
 
   // Takes the result of super.stop() because stop() has to call it directly
@@ -330,10 +330,6 @@ abstract class LocalTrack extends Track {
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    final processor = _processor;
-
-    await stopProcessor();
-
     // replace track on sender
     try {
       await sender?.replaceTrack(newTrack);
@@ -348,8 +344,20 @@ abstract class LocalTrack extends Track {
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
 
+    // Restart the processor on the new track.
+    final processor = _processor;
     if (processor != null) {
-      await setProcessor(processor);
+      try {
+        await processor.restart(
+          kind == TrackType.VIDEO ? VideoProcessorOptions(track: newTrack) : AudioProcessorOptions(track: newTrack),
+        );
+        final processedTrack = processor.processedTrack;
+        if (processedTrack != null) {
+          setProcessedTrack(processedTrack);
+        }
+      } catch (error) {
+        logger.severe('TrackProcessor.restart() did throw $error');
+      }
     }
 
     // mark as started

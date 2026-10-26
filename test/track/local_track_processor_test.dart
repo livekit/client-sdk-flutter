@@ -21,17 +21,27 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/support/native.dart';
 
 class _FakeProcessor implements TrackProcessor<AudioProcessorOptions> {
+  _FakeProcessor({this.throwOnRestart = false});
+
+  final bool throwOnRestart;
+
   final List<String> initTrackIds = [];
+  final List<String> restartTrackIds = [];
   int destroyCount = 0;
 
   @override
   String get name => 'fake';
 
   @override
-  Future<void> init(AudioProcessorOptions options) async => initTrackIds.add(options.track.id!);
+  Future<void> init(AudioProcessorOptions options) async {
+    initTrackIds.add(options.track.id!);
+  }
 
   @override
-  Future<void> restart(AudioProcessorOptions options) async {}
+  Future<void> restart(AudioProcessorOptions options) async {
+    restartTrackIds.add(options.track.id!);
+    if (throwOnRestart) throw Exception('restart failed');
+  }
 
   @override
   Future<void> destroy() async => destroyCount++;
@@ -96,8 +106,8 @@ void main() {
     messenger.setMockMethodCallHandler(Native.channel, null);
   });
 
-  Future<(LocalAudioTrack, _FakeProcessor, _FakeSender)> createPublishedTrack() async {
-    final processor = _FakeProcessor();
+  Future<(LocalAudioTrack, _FakeProcessor, _FakeSender)> createPublishedTrack([_FakeProcessor? fake]) async {
+    final processor = fake ?? _FakeProcessor();
     final track = await LocalAudioTrack.create(AudioCaptureOptions(processor: processor));
     await track.start();
     final sender = _FakeSender();
@@ -105,26 +115,41 @@ void main() {
     return (track, processor, sender);
   }
 
-  test('mute and unmute keep the processor on the restarted track', () async {
+  test('mute and unmute restart the processor on the new track', () async {
     final (track, processor, sender) = await createPublishedTrack();
     expect(processor.initTrackIds, ['mic-1']);
 
     await track.mute();
+    expect(track.processor, same(processor));
     await track.unmute();
 
     expect(sender.replacedTrackIds, ['mic-2']);
     expect(track.processor, same(processor));
-    expect(processor.initTrackIds, ['mic-1', 'mic-2']);
+    expect(processor.initTrackIds, ['mic-1']);
+    expect(processor.restartTrackIds, ['mic-2']);
+    expect(processor.destroyCount, 0);
   });
 
-  test('restartTrack keeps the processor on the new track', () async {
+  test('restartTrack restarts the processor on the new track', () async {
     final (track, processor, sender) = await createPublishedTrack();
 
     await track.restartTrack();
 
     expect(sender.replacedTrackIds, ['mic-2']);
     expect(track.processor, same(processor));
-    expect(processor.initTrackIds, ['mic-1', 'mic-2']);
+    expect(processor.initTrackIds, ['mic-1']);
+    expect(processor.restartTrackIds, ['mic-2']);
+    expect(processor.destroyCount, 0);
+  });
+
+  test('a processor that fails to restart still leaves the new track on the sender', () async {
+    final (track, processor, sender) = await createPublishedTrack(_FakeProcessor(throwOnRestart: true));
+
+    await track.restartTrack();
+
+    expect(sender.replacedTrackIds, ['mic-2']);
+    expect(track.mediaStreamTrack.id, 'mic-2');
+    expect(track.processor, same(processor));
   });
 
   test('stop releases the processor, also after a mute already stopped capture', () async {
