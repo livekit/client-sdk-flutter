@@ -29575,9 +29575,11 @@ a_6:function a_6(a,b){this.a=a
 this.b=b},
 a_2:function a_2(a,b){this.a=a
 this.b=b},
-vu:function vu(a,b,c){this.a=a
-this.b=b
-this.c=c},
+vu:function vu(a,b,c,d){var _=this
+_.a=a
+_.b=b
+_.c=c
+_.d=d},
 a27:function a27(a,b){this.a=a
 this.b=b},
 OG:function OG(a,b,c){this.a=a
@@ -106255,11 +106257,9 @@ if(o.e)r.D(0,n)
 else r.m(0,n,new A.cL(Date.now(),0,!0))}m=new A.zZ(j,s,q)
 j.O$.aC(m)
 l.O$.aC(m)},
-avC(a){var s,r=a.c,q=r.length!==0?t.t8.a(this.Jx(r)):null
-r=a.a.a
-s=new A.vu(q,r.a0(1),r.ae(3))
-if(q!=null)q.O$.aC(s)
-this.O$.aC(s)},
+avC(a){var s=a.c,r=s.length!==0?t.t8.a(this.Jx(s)):null,q=a.a.a,p=new A.vu(r,s,q.a0(1),q.ae(3))
+if(r!=null)r.O$.aC(p)
+this.O$.aC(p)},
 uN(a){return this.arY(a)},
 arY(a){var s=0,r=A.k(t.y),q,p=this,o,n
 var $async$uN=A.l(function(b,c){if(b===1)return A.h(c,r)
@@ -108060,7 +108060,7 @@ j(a){return A.t(this).j(0)+"(participant: "+this.a.j(0)+", connectionQuality: "+
 $iV:1}
 A.vu.prototype={
 j(a){var s=this
-return A.t(s).j(0)+"(participant: "+A.n(s.a)+", topic: "+s.c+", data: "+A.n(s.b)+")"},
+return A.t(s).j(0)+"(participant: "+A.n(s.a)+", participantIdentity: "+s.b+", topic: "+s.d+", data: "+A.n(s.c)+")"},
 $iV:1}
 A.a27.prototype={
 j(a){return A.t(this).j(0)+"(participant: "+this.a.j(0)+", speaking: "+this.b+")"},
@@ -113673,9 +113673,9 @@ return r},
 aw7(){this.pr()},
 avJ(a){A.cx("e2ee state: "+a.j(0))},
 aqL(a){var s,r,q,p,o,n,m,l,k,j={},i="Failed to decode"
-try{i=B.aa.ep(a.b)}catch(p){s=A.a_(p)
+try{i=B.aa.ep(a.c)}catch(p){s=A.a_(p)
 A.cx("Failed to decode data message: "+A.n(s))}j.a=null
-if(a.c==="lk-example-chat")try{r=t.a.a(B.b_.G4(i,null))
+if(a.d==="lk-example-chat")try{r=t.a.a(B.b_.G4(i,null))
 o=r
 n=A.c0(o.i(0,"id"))
 if(n==null)n=B.e.j(1000*Date.now())
