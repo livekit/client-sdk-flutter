@@ -1,1 +1,0 @@
-patch type="security" "Bump flutter_webrtc to 1.6.3 and WebRTC-SDK to 150.7871.04. The bundled TURN/TLS roots no longer include AAA Certificate Services, which cross-signs the compromised eMudhra intermediate CAs (CVE-2026-111943)"
