@@ -330,21 +330,11 @@ abstract class LocalTrack extends Track {
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    // replace track on sender
-    try {
-      await sender?.replaceTrack(newTrack);
-      if (this is LocalVideoTrack) {
-        final videoTrack = this as LocalVideoTrack;
-        await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
-      }
-    } catch (error) {
-      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
-    }
-
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
 
-    // Restart the processor on the new track.
+    // Restart the processor on the new track before the sender gets it, so
+    // the sender carries the processed track when the processor has one.
     final processor = _processor;
     if (processor != null) {
       try {
@@ -358,6 +348,17 @@ abstract class LocalTrack extends Track {
       } catch (error) {
         logger.severe('TrackProcessor.restart() did throw $error');
       }
+    }
+
+    // replace track on sender
+    try {
+      await sender?.replaceTrack(mediaStreamTrack);
+      if (this is LocalVideoTrack) {
+        final videoTrack = this as LocalVideoTrack;
+        await videoTrack.replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+      }
+    } catch (error) {
+      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
     }
 
     // mark as started

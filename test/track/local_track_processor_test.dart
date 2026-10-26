@@ -20,14 +20,39 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/support/native.dart';
 
-class _FakeProcessor implements TrackProcessor<AudioProcessorOptions> {
-  _FakeProcessor({this.throwOnRestart = false});
+class _FakeProcessedTrack implements rtc.MediaStreamTrack {
+  _FakeProcessedTrack(this.id);
 
+  @override
+  final String id;
+
+  @override
+  String get kind => 'audio';
+
+  @override
+  bool enabled = true;
+
+  @override
+  Future<void> stop() async {}
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeProcessor implements TrackProcessor<AudioProcessorOptions> {
+  _FakeProcessor({this.processes = false, this.throwOnRestart = false});
+
+  /// Hands out a processed track, as Krisp does on web.
+  final bool processes;
   final bool throwOnRestart;
 
   final List<String> initTrackIds = [];
   final List<String> restartTrackIds = [];
   int destroyCount = 0;
+  rtc.MediaStreamTrack? _processedTrack;
 
   @override
   String get name => 'fake';
@@ -35,12 +60,14 @@ class _FakeProcessor implements TrackProcessor<AudioProcessorOptions> {
   @override
   Future<void> init(AudioProcessorOptions options) async {
     initTrackIds.add(options.track.id!);
+    if (processes) _processedTrack = _FakeProcessedTrack('processed-${options.track.id}');
   }
 
   @override
   Future<void> restart(AudioProcessorOptions options) async {
     restartTrackIds.add(options.track.id!);
     if (throwOnRestart) throw Exception('restart failed');
+    if (processes) _processedTrack = _FakeProcessedTrack('processed-${options.track.id}');
   }
 
   @override
@@ -53,7 +80,7 @@ class _FakeProcessor implements TrackProcessor<AudioProcessorOptions> {
   Future<void> onUnpublish() async {}
 
   @override
-  rtc.MediaStreamTrack? get processedTrack => null;
+  rtc.MediaStreamTrack? get processedTrack => _processedTrack;
 }
 
 class _FakeSender implements rtc.RTCRtpSender {
@@ -140,6 +167,21 @@ void main() {
     expect(processor.initTrackIds, ['mic-1']);
     expect(processor.restartTrackIds, ['mic-2']);
     expect(processor.destroyCount, 0);
+  });
+
+  test('the sender gets the processed track after unmute and restartTrack', () async {
+    final (track, processor, sender) = await createPublishedTrack(_FakeProcessor(processes: true));
+    expect(track.mediaStreamTrack.id, 'processed-mic-1');
+
+    await track.mute();
+    await track.unmute();
+    expect(track.mediaStreamTrack.id, 'processed-mic-2');
+
+    await track.restartTrack();
+    expect(track.mediaStreamTrack.id, 'processed-mic-3');
+
+    expect(sender.replacedTrackIds, ['processed-mic-2', 'processed-mic-3']);
+    expect(processor.restartTrackIds, ['mic-2', 'mic-3']);
   });
 
   test('a processor that fails to restart still leaves the new track on the sender', () async {
