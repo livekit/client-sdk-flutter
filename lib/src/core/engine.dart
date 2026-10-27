@@ -70,8 +70,7 @@ const defaultRetryDelaysInMs = [
 ///
 /// Kept well under the 300ms of the second retry: the first attempt exists to recover from a
 /// brief blip straight away, so the window only has to be wide enough to pull a herd of clients
-/// apart, not to back off. The JS SDK uses 500ms here, which is longer than the next step in
-/// this schedule.
+/// apart, not to back off.
 const maxFirstRetryJitterInMs = 150;
 
 /// The delay to wait before reconnect attempt [retryCount], with jitter applied
