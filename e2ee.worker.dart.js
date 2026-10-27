@@ -4382,6 +4382,7 @@
       _.participantIdentity = t0;
       _.dataCryptorId = t1;
       _.keyHandler = t2;
+      _.currentKeyIndex = 0;
       _.worker = t3;
     },
     E2EEDataPacketCryptor_decrypt_decryptFrameInternal: function E2EEDataPacketCryptor_decrypt_decryptFrameInternal(t0, t1, t2, t3, t4, t5) {
@@ -7535,9 +7536,9 @@
               t1 = $.$get$logger();
               t2 = "" + data.length;
               t1.log$4(B.Level_FINE_500, "encodeFunction: buffer " + t2, null, null);
-              t3 = $async$self.keyHandler.getKeySet$1(0);
+              t3 = $async$self.keyHandler.getKeySet$1($async$self.currentKeyIndex);
               secretKey = t3 == null ? null : t3.encryptionKey;
-              keyIndex = 0;
+              keyIndex = $async$self.currentKeyIndex;
               if (secretKey == null) {
                 t1.log$4(B.Level_WARNING_900, "encodeFunction: no secretKey for index " + A.S(keyIndex) + ", cannot encrypt", null, null);
                 $async$returnValue = null;
@@ -7628,7 +7629,7 @@
               t3 = encryptedPacket.data;
               t2.log$4(B.Level_FINE_500, "decodeFunction: data packet length " + t3.length, null, null);
               t1.initialKeySet = t1.decrypted = null;
-              initialKeyIndex = 0;
+              initialKeyIndex = $async$self.currentKeyIndex;
               $async$handler = 4;
               t4 = {};
               t5 = encryptedPacket.iv;
@@ -9301,7 +9302,8 @@
                 $async$goto = 1;
                 break;
               }
-              t1.log$4(B.Level_CONFIG_700, "Encrypt for dataCryptorId " + A.S(dataCryptorId) + ", participantId " + A.S(participantId) + ", keyIndex " + keyIndex + ", data length " + J.get$length$asx(data) + ", algorithm " + algorithmStr, null, null);
+              t2 = "" + keyIndex;
+              t1.log$4(B.Level_CONFIG_700, "Encrypt for dataCryptorId " + A.S(dataCryptorId) + ", participantId " + A.S(participantId) + ", keyIndex " + t2 + ", data length " + J.get$length$asx(data) + ", algorithm " + algorithmStr, null, null);
               keyProviderId = A._asString(msg.$index(0, "keyProviderId"));
               keyProvider = $.keyProviders.$index(0, keyProviderId);
               if (keyProvider == null) {
@@ -9312,6 +9314,9 @@
                 break;
               }
               cryptor = A.getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
+              t3 = cryptor;
+              t1.log$4(B.Level_CONFIG_700, "setKeyIndex for " + A.S(t3.participantIdentity) + ", newIndex: " + t2, null, null);
+              t3.currentKeyIndex = keyIndex;
               $async$handler = 42;
               $async$goto = 45;
               return A._asyncAwait(cryptor.encrypt$2(cryptor.keyHandler, data), $async$call$1);
