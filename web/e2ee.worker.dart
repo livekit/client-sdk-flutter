@@ -520,6 +520,7 @@ void main() async {
             return;
           }
           final cryptor = getDataPacketCryptor(participantId, dataCryptorId, keyProvider);
+          cryptor.setKeyIndex(keyIndex);
           try {
             final encryptedPacket = await cryptor.encrypt(cryptor.keyHandler, data);
             self.postMessage(

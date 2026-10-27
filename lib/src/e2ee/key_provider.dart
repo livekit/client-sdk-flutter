@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:math' show min;
 import 'dart:typed_data';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
@@ -23,6 +24,7 @@ const defaultMagicBytes = 'LK-ROCKS';
 const defaultRatchetWindowSize = 16;
 const defaultFailureTolerance = -1;
 const defaultKeyRingSize = 16;
+const _maxKeyRingSize = 256;
 const defaultDiscardFrameWhenCryptorNotReady = false;
 
 class KeyInfo {
@@ -50,9 +52,13 @@ abstract class KeyProvider {
 
 class BaseKeyProvider implements KeyProvider {
   final Map<String, int> _latestSetIndex = {};
+  int _latestSharedIndex = 0;
   final Map<String, Map<int, Uint8List>> _keys = {};
 
   int getLatestIndex(String participantId) {
+    if (options.sharedKey) {
+      return _latestSharedIndex;
+    }
     return _latestSetIndex[participantId] ?? 0;
   }
 
@@ -91,7 +97,24 @@ class BaseKeyProvider implements KeyProvider {
   @override
   Future<void> setSharedKey(String key, {int? keyIndex}) async {
     _sharedKey = Uint8List.fromList(key.codeUnits);
-    return _keyProvider.setSharedKey(key: _sharedKey!, index: keyIndex ?? 0);
+    final index = keyIndex ?? 0;
+    _latestSharedIndex = _ringIndex(index) ?? _latestSharedIndex;
+    return _keyProvider.setSharedKey(key: _sharedKey!, index: index);
+  }
+
+  /// The key ring slot a key set at [keyIndex] lands in, or null when the
+  /// index does not move the current slot.
+  ///
+  /// The native key ring clamps its size to 1...256 and stores a key at
+  /// [keyIndex] modulo that size. A negative index replaces the key in the
+  /// current slot instead.
+  int? _ringIndex(int keyIndex) {
+    if (keyIndex < 0) {
+      return null;
+    }
+    final size = options.keyRingSize;
+    final ringSize = size <= 0 ? defaultKeyRingSize : min(size, _maxKeyRingSize);
+    return keyIndex % ringSize;
   }
 
   @override
@@ -143,7 +166,10 @@ class BaseKeyProvider implements KeyProvider {
     }
     logger.info('_setKey for ${keyInfo.participantId}, idx: ${keyInfo.keyIndex}');
     _keys[keyInfo.participantId]![keyInfo.keyIndex] = keyInfo.key;
-    _latestSetIndex[keyInfo.participantId] = keyInfo.keyIndex;
+    final index = _ringIndex(keyInfo.keyIndex);
+    if (index != null) {
+      _latestSetIndex[keyInfo.participantId] = index;
+    }
     await _keyProvider.setKey(
       participantId: keyInfo.participantId,
       index: keyInfo.keyIndex,
