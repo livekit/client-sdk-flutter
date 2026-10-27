@@ -80,9 +80,8 @@ const maxFirstRetryJitterInMs = 150;
 int reconnectDelayInMs(int retryCount) {
   final retryDelay = defaultRetryDelaysInMs[retryCount];
 
-  // The first retry has no base delay to scale, so it gets a fixed window instead. A zero at a
-  // later index is an explicit request for an immediate retry and passes through the formula as zero.
-  if (retryCount == 0 && retryDelay == 0) {
+  // A zero base delay has nothing to scale, so it draws from a fixed window instead.
+  if (retryDelay == 0) {
     return (math.Random().nextDouble() * maxFirstRetryJitterInMs).round();
   }
 
