@@ -66,6 +66,28 @@ const defaultRetryDelaysInMs = [
   maxRetryDelay,
 ];
 
+/// Upper bound of the random delay used for the first retry, whose base delay is 0.
+///
+/// Kept well under the 300ms of the second retry: the first attempt exists to recover from a
+/// brief blip straight away, so the window only has to be wide enough to pull a herd of clients
+/// apart, not to back off.
+const maxFirstRetryJitterInMs = 150;
+
+/// The delay to wait before reconnect attempt [retryCount], with jitter applied
+/// so that clients disconnected by the same event do not retry in lockstep.
+@internal
+int reconnectDelayInMs(int retryCount) {
+  final retryDelay = defaultRetryDelaysInMs[retryCount];
+
+  // A zero base delay has nothing to scale, so it draws from a fixed window instead.
+  if (retryDelay == 0) {
+    return (math.Random().nextDouble() * maxFirstRetryJitterInMs).round();
+  }
+
+  // Jitter scales with the delay (+/-50%) so clients spread out further on later retries.
+  return (retryDelay * (0.5 + math.Random().nextDouble())).round();
+}
+
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';
@@ -250,6 +272,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     //reset state
     _isClosed = false;
 
+    final connectStopwatch = Stopwatch()..start();
+
     try {
       // wait for socket to connect rtc server
       await signalClient.connect(
@@ -267,6 +291,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           reason: ConnectionErrorReason.Timeout,
         ),
       );
+      // The join response created the publisher. It derives the start bitrate hint from this
+      // attempt's setup time, or from the time elapsed so far for an offer created before then.
+      publisher?.setConnectStopwatch(connectStopwatch);
 
       logger.fine('Waiting for engine to connect...');
 
@@ -278,6 +305,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      connectStopwatch.stop();
+      logger.info('connection setup took ${connectStopwatch.elapsedMilliseconds} ms');
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
@@ -344,17 +373,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
     _hasPublished = true;
-    try {
-      publisher!.negotiate(null);
-    } catch (error) {
-      if (error is NegotiationError) {
-        fullReconnectOnNext = true;
-      }
-      await handleReconnect(
-        ClientDisconnectReason.negotiationFailed,
-        reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
-      );
+    publisher!.negotiate(null);
+  }
+
+  Future<void> _onPublisherNegotiationError(Object error) async {
+    if (error is NegotiationError) {
+      fullReconnectOnNext = true;
     }
+    await handleReconnect(
+      ClientDisconnectReason.negotiationFailed,
+      reconnectReason: lk_models.ReconnectReason.RR_UNKNOWN,
+    );
   }
 
   bool? isBufferStatusLow(Reliability kind) {
@@ -697,6 +726,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('publisher onOffer');
       signalClient.sendOffer(offer);
     };
+
+    publisher?.onNegotiationError = _onPublisherNegotiationError;
 
     // in subscriber primary mode, server side opens sub data channels.
     if (_subscriberPrimary) {
@@ -1109,11 +1140,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    var delay = defaultRetryDelaysInMs[_reconnectAttempts];
-    // Add random jitter to prevent thundering herd on reconnect
-    if (_reconnectAttempts > 1) {
-      delay += math.Random().nextInt(1000);
-    }
+    final delay = reconnectDelayInMs(_reconnectAttempts);
 
     events.emit(
       EngineAttemptReconnectEvent(
@@ -1555,6 +1582,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('received answer (type: ${event.sd.type})');
       logger.finer('sdp: ${event.sd.sdp}');
       await publisher!.setRemoteDescription(event.sd);
+      events.emit(const EngineSubscribedCodecRefreshRequestedEvent());
     })
     ..on<SignalTrickleEvent>((event) async {
       if (publisher == null || subscriber == null) {
