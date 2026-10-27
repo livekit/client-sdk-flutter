@@ -196,7 +196,7 @@ abstract class LocalTrack extends Track {
     if (muted) return false; // already muted
     await disable();
     if (!skipStopForTrackMute() && stopOnMute) {
-      await stop();
+      await _stopKeepingProcessor();
     }
     updateMuted(true, shouldSendSignal: true);
     return true;
@@ -218,7 +218,24 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    final didStop = await super.stop() || !_stopped;
+    final didStop = await _disposeMediaTrack(await super.stop());
+    // Also runs when a stop-on-mute already stopped the media track and kept
+    // the processor for the restart.
+    try {
+      await stopProcessor();
+    } catch (error) {
+      logger.severe('LocalTrack.stopProcessor did throw: $error');
+    }
+    return didStop;
+  }
+
+  // Keeps the processor, which restartTrack restarts on the new media track.
+  Future<bool> _stopKeepingProcessor() async => _disposeMediaTrack(await super.stop());
+
+  // Takes the result of super.stop() because stop() has to call it directly
+  // (Track.stop is @mustCallSuper).
+  Future<bool> _disposeMediaTrack(bool trackStopped) async {
+    final didStop = trackStopped || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
@@ -232,13 +249,6 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
-      try {
-        if (_processor != null) {
-          await stopProcessor();
-        }
-      } catch (error) {
-        logger.severe('LocalTrack.stopProcessor did throw: $error');
-      }
     }
     return didStop;
   }
@@ -314,32 +324,41 @@ abstract class LocalTrack extends Track {
     currentOptions = options ?? currentOptions;
 
     // stop if not already stopped...
-    await stop();
+    await _stopKeepingProcessor();
 
     // create new track with options
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    final processor = _processor;
-
-    await stopProcessor();
-
-    // replace track on sender
-    try {
-      await sender?.replaceTrack(newTrack);
-      if (this is LocalVideoTrack) {
-        final videoTrack = this as LocalVideoTrack;
-        await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
-      }
-    } catch (error) {
-      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
-    }
-
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
 
+    // Restart the processor on the new track before the sender gets it, so
+    // the sender carries the processed track when the processor has one.
+    final processor = _processor;
     if (processor != null) {
-      await setProcessor(processor);
+      try {
+        await processor.restart(
+          kind == TrackType.VIDEO ? VideoProcessorOptions(track: newTrack) : AudioProcessorOptions(track: newTrack),
+        );
+        final processedTrack = processor.processedTrack;
+        if (processedTrack != null) {
+          setProcessedTrack(processedTrack);
+        }
+      } catch (error) {
+        logger.severe('TrackProcessor.restart() did throw $error');
+      }
+    }
+
+    // replace track on sender
+    try {
+      await sender?.replaceTrack(mediaStreamTrack);
+      if (this is LocalVideoTrack) {
+        final videoTrack = this as LocalVideoTrack;
+        await videoTrack.replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+      }
+    } catch (error) {
+      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
     }
 
     // mark as started

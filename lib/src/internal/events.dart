@@ -227,6 +227,17 @@ class EngineLocalTrackSubscribedEvent with InternalEvent, EngineEvent {
   String toString() => '${runtimeType}(trackSid: ${trackSid})';
 }
 
+/// Emitted after a publisher answer is applied. The answer re-enables every
+/// simulcast layer, so the last subscribed codecs have to be re-applied or the
+/// layers dynacast paused stay up until the subscribed quality changes again.
+@internal
+class EngineSubscribedCodecRefreshRequestedEvent with InternalEvent, EngineEvent {
+  const EngineSubscribedCodecRefreshRequestedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 @internal
 class EngineFullRestartingEvent with InternalEvent, EngineEvent {
   const EngineFullRestartingEvent();
