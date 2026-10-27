@@ -22,12 +22,14 @@ analyzer:
     avoid_print: ignore
     deprecated_member_use_from_same_package: ignore
 
-  # Exclude protobuf files
+  # Exclude generated files: protobuf, and json_serializable output. Neither is
+  # hand-edited, so lint hits there can only be fixed by changing the generator.
   exclude:
     - "**/*.pb.dart"
     - "**/*.pbenum.dart"
     - "**/*.pbjson.dart"
     - "**/*.pbserver.dart"
+    - "**/*.g.dart"
     # - 'web/*.dart'
     # Xcode vendors Swift package checkouts under build when Swift Package
     # Manager is enabled and this package ships Package.swift.

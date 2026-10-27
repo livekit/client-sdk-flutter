@@ -4,6 +4,7 @@ import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
 import 'package:intl/intl.dart';
 import 'pages/connect.dart';
+import 'utils.dart';
 
 void main() async {
   final format = DateFormat('HH:mm:ss');
@@ -31,6 +32,8 @@ void main() async {
     zeroPlayoutDelay: true,
     enableWARP: true,
   );
+  // Smoke test the Rust core with one synchronous FFI call at startup.
+  Logger('LiveKitExample').info(rustCoreVersionLabel());
   runApp(const LiveKitExampleApp());
 }
 

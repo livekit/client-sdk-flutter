@@ -261,7 +261,7 @@ class RemoteParticipant extends Participant<RemoteTrackPublication> {
   Future<bool> updateFromInfo(lk_models.ParticipantInfo info) async {
     logger.fine('RemoteParticipant.updateFromInfo(info: $info)');
     if (!await super.updateFromInfo(info)) {
-      //return false;
+      return false;
     }
 
     await _updateTracks(info.tracks);
