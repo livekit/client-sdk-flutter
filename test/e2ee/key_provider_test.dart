@@ -20,13 +20,13 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:livekit_client/livekit_client.dart';
 import '../mock/e2ee_fake_manager.dart';
 
-BaseKeyProvider _keyProvider({required bool sharedKey}) => BaseKeyProvider(
+BaseKeyProvider _keyProvider({required bool sharedKey, int keyRingSize = 16}) => BaseKeyProvider(
   TestKeyProvider(),
   rtc.KeyProviderOptions(
     sharedKey: sharedKey,
     ratchetSalt: Uint8List(16),
     ratchetWindowSize: 16,
-    keyRingSize: 16,
+    keyRingSize: keyRingSize,
     failureTolerance: -1,
     discardFrameWhenCryptorNotReady: false,
   ),
@@ -60,6 +60,27 @@ void main() {
       await keyProvider.setSharedKey('key');
       expect(keyProvider.getLatestIndex('alice'), 0);
     });
+
+    test('wraps the index to the key ring slot the key lands in', () async {
+      final keyProvider = _keyProvider(sharedKey: true);
+      await keyProvider.setSharedKey('key', keyIndex: 16);
+      expect(keyProvider.getLatestIndex('alice'), 0);
+      await keyProvider.setSharedKey('key', keyIndex: 19);
+      expect(keyProvider.getLatestIndex('alice'), 3);
+    });
+
+    test('wraps with the ring size clamped to 256', () async {
+      final keyProvider = _keyProvider(sharedKey: true, keyRingSize: 300);
+      await keyProvider.setSharedKey('key', keyIndex: 260);
+      expect(keyProvider.getLatestIndex('alice'), 4);
+    });
+
+    test('a negative index keeps the current index', () async {
+      final keyProvider = _keyProvider(sharedKey: true);
+      await keyProvider.setSharedKey('key', keyIndex: 5);
+      await keyProvider.setSharedKey('key', keyIndex: -1);
+      expect(keyProvider.getLatestIndex('alice'), 5);
+    });
   });
 
   group('per-participant key mode', () {
@@ -68,6 +89,12 @@ void main() {
       await keyProvider.setKey('key', participantId: 'alice', keyIndex: 2);
       expect(keyProvider.getLatestIndex('alice'), 2);
       expect(keyProvider.getLatestIndex('bob'), 0);
+    });
+
+    test('wraps the index to the key ring slot', () async {
+      final keyProvider = _keyProvider(sharedKey: false);
+      await keyProvider.setKey('key', participantId: 'alice', keyIndex: 18);
+      expect(keyProvider.getLatestIndex('alice'), 2);
     });
   });
 }
