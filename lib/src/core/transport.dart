@@ -18,6 +18,7 @@ import 'dart:math' as math;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -241,6 +242,11 @@ class Transport extends Disposable {
   /// Id (0 if unnumbered) of the answer being applied right now, so a copy that arrives
   /// mid-apply is recognised as a duplicate too.
   int? _answerInFlight;
+
+  /// Builds one offer at a time. A call that overlaps another waits for it, then finds that
+  /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
+  /// Only an ICE restart replaces a waiting offer.
+  final _offerLock = sync.Lock();
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
@@ -385,7 +391,10 @@ class Transport extends Disposable {
     return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
-  Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
+  Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
+      _offerLock.synchronized(() => _createAndSendOffer(options));
+
+  Future<void> _createAndSendOffer(RTCOfferOptions? options) async {
     if (isDisposed) {
       logger.warning('[$objectId] createAndSendOffer() already disposed');
       return;
@@ -469,11 +478,6 @@ class Transport extends Disposable {
     });
 
     final mungedSdp = sdp_transform.write(sdpParsed, null);
-    if (_latestOfferId > offerId) {
-      // A later call created a newer offer while this one was built. Only the newest is sent.
-      logger.warning('[$objectId] dropping offer $offerId, superseded by $_latestOfferId');
-      return;
-    }
     try {
       await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {

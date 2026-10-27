@@ -289,12 +289,15 @@ void main() {
       expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nretry');
     });
 
-    test('sends only the newest of two offers built at the same time', () async {
+    test('defers an offer that overlaps another until its answer', () async {
       final (transport, _, sent) = await makeTransport();
 
       await Future.wait([transport.createAndSendOffer(), transport.createAndSendOffer()]);
+      expect(sent, [1]);
+      expect(transport.renegotiate, isTrue);
 
-      expect(sent, [2]);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
+      expect(sent, [1, 2]);
     });
   });
 }
