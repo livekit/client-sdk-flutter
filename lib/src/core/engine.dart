@@ -259,6 +259,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     RegionUrlProvider? regionUrlProvider,
   }) async {
     _isClosed = false;
+    // disconnect() cancels the signal listeners when it stops a pending
+    // reconnect, so a connect starts from a fresh set.
+    await _signalListener.cancelAll();
+    _recreateSignalListener();
     await _connect(
       url,
       token,
@@ -1391,8 +1395,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         return;
       }
 
-      _signalListener = signalClient.createListener(synchronized: true);
-      _setUpSignalListeners();
+      _recreateSignalListener();
 
       await _connect(
         regionUrl ?? url!,
@@ -1469,6 +1472,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // send queued requests if engine re-connected
     signalClient.sendQueuedRequests();
   });
+
+  void _recreateSignalListener() {
+    _signalListener = signalClient.createListener(synchronized: true);
+    _setUpSignalListeners();
+  }
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {

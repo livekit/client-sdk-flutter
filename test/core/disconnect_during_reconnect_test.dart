@@ -13,7 +13,8 @@
 // limitations under the License.
 
 // disconnect() closes the engine for good, even when a full reconnect is
-// already tearing down the old connection and is about to connect again.
+// already tearing down the old connection and is about to connect again, and
+// the room can connect again afterwards.
 
 @Timeout(Duration(seconds: 10))
 library;
@@ -69,5 +70,27 @@ void main() {
     expect(identical(ws.handlers, droppedHandlers), isTrue, reason: 'the full reconnect opened a new signal socket');
     expect(container.engine.isClosed, isTrue);
     expect(room.connectionState, ConnectionState.disconnected);
+
+    await container.connectRoom();
+    expect(room.connectionState, ConnectionState.connected);
+  });
+
+  test('the room connects again after disconnect() during a reconnect delay', () async {
+    final disconnected = Completer<void>();
+    final listener = room.createListener();
+    // Emitted before the retry timer fires, so the reconnect is still pending.
+    listener.on<RoomAttemptReconnectEvent>((_) {
+      if (!disconnected.isCompleted) {
+        unawaited(room.disconnect().then(disconnected.complete));
+      }
+    });
+
+    ws.onDispose();
+    await disconnected.future;
+    await listener.dispose();
+    expect(room.connectionState, ConnectionState.disconnected);
+
+    await container.connectRoom();
+    expect(room.connectionState, ConnectionState.connected);
   });
 }
