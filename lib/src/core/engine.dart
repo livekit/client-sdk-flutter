@@ -258,6 +258,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     FastConnectOptions? fastConnectOptions,
     RegionUrlProvider? regionUrlProvider,
   }) async {
+    _isClosed = false;
+    await _connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+      regionUrlProvider: regionUrlProvider,
+    );
+  }
+
+  // Shared by connect() and restartConnection(). Leaves _isClosed alone, so a
+  // disconnect() that lands while a full reconnect is connecting stays in effect.
+  Future<void> _connect(
+    String url,
+    String token, {
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
+    RegionUrlProvider? regionUrlProvider,
+  }) async {
     this.url = url;
     this.token = token;
     // update new options (if exists)
@@ -268,9 +289,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (regionUrlProvider != null) {
       _regionUrlProvider = regionUrlProvider;
     }
-
-    //reset state
-    _isClosed = false;
 
     final connectStopwatch = Stopwatch()..start();
 
@@ -1366,10 +1384,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       await _signalListener.cancelAll();
 
+      // disconnect() can run during the teardown above. It closes the engine
+      // for good, so do not connect again.
+      if (_isClosed) {
+        logger.fine('restartConnection: engine closed during teardown, not reconnecting');
+        return;
+      }
+
       _signalListener = signalClient.createListener(synchronized: true);
       _setUpSignalListeners();
 
-      await connect(
+      await _connect(
         regionUrl ?? url!,
         token!,
         roomOptions: roomOptions,
