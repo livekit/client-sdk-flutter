@@ -1,0 +1,1 @@
+patch type="fixed" "Fix data channel sends that could hang after a full reconnect, keep waiting after the engine closed, or leak a listener while waiting for the send buffer to drain"
