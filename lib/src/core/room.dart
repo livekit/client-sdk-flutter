@@ -17,6 +17,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../audio/audio_manager.dart';
 import '../core/signal_client.dart';
@@ -74,6 +75,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   RoomOptions get roomOptions => engine.roomOptions;
 
   final ParticipantCollection<RemoteParticipant> _remoteParticipants = ParticipantCollection();
+
+  // Remote participant creation and updates await between reading and
+  // writing participant state, so overlapping signal events must not
+  // interleave.
+  final _participantUpdateLock = sync.Lock();
+
   UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants =>
       UnmodifiableMapView(_remoteParticipants.byIdentity);
 
@@ -574,12 +581,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
 
-      for (final info in event.response.otherParticipants) {
-        logger.fine(
-          'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
-          'tracks:${info.tracks.map((e) => e.sid)}',
-        );
-        await _getOrCreateRemoteParticipant(info);
+      final joinedParticipants = await _participantUpdateLock.synchronized(() async {
+        final participants = <RemoteParticipant>[];
+        for (final info in event.response.otherParticipants) {
+          logger.fine(
+            'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}',
+          );
+          participants.add((await _getOrCreateRemoteParticipant(info)).participant);
+        }
+        return participants;
+      });
+      for (final participant in joinedParticipants) {
+        await _flushPendingTracks(participant: participant);
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
@@ -819,22 +833,33 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     _remoteParticipants.set(result.participant);
-    await _flushPendingTracks(participant: result.participant);
     return result;
   }
 
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
+    // The local participant is not ready yet, waiting for the
+    // `RoomConnectedEvent` to create the local participant.
+    if (_localParticipant == null) {
+      await events.waitFor<RoomConnectedEvent>(
+        duration: const Duration(seconds: 10),
+      );
+    }
+
+    final updatedParticipants = await _participantUpdateLock.synchronized(() => _applyParticipantUpdates(updates));
+
+    // A pending track can wait for a later update to publish it, so flush
+    // only after the lock is released.
+    for (final participant in updatedParticipants) {
+      await _flushPendingTracks(participant: participant);
+    }
+  }
+
+  /// Returns the remote participants that were created or updated.
+  Future<List<RemoteParticipant>> _applyParticipantUpdates(List<lk_models.ParticipantInfo> updates) async {
+    final updatedParticipants = <RemoteParticipant>[];
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
-      // The local participant is not ready yet, waiting for the
-      // `RoomConnectedEvent` to create the local participant.
-      if (_localParticipant == null) {
-        await events.waitFor<RoomConnectedEvent>(
-          duration: const Duration(seconds: 10),
-        );
-      }
-
       if (localParticipant?.identity == info.identity) {
         await localParticipant?.updateFromInfo(info);
         continue;
@@ -864,12 +889,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _remoteParticipants.set(result.participant);
-        await _flushPendingTracks(participant: result.participant);
+        updatedParticipants.add(result.participant);
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _remoteParticipants.set(result.participant);
-          await _flushPendingTracks(participant: result.participant);
+          updatedParticipants.add(result.participant);
         }
       }
     }
@@ -877,6 +902,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     if (hasChanged) {
       notifyListeners();
     }
+    return updatedParticipants;
   }
 
   void _onSignalSpeakersChangedEvent(List<lk_models.SpeakerInfo> speakers) {
@@ -1046,6 +1072,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     final event = DataReceivedEvent(
       participant: senderParticipant,
+      participantIdentity: dataPacketEvent.identity,
       data: dataPacketEvent.packet.payload,
       topic: dataPacketEvent.packet.topic,
     );

@@ -1,0 +1,1 @@
+patch type="fixed" "RPC error `message` and `data` are now truncated by UTF-8 byte length rather than by UTF-16 code unit count, so the 15 KB cap actually bounds the packet and a truncated field no longer ends in half a surrogate pair"

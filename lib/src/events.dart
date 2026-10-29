@@ -446,22 +446,32 @@ class ParticipantConnectionQualityUpdatedEvent with RoomEvent, ParticipantEvent 
 /// Data received from  [RemoteParticipant].
 /// Data packets provides the ability to use LiveKit to send/receive arbitrary
 /// payloads.
+/// When [participant] is null, use [participantIdentity] to tell who sent the
+/// data. It is empty for data sent from Server API or by a hidden participant.
 /// Emitted by [Room] and [RemoteParticipant].
 class DataReceivedEvent with RoomEvent, ParticipantEvent {
   /// Sender of the data. This may be null if data is sent from Server API.
   final RemoteParticipant? participant;
+
+  /// Identity of the sender. Set even when [participant] is null, for example
+  /// when the data arrives before the sender's join is announced or after the
+  /// sender has left. Empty for data sent from Server API or by a hidden
+  /// participant.
+  final String participantIdentity;
   final List<int> data;
   final String? topic;
+  // TODO: In the next major release, mark this constructor @internal and make participantIdentity required.
   const DataReceivedEvent({
     required this.participant,
     required this.data,
     required this.topic,
+    this.participantIdentity = '',
   });
 
   @override
   String toString() =>
       '${runtimeType}'
-      '(participant: ${participant}, topic: ${topic}, data: ${data})';
+      '(participant: ${participant}, participantIdentity: ${participantIdentity}, topic: ${topic}, data: ${data})';
 }
 
 /// The participant's isSpeaking property has changed
