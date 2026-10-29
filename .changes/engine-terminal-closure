@@ -1,0 +1,1 @@
+patch type="fixed" "Announce engine closure when a room is disposed or reconnection gives up, and reject data channel buffer waits started after closure"
