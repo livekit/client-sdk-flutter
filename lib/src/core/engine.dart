@@ -242,12 +242,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _setUpSignalListeners();
 
     onDispose(() async {
-      _isClosed = true;
       await cleanUp();
       await events.dispose();
       await _signalListener.dispose();
       _reliableReceivedState.dispose();
     });
+  }
+
+  @override
+  Future<bool> dispose() {
+    // Disposal callbacks run in reverse registration order and may await engine work.
+    markClosed();
+    return super.dispose();
   }
 
   Future<void> connect(
@@ -395,6 +401,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> waitForBufferStatusLow(Reliability kind) async {
+    // A wait started after closure cannot observe the closing event.
+    if (_isClosed || isDisposed) {
+      throw 'Engine disconnected';
+    }
+
     final Completer<void> completer = Completer();
 
     if (isBufferStatusLow(kind) == true) {
@@ -1129,7 +1140,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     if (_reconnectAttempts >= _reconnectCount) {
       logger.fine('reconnectAttempts exceeded, disconnecting...');
-      _isClosed = true;
+      markClosed();
       await cleanUp();
 
       events.emit(
@@ -1241,6 +1252,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
+        markClosed();
         // clean up before emitting, room's EngineDisconnectedEvent handler
         // drops the event while fullReconnectOnNext is still true and
         // cleanUp() is what resets it
@@ -1644,11 +1656,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       events.emit(EngineRoomMovedEvent(response: event.response));
     });
 
+  // Announce terminal closure before tearing down transports or event listeners.
+  // A full reconnect also disposes transports, but must keep the engine open.
+  @internal
+  void markClosed() {
+    if (_isClosed) return;
+    _isClosed = true;
+    events.emit(EngineClosingEvent());
+  }
+
   Future<void> disconnect({
     DisconnectReason reason = DisconnectReason.clientInitiated,
   }) async {
-    _isClosed = true;
-    events.emit(EngineClosingEvent());
+    markClosed();
     if (connectionState == ConnectionState.connected) {
       await signalClient.sendLeave();
     } else {

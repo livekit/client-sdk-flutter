@@ -242,6 +242,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     });
   }
 
+  @override
+  Future<bool> dispose() {
+    // Room cleanup tears down transports before Engine.dispose() is reached.
+    engine.markClosed();
+    return super.dispose();
+  }
+
   /// prepareConnection should be called as soon as the page is loaded, in order
   /// to speed up the connection attempt. This function will
   /// - perform DNS resolution and pre-warm the DNS cache
