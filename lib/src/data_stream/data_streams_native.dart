@@ -80,9 +80,11 @@ class NativeDataStreams implements DataStreams {
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
   final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
 
-  /// Serializes outbound sends so packet order survives the hop from the pump into the engine's
-  /// async send.
-  Future<void> _sendChain = Future.value();
+  /// One per in-flight `send*` call, keyed by its stream id, completed by the pump once the stream's
+  /// last packet has gone to the engine. The core acknowledges a send as soon as its packets are
+  /// queued, so this is what holds `sendText`/`sendBytes`/`sendFile` until the data is actually out,
+  /// and lets a transport failure reach the caller.
+  final Map<String, Completer<void>> _pendingSends = {};
 
   bool _disposed = false;
 
@@ -112,14 +114,17 @@ class NativeDataStreams implements DataStreams {
     // own byte stream referenced by `attachedStreamIds` in the text header.
     final attachments = options?.attachments ?? const <File>[];
     final attachmentIds = [for (var i = 0; i < attachments.length; i++) const Uuid().v4()];
+    final id = const Uuid().v4();
 
-    final info = await mappingFfiErrors(
+    final info = await _sendTracked(
+      id,
       () => _outgoing.sendText(
         text: text,
         options: ffi.StreamTextOptions(
           topic: options?.topic ?? '',
           attributes: options?.attributes ?? const {},
           destinationIdentities: options?.destinationIdentities ?? const [],
+          id: id,
           attachedStreamIds: attachmentIds,
           compress: options?.compress,
         ),
@@ -147,13 +152,16 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<ByteStreamInfo> sendBytes(List<int> bytes, SendBytesOptions? options) async {
-    final info = await mappingFfiErrors(
+    final id = const Uuid().v4();
+    final info = await _sendTracked(
+      id,
       () => _outgoing.sendBytes(
         data: Uint8List.fromList(bytes),
         options: ffi.StreamByteOptions(
           topic: options?.topic ?? '',
           attributes: options?.attributes ?? const {},
           destinationIdentities: options?.destinationIdentities ?? const [],
+          id: id,
           name: options?.name,
           mimeType: options?.mimeType,
           compress: options?.compress,
@@ -174,7 +182,8 @@ class NativeDataStreams implements DataStreams {
   }
 
   Future<void> _sendFileWithId(String id, File file, SendFileOptions options) async {
-    await mappingFfiErrors(
+    await _sendTracked(
+      id,
       () => _outgoing.sendFile(
         // The core streams the file from disk rather than buffering it.
         path: file.path,
@@ -243,7 +252,31 @@ class NativeDataStreams implements DataStreams {
     );
   }
 
+  /// Runs a one-shot core send for stream [id] and resolves once its last packet has been handed to
+  /// the engine, rather than when the core has merely queued it.
+  ///
+  /// Registered before the core call: the pump can put the whole stream out before that call
+  /// returns.
+  Future<T> _sendTracked<T>(String id, Future<T> Function() send) async {
+    final sent = Completer<void>();
+    // The pump may fail this before we get to await it.
+    sent.future.ignore();
+    _pendingSends[id] = sent;
+    try {
+      final result = await mappingFfiErrors(send);
+      await sent.future;
+      return result;
+    } finally {
+      _pendingSends.remove(id);
+    }
+  }
+
   /// Drains outbound packets from the core and puts them on the wire, in order.
+  ///
+  /// Each packet waits for the reliable data channel's buffer to drain below its low threshold, and
+  /// the next batch is pulled only once this one is out. The core acknowledges sends as soon as it
+  /// has queued them, so this is the only flow control on the path: without it a large send is
+  /// drained into Dart all at once and pushed at the channel faster than it can empty.
   ///
   /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
   /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
@@ -254,32 +287,57 @@ class NativeDataStreams implements DataStreams {
         final batch = await _outgoingPackets.nextPackets();
         if (batch == null) break; // closed or shutting down
         for (final encoded in batch) {
-          _enqueueSend(encoded);
+          await _sendOutbound(lk_models.DataPacket.fromBuffer(encoded));
         }
       }
     } catch (e) {
       logger.warning('[DataStreams] outgoing pump failed: $e');
     } finally {
       _outgoingPackets.dispose();
+      for (final sent in _pendingSends.values.toList()) {
+        if (!sent.isCompleted) {
+          sent.completeError(
+            DataStreamError(
+              reason: DataStreamErrorReason.AbnormalEnd,
+              message: 'Data streams were shut down before the stream was sent',
+            ),
+          );
+        }
+      }
     }
   }
 
-  void _enqueueSend(Uint8List encoded) {
-    _sendChain = _sendChain.then((_) async {
+  Future<void> _sendOutbound(lk_models.DataPacket packet) async {
+    final streamId = switch (packet.whichValue()) {
+      lk_models.DataPacket_Value.streamHeader => packet.streamHeader.streamId,
+      lk_models.DataPacket_Value.streamChunk => packet.streamChunk.streamId,
+      lk_models.DataPacket_Value.streamTrailer => packet.streamTrailer.streamId,
+      _ => null,
+    };
+    // A stream ends with its trailer, or with its only packet when the content was inlined.
+    final isLast = packet.hasStreamTrailer() || (packet.hasStreamHeader() && packet.streamHeader.hasInlineContent());
+    try {
       final room = _room.target;
-      if (room == null || _disposed) return;
-      try {
-        // Back through the engine rather than the data channel directly, so E2EE wrapping,
-        // reliable sequencing and resume-resend all still apply.
-        await room.engine.sendDataPacket(
-          lk_models.DataPacket.fromBuffer(encoded),
-          reliability: Reliability.reliable,
-        );
-      } catch (e) {
-        // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
-        logger.warning('[DataStreams] failed to send outbound packet: $e');
+      if (room == null || _disposed) {
+        throw StateError('the room was disposed');
       }
-    });
+      await room.engine.waitForBufferStatusLow(Reliability.reliable);
+      // Back through the engine rather than the data channel directly, so E2EE wrapping,
+      // reliable sequencing and resume-resend all still apply.
+      await room.engine.sendDataPacket(packet, reliability: Reliability.reliable);
+      if (isLast) _pendingSends[streamId]?.complete();
+    } catch (e) {
+      logger.warning('[DataStreams] failed to send outbound packet: $e');
+      final sent = _pendingSends[streamId];
+      if (sent != null && !sent.isCompleted) {
+        sent.completeError(
+          DataStreamError(
+            reason: DataStreamErrorReason.AbnormalEnd,
+            message: 'Failed to send data stream packet: $e',
+          ),
+        );
+      }
+    }
   }
 
   // MARK: - Receive
