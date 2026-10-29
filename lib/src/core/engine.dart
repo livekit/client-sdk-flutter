@@ -401,26 +401,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> waitForBufferStatusLow(Reliability kind) async {
-    // A wait started after closure cannot observe the closing event.
+    // The cached status only changes on a send or on the channel's low-buffer event. A channel
+    // that a full reconnect replaced fires neither, so the live channel is checked as well.
+    while (!_isClosed && !isDisposed && !_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
     if (_isClosed || isDisposed) {
       throw 'Engine disconnected';
-    }
-
-    if (isBufferStatusLow(kind) == true) return;
-
-    var closing = false;
-    final cancelClosingListener = events.once<EngineClosingEvent>((_) => closing = true);
-    try {
-      // The cached status only changes on a send or on the channel's low-buffer event. A channel
-      // that a full reconnect replaced fires neither, so the live channel is checked as well.
-      while (!closing && !_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-      }
-    } finally {
-      await cancelClosingListener?.call();
-    }
-    if (closing) {
-      return Future<void>.error('Engine disconnected');
     }
   }
 

@@ -15,7 +15,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/internal/events.dart';
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
 
@@ -63,7 +62,7 @@ void main() {
     await wait.timeout(const Duration(seconds: 1));
   });
 
-  test('a wait does not leave its closing listener behind', () async {
+  test('a wait does not leave an engine listener behind', () async {
     final before = container.engine.events.listeners.length;
     await fillReliableChannel();
     final wait = container.engine.waitForBufferStatusLow(Reliability.reliable);
@@ -82,7 +81,7 @@ void main() {
     final wait = container.engine.waitForBufferStatusLow(Reliability.reliable);
     final outcome = wait.then<Object?>((_) => 'resolved', onError: (Object e) => e);
 
-    container.engine.events.emit(EngineClosingEvent());
+    container.engine.markClosed();
 
     expect(await outcome.timeout(const Duration(seconds: 2)), isNot('resolved'));
   });
