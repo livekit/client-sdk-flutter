@@ -46,7 +46,7 @@ class ReconnectCheck extends Checker {
     try {
       // Forcefully close the underlying signal WebSocket; the engine should
       // notice and resume the session on its own.
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
 
       await reconnectCompleter.future.timeout(
         const Duration(seconds: 5),

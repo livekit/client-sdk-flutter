@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:livekit_client/src/options.dart';
+import 'package:livekit_client/src/support/websocket.dart';
+
 // Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +17,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:livekit_client/src/options.dart';
-import 'package:livekit_client/src/support/websocket.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
+  /// Like the real sockets, the close is reported to the SDK after dispose()
+  /// has returned, [closeLatency] later.
+  MockWebSocket(WebSocketEventHandlers? options, Duration closeLatency) {
+    onDispose(() async {
+      unawaited(Future<void>.delayed(closeLatency, () => options?.onDispose?.call()));
+    });
+  }
+
   @override
   void send(List<int> data) {}
 }
@@ -26,6 +37,9 @@ class MockWebSocketConnector {
   Map<String, String>? headers;
   NetworkOptions? networkOptions;
   Object? connectError;
+
+  /// Delay between the SDK disposing a socket and that socket reporting its close.
+  Duration closeLatency = Duration.zero;
 
   WebSocketOnData get onData => handlers!.onData!;
 
@@ -49,6 +63,6 @@ class MockWebSocketConnector {
     }
 
     handlers = options;
-    return MockWebSocket();
+    return MockWebSocket(options, closeLatency);
   }
 }

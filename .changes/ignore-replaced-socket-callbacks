@@ -1,0 +1,1 @@
+patch type="fixed" "Events from a signal socket the SDK already replaced are ignored, so a connect right after a disconnect can no longer be knocked into a reconnect by a late close from the old socket"
