@@ -401,34 +401,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   Future<void> waitForBufferStatusLow(Reliability kind) async {
-    // A wait started after closure cannot observe the closing event.
+    // The cached status only changes on a send or on the channel's low-buffer event. A channel
+    // that a full reconnect replaced fires neither, so the live channel is checked as well.
+    while (!_isClosed && !isDisposed && !_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
     if (_isClosed || isDisposed) {
       throw 'Engine disconnected';
     }
-
-    final Completer<void> completer = Completer();
-
-    if (isBufferStatusLow(kind) == true) {
-      completer.complete();
-    } else {
-      onClosing() {
-        if (!completer.isCompleted) {
-          completer.completeError('Engine disconnected');
-        }
-      }
-
-      events.once<EngineClosingEvent>((e) => onClosing());
-
-      while (!completer.isCompleted && !_dcBufferStatus[kind]!) {
-        await Future.delayed(const Duration(milliseconds: 10));
-      }
-      if (completer.isCompleted) {
-        return;
-      }
-      completer.complete();
-    }
-
-    return completer.future;
   }
 
   Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
@@ -860,6 +840,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
       // _onDCStateUpdated(Reliability.lossy, state)
       _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
+      // A new channel starts empty, whatever the one it replaces had buffered.
+      _dcBufferStatus[Reliability.lossy] = true;
       _lossyDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
       };
@@ -883,6 +865,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ),
       );
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
+      _dcBufferStatus[Reliability.reliable] = true;
       _reliableDCPub?.onBufferedAmountLow = (_) {
         _dcBufferStatus[Reliability.reliable] =
             (_reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!);
