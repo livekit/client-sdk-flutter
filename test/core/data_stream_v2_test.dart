@@ -185,6 +185,52 @@ void main() {
       expect(info.name, equals('unknown'));
       expect(info.mimeType, equals('application/octet-stream'));
     });
+
+    test('a send waits for the data channel to drain and resolves once the stream is out', () async {
+      await container.simulateRemoteParticipantJoin('legacy', clientProtocol: 0);
+      container.capturedDataPackets.clear();
+      final dc = mockDataChannels.firstWhere((dc) => dc.label == '_reliable' && dc.onBufferedAmountLow != null);
+      dc.fakeBufferedAmount = dc.bufferedAmountLowThreshold! + 1;
+
+      var resolved = false;
+      final send = room.localParticipant!
+          .sendBytes(
+            Uint8List(64 * 1024),
+            options: SendBytesOptions(topic: 'files', destinationIdentities: ['legacy']),
+          )
+          .then((info) {
+            resolved = true;
+            return info;
+          });
+
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(streamPackets(), hasLength(1), reason: 'only the header goes out before the buffer reports full');
+      expect(resolved, isFalse, reason: 'the core has queued everything, but it is not on the wire yet');
+
+      dc.fakeBufferedAmount = null;
+      dc.onBufferedAmountLow!(0);
+      final info = await send;
+
+      final packets = streamPackets();
+      expect(packets.length, greaterThan(2));
+      expect(packets.last.hasStreamTrailer(), isTrue);
+      expect(packets.last.streamTrailer.streamId, info.id);
+    });
+
+    test('a transport failure fails the send', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      final dc = mockDataChannels.firstWhere((dc) => dc.label == '_reliable' && dc.onBufferedAmountLow != null);
+      final original = dc.onMessageSend;
+      dc.onMessageSend = (_) => throw StateError('data channel closed');
+
+      await expectLater(
+        room.localParticipant!.sendText('hello', options: SendTextOptions(topic: 'chat')),
+        throwsA(isA<DataStreamError>().having((e) => e.reason, 'reason', DataStreamErrorReason.AbnormalEnd)),
+      );
+
+      dc.onMessageSend = original;
+      await room.localParticipant!.sendText('hello again', options: SendTextOptions(topic: 'chat'));
+    });
   });
 
   group('receive side', () {
