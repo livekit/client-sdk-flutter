@@ -242,12 +242,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _setUpSignalListeners();
 
     onDispose(() async {
-      _markClosed();
       await cleanUp();
       await events.dispose();
       await _signalListener.dispose();
       _reliableReceivedState.dispose();
     });
+  }
+
+  @override
+  Future<bool> dispose() {
+    // Disposal callbacks run in reverse registration order and may await engine work.
+    markClosed();
+    return super.dispose();
   }
 
   Future<void> connect(
@@ -1134,7 +1140,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     if (_reconnectAttempts >= _reconnectCount) {
       logger.fine('reconnectAttempts exceeded, disconnecting...');
-      _markClosed();
+      markClosed();
       await cleanUp();
 
       events.emit(
@@ -1246,7 +1252,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
       } else {
         logger.fine('attemptReconnect: disconnecting...');
-        _markClosed();
+        markClosed();
         // clean up before emitting, room's EngineDisconnectedEvent handler
         // drops the event while fullReconnectOnNext is still true and
         // cleanUp() is what resets it
@@ -1652,7 +1658,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   // Announce terminal closure before tearing down transports or event listeners.
   // A full reconnect also disposes transports, but must keep the engine open.
-  void _markClosed() {
+  @internal
+  void markClosed() {
     if (_isClosed) return;
     _isClosed = true;
     events.emit(EngineClosingEvent());
@@ -1661,7 +1668,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> disconnect({
     DisconnectReason reason = DisconnectReason.clientInitiated,
   }) async {
-    _markClosed();
+    markClosed();
     if (connectionState == ConnectionState.connected) {
       await signalClient.sendLeave();
     } else {

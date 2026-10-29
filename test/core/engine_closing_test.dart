@@ -15,6 +15,8 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
@@ -47,6 +49,61 @@ void main() {
 
     expect(events.whereType<EngineClosingEvent>(), hasLength(1));
     expect(container.engine.isClosed, isTrue);
+  });
+
+  test('room closure is announced while the first transport teardown is blocked', () async {
+    final teardownStarted = Completer<void>();
+    final releaseTeardown = Completer<void>();
+    container.engine.publisher!.onDispose(() async {
+      teardownStarted.complete();
+      await releaseTeardown.future;
+    });
+
+    final disposing = container.room.dispose();
+    await teardownStarted.future;
+    final closedDuringTeardown = container.engine.isClosed;
+    final closingEventsDuringTeardown = events.whereType<EngineClosingEvent>().length;
+    final emitterDisposedDuringTeardown = container.engine.events.isDisposed;
+    releaseTeardown.complete();
+    await disposing;
+
+    expect(closedDuringTeardown, isTrue);
+    expect(closingEventsDuringTeardown, 1);
+    expect(emitterDisposedDuringTeardown, isFalse);
+  });
+
+  for (final owner in ['room', 'engine']) {
+    test('$owner is marked closed before later disposal callbacks run', () async {
+      final disposable = owner == 'room' ? container.room : container.engine;
+      bool? closedInCallback;
+      disposable.onDispose(() async {
+        closedInCallback = container.engine.isClosed;
+      });
+
+      if (owner == 'room') {
+        await container.room.dispose();
+      } else {
+        await container.engine.dispose();
+      }
+
+      expect(closedInCallback, isTrue);
+      expect(events.whereType<EngineClosingEvent>(), hasLength(1));
+    });
+  }
+
+  test('engine closure is delivered while disposing with its emitter still alive', () async {
+    bool? engineDisposedWhenDelivered;
+    bool? emitterDisposedWhenDelivered;
+    container.engine.events.once<EngineClosingEvent>((_) {
+      engineDisposedWhenDelivered = container.engine.isDisposed;
+      emitterDisposedWhenDelivered = container.engine.events.isDisposed;
+    });
+
+    await container.engine.dispose();
+
+    expect(engineDisposedWhenDelivered, isTrue);
+    expect(emitterDisposedWhenDelivered, isFalse);
+    expect(container.engine.events.isDisposed, isTrue);
   });
 
   test('an unrecoverable reconnect announces closure before disconnection', () async {
