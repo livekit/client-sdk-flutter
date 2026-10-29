@@ -12,9 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:fixnum/fixnum.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/src/exceptions.dart';
+import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_models;
 import 'package:livekit_client/src/support/region_url_provider.dart';
 import 'package:livekit_client/src/support/websocket.dart' show WebSocketException;
 
@@ -65,6 +67,96 @@ void main() {
 
     test('does not allow failover on unrelated errors', () {
       expect(canFailOverToAnotherRegion(StateError('boom')), isFalse);
+    });
+  });
+
+  group('isCloudUrl', () {
+    test('accepts LiveKit Cloud hosts', () {
+      for (final url in [
+        'wss://project.livekit.cloud',
+        'wss://project.otokyo1a.production.livekit.cloud',
+        'wss://project.livekit.run',
+        'wss://PROJECT.LIVEKIT.CLOUD',
+      ]) {
+        expect(isCloudUrl(Uri.parse(url)), isTrue, reason: url);
+      }
+    });
+
+    test('matches the suffix, not a substring anywhere in the host', () {
+      // `project.livekit.cloud.example.com` contains `.livekit.cloud` but belongs to someone
+      // else; treating it as Cloud would send it the region request with the token attached.
+      for (final url in [
+        'wss://project.livekit.cloud.example.com',
+        'wss://livekit.run.example.com',
+        'wss://not-livekit.cloud',
+        'wss://self-hosted.example.com',
+        'ws://localhost:7880',
+      ]) {
+        expect(isCloudUrl(Uri.parse(url)), isFalse, reason: url);
+      }
+    });
+  });
+
+  group('isTrustedRegionUrl', () {
+    test('accepts encrypted LiveKit Cloud urls', () {
+      for (final url in [
+        'wss://eu.livekit.cloud',
+        'https://eu.livekit.cloud',
+        'https://eu.livekit.cloud:443/rtc',
+        'wss://staging.livekit.run',
+      ]) {
+        expect(isTrustedRegionUrl(url), isTrue, reason: url);
+      }
+    });
+
+    test('rejects cleartext schemes even for a real cloud host', () {
+      for (final url in ['ws://eu.livekit.cloud', 'http://eu.livekit.cloud']) {
+        expect(isTrustedRegionUrl(url), isFalse, reason: url);
+      }
+    });
+
+    test('rejects foreign hosts and suffix near-misses', () {
+      for (final url in [
+        'https://other.example.com',
+        'wss://other.example.com/rtc',
+        'https://not-livekit.cloud',
+        'https://livekit.cloud.example.com',
+        // The one a `contains` match would wrongly accept: the dot-prefixed domain appears in
+        // the middle of someone else's host.
+        'https://project.livekit.cloud.example.com',
+      ]) {
+        expect(isTrustedRegionUrl(url), isFalse, reason: url);
+      }
+    });
+
+    test('rejects malformed and hostless urls', () {
+      for (final url in ['', 'eu.livekit.cloud', 'file:///etc/passwd', '::::']) {
+        expect(isTrustedRegionUrl(url), isFalse, reason: url);
+      }
+    });
+  });
+
+  group('region ingestion', () {
+    lk_models.RegionInfo region(String name, String url) =>
+        lk_models.RegionInfo(region: name, url: url, distance: Int64(1));
+
+    test('server reported regions drop entries the SDK must not fail over to', () async {
+      final provider = RegionUrlProvider(url: 'wss://project.livekit.cloud', token: 'token');
+
+      provider.setServerReportedRegions(
+        lk_models.RegionSettings(
+          regions: [
+            region('foreign', 'https://other.example.com'),
+            region('cleartext', 'ws://cleartext.livekit.cloud'),
+            region('near-miss', 'https://livekit.cloud.example.com'),
+            region('good', 'https://good.livekit.cloud'),
+          ],
+        ),
+      );
+
+      expect(provider.regionSettings!.regions.map((r) => r.url), ['https://good.livekit.cloud']);
+      expect(await provider.getNextBestRegionUrl(), 'https://good.livekit.cloud');
+      expect(await provider.getNextBestRegionUrl(), isNull);
     });
   });
 }
