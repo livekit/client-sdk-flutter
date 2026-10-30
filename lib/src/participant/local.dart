@@ -189,7 +189,7 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         muted: track.muted,
         stream: buildStreamId(publishOptions, track.source),
         disableDtx: !publishOptions.dtx,
-        disableRed: room.e2eeManager != null ? true : publishOptions.red ?? true,
+        disableRed: room.e2eeManager != null || !(publishOptions.red ?? true),
         encryption: room.roomOptions.lkEncryptionType,
       );
 
