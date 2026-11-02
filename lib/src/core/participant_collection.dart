@@ -14,42 +14,33 @@
 
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
+
 import '../participant/participant.dart';
 
-/// Small helper to keep participant lookups by identity and sid in sync.
+/// Small helper for participant lookups by identity and sid.
 class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   final Map<String, T> _byIdentity = {};
-  final Map<String, T> _bySid = {};
-  // The sid last indexed for each identity. A takeover changes participant.sid in place, so the two can differ.
-  final Map<String, String> _sidByIdentity = {};
 
-  // Read-only views of the collections
+  // Read-only view of the collection
   UnmodifiableMapView<String, T> get byIdentity => UnmodifiableMapView(_byIdentity);
-  UnmodifiableMapView<String, T> get bySid => UnmodifiableMapView(_bySid);
+
+  // Searches by each participant's current sid. A takeover changes the sid in place, so a sid index would go stale.
+  T? findBySid(String sid) => _byIdentity.values.firstWhereOrNull((participant) => participant.sid == sid);
 
   // Update methods
   void set(T participant) {
-    final previousSid = _sidByIdentity[participant.identity];
-    if (previousSid != participant.sid) _bySid.remove(previousSid);
     _byIdentity[participant.identity] = participant;
-    _bySid[participant.sid] = participant;
-    _sidByIdentity[participant.identity] = participant.sid;
   }
 
   // Contains methods
   bool containsIdentity(String identity) => _byIdentity.containsKey(identity);
-  bool containsSid(String sid) => _bySid.containsKey(sid);
 
   void clear() {
     _byIdentity.clear();
-    _bySid.clear();
-    _sidByIdentity.clear();
   }
 
-  T? removeByIdentity(String identity) {
-    _bySid.remove(_sidByIdentity.remove(identity));
-    return _byIdentity.remove(identity);
-  }
+  T? removeByIdentity(String identity) => _byIdentity.remove(identity);
 
   @override
   Iterator<T> get iterator => _byIdentity.values.iterator;
