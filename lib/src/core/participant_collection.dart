@@ -20,8 +20,7 @@ import '../participant/participant.dart';
 class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   final Map<String, T> _byIdentity = {};
   final Map<String, T> _bySid = {};
-  // The sid each identity is keyed by in _bySid. A participant's sid changes in
-  // place when a new session takes over its identity, so it can't be read back.
+  // The sid last indexed for each identity. A takeover changes participant.sid in place, so the two can differ.
   final Map<String, String> _sidByIdentity = {};
 
   // Read-only views of the collections
