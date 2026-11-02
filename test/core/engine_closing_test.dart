@@ -160,12 +160,18 @@ void main() {
   test('a buffer wait started after disposal rejects even when the channel reports low', () async {
     await container.room.dispose();
 
-    await expectLater(container.engine.waitForBufferStatusLow(Reliability.reliable), throwsA('Engine disconnected'));
+    await expectLater(
+      container.engine.waitForBufferStatusLow(Reliability.reliable),
+      throwsA(isA<UnexpectedConnectionState>()),
+    );
   });
 
   test('disconnect followed by disposal announces closure only once', () async {
     await container.engine.disconnect();
-    await expectLater(container.engine.waitForBufferStatusLow(Reliability.reliable), throwsA('Engine disconnected'));
+    await expectLater(
+      container.engine.waitForBufferStatusLow(Reliability.reliable),
+      throwsA(isA<UnexpectedConnectionState>()),
+    );
     await container.room.dispose();
 
     expect(events.whereType<EngineClosingEvent>(), hasLength(1));
