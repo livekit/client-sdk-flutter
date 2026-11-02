@@ -29,16 +29,12 @@ class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   T? findBySid(String sid) => _byIdentity.values.firstWhereOrNull((participant) => participant.sid == sid);
 
   // Update methods
-  void set(T participant) {
-    _byIdentity[participant.identity] = participant;
-  }
+  void set(T participant) => _byIdentity[participant.identity] = participant;
 
   // Contains methods
   bool containsIdentity(String identity) => _byIdentity.containsKey(identity);
 
-  void clear() {
-    _byIdentity.clear();
-  }
+  void clear() => _byIdentity.clear();
 
   T? removeByIdentity(String identity) => _byIdentity.remove(identity);
 
