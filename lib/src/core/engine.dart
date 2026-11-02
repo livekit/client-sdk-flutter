@@ -258,6 +258,31 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     FastConnectOptions? fastConnectOptions,
     RegionUrlProvider? regionUrlProvider,
   }) async {
+    _isClosed = false;
+    // disconnect() cancels the signal listeners when it stops a pending
+    // reconnect, so a connect starts from a fresh set.
+    await _signalListener.cancelAll();
+    _recreateSignalListener();
+    await _connect(
+      url,
+      token,
+      connectOptions: connectOptions,
+      roomOptions: roomOptions,
+      fastConnectOptions: fastConnectOptions,
+      regionUrlProvider: regionUrlProvider,
+    );
+  }
+
+  // Shared by connect() and restartConnection(). Leaves _isClosed alone, so a
+  // disconnect() that lands while a full reconnect is connecting stays in effect.
+  Future<void> _connect(
+    String url,
+    String token, {
+    ConnectOptions? connectOptions,
+    RoomOptions? roomOptions,
+    FastConnectOptions? fastConnectOptions,
+    RegionUrlProvider? regionUrlProvider,
+  }) async {
     this.url = url;
     this.token = token;
     // update new options (if exists)
@@ -268,9 +293,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (regionUrlProvider != null) {
       _regionUrlProvider = regionUrlProvider;
     }
-
-    //reset state
-    _isClosed = false;
 
     final connectStopwatch = Stopwatch()..start();
 
@@ -1366,10 +1388,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       await _signalListener.cancelAll();
 
-      _signalListener = signalClient.createListener(synchronized: true);
-      _setUpSignalListeners();
+      // disconnect() can run during the teardown above. It closes the engine
+      // for good, so do not connect again.
+      if (_isClosed) {
+        logger.fine('restartConnection: engine closed during teardown, not reconnecting');
+        return;
+      }
 
-      await connect(
+      _recreateSignalListener();
+
+      await _connect(
         regionUrl ?? url!,
         token!,
         roomOptions: roomOptions,
@@ -1444,6 +1472,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     // send queued requests if engine re-connected
     signalClient.sendQueuedRequests();
   });
+
+  void _recreateSignalListener() {
+    _signalListener = signalClient.createListener(synchronized: true);
+    _setUpSignalListeners();
+  }
 
   void _setUpSignalListeners() => _signalListener
     ..on<SignalJoinResponseEvent>((event) async {
