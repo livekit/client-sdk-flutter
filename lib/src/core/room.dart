@@ -82,8 +82,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // interleave.
   final _participantUpdateLock = sync.Lock();
 
-  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants =>
-      UnmodifiableMapView(_remoteParticipants.byIdentity);
+  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants => _remoteParticipants.byIdentity;
 
   /// the current participant
   LocalParticipant? get localParticipant => _localParticipant;
