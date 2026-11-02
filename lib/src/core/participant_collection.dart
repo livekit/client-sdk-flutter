@@ -20,6 +20,9 @@ import '../participant/participant.dart';
 class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   final Map<String, T> _byIdentity = {};
   final Map<String, T> _bySid = {};
+  // The sid each identity is keyed by in _bySid. A participant's sid changes in
+  // place when a new session takes over its identity, so it can't be read back.
+  final Map<String, String> _sidByIdentity = {};
 
   // Read-only views of the collections
   UnmodifiableMapView<String, T> get byIdentity => UnmodifiableMapView(_byIdentity);
@@ -27,8 +30,11 @@ class ParticipantCollection<T extends Participant> extends IterableBase<T> {
 
   // Update methods
   void set(T participant) {
+    final previousSid = _sidByIdentity[participant.identity];
+    if (previousSid != participant.sid) _bySid.remove(previousSid);
     _byIdentity[participant.identity] = participant;
     _bySid[participant.sid] = participant;
+    _sidByIdentity[participant.identity] = participant.sid;
   }
 
   // Contains methods
@@ -38,12 +44,12 @@ class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   void clear() {
     _byIdentity.clear();
     _bySid.clear();
+    _sidByIdentity.clear();
   }
 
   T? removeByIdentity(String identity) {
-    final participant = _byIdentity.remove(identity);
-    if (participant == null) return null;
-    return _bySid.remove(participant.sid);
+    _bySid.remove(_sidByIdentity.remove(identity));
+    return _byIdentity.remove(identity);
   }
 
   @override
