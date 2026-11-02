@@ -22,16 +22,13 @@ import '../participant/participant.dart';
 class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   final Map<String, T> _byIdentity = {};
 
-  // Read-only view of the collection
   UnmodifiableMapView<String, T> get byIdentity => UnmodifiableMapView(_byIdentity);
 
   // Searches by each participant's current sid. A takeover changes the sid in place, so a sid index would go stale.
   T? findBySid(String sid) => _byIdentity.values.firstWhereOrNull((participant) => participant.sid == sid);
 
-  // Update methods
   void set(T participant) => _byIdentity[participant.identity] = participant;
 
-  // Contains methods
   bool containsIdentity(String identity) => _byIdentity.containsKey(identity);
 
   void clear() => _byIdentity.clear();
