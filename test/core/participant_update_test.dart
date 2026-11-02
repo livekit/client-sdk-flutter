@@ -181,12 +181,7 @@ void main() {
 
     // The server sends only the new session's info, with no DISCONNECTED for
     // the old sid, so the existing participant is updated in place.
-    final takeover = lk_models.ParticipantInfo(
-      sid: 'PA_takeover',
-      identity: 'remote',
-      version: 1,
-      state: lk_models.ParticipantInfo_State.ACTIVE,
-    );
+    final takeover = _info(1, [])..sid = 'PA_takeover';
     container.wsConnector.onData(
       lk_rtc.SignalResponse(update: lk_rtc.ParticipantUpdate(participants: [takeover])).writeToBuffer(),
     );
