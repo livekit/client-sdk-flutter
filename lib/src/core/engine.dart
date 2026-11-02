@@ -425,7 +425,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> waitForBufferStatusLow(Reliability kind) async {
     // A wait started after closure cannot observe the closing event.
     if (_isClosed || isDisposed) {
-      throw 'Engine disconnected';
+      throw UnexpectedConnectionState('Engine disconnected');
     }
 
     final Completer<void> completer = Completer();
@@ -435,7 +435,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } else {
       onClosing() {
         if (!completer.isCompleted) {
-          completer.completeError('Engine disconnected');
+          completer.completeError(UnexpectedConnectionState('Engine disconnected'));
         }
       }
 
