@@ -425,7 +425,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Future<void> waitForBufferStatusLow(Reliability kind) async {
     // The cached status only changes on a send or on the channel's low-buffer event. A channel
     // that a full reconnect replaced fires neither, so the live channel is checked as well.
-    while (!_isClosed && !isDisposed && !_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true) {
+    // A full reconnect creates its empty channel before it finishes, and a send made in between
+    // is parked for a resume that never comes, so the wait holds until the reconnect is over.
+    while (!_isClosed &&
+        !isDisposed &&
+        (_isReconnecting || (!_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true))) {
       await Future<void>.delayed(const Duration(milliseconds: 10));
     }
     if (_isClosed || isDisposed) {
