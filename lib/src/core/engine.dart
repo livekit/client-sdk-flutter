@@ -179,7 +179,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     Reliability.lossy: false,
   };
 
-  // Completed whenever something a buffer wait depends on changes: a buffer status, the reconnect
+  // Completed whenever something a waiting send depends on changes: a buffer status, the reconnect
   // state or closure. A wait checks its condition again each time it wakes.
   final ReusableCompleter<void> _sendStateChanged = ReusableCompleter<void>();
 
@@ -454,6 +454,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  // Holds a reliable send until a reconnect in progress finishes. Fails if the engine closes
+  // instead, which is how a reconnect that gives up ends.
+  Future<void> _waitForReconnection() async {
+    if (_isReconnecting) await _waitUntil(() => !_isReconnecting);
+  }
+
   Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
     logger.fine('Resending reliable messages from sequence $lastMessageSeq');
 
@@ -491,67 +497,91 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet, {
     Reliability reliability = Reliability.lossy,
   }) async {
+    final isReliable = reliability == Reliability.reliable;
+    rtc.RTCDataChannel? channel;
+    lk_models.EncryptedPacket? encryptedPacket;
+
+    // A reliable packet sent during a full reconnect has no replay to wait for, so a reliable send
+    // waits the reconnect out, the way rust-sdks does. Every wait happens before the sequence
+    // number is taken, and the loop runs again if a reconnect started during them.
+    while (true) {
+      if (isReliable) {
+        await _waitForReconnection();
+      }
+
+      try {
+        if (_subscriberPrimary) {
+          // make sure publisher transport is connected
+          await ensurePublisherConnected();
+
+          // wait for data channel to open (if not already)
+          if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
+            logger.fine('Waiting for data channel ${reliability} to open...');
+            await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
+              filter: (event) => event.type == reliability,
+              duration: connectOptions.timeouts.connection,
+            );
+          }
+        }
+
+        // chose data channel
+        channel = _publisherDataChannel(reliability);
+
+        if (channel == null) {
+          throw UnexpectedStateException('Data channel for ${packet.kind.toSDKType()} is null');
+        }
+      } catch (_) {
+        // A full reconnect that starts during these waits resets the publisher connection and drops
+        // the channels. A reliable send waits it out and tries again.
+        if (isReliable && _isReconnecting) continue;
+        rethrow;
+      }
+
+      encryptedPacket = null;
+      if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
+        final encryptablePacket = asEncryptablePacket(packet);
+        if (encryptablePacket != null) {
+          final encryptedData = await _e2eeManager?.encryptData(data: encryptablePacket.writeToBuffer());
+
+          if (encryptedData == null) {
+            logger.warning('Failed to encrypt data packet');
+            return;
+          }
+
+          encryptedPacket = lk_models.EncryptedPacket(
+            encryptionType: lk_models.Encryption_Type.GCM,
+            encryptedValue: encryptedData.data,
+            iv: encryptedData.iv,
+            keyIndex: encryptedData.keyIndex,
+          );
+        }
+      }
+
+      if (!isReliable || !_isReconnecting) break;
+    }
+
+    // Nothing below awaits before the send, so a reconnect cannot start in between.
+
     // Add sequence number for reliable packets
-    if (reliability == Reliability.reliable) {
+    if (isReliable) {
       packet.sequence = _reliableDataSequence++;
     }
 
     // construct the data channel message
-    var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
-
-    if (_subscriberPrimary) {
-      // make sure publisher transport is connected
-      await ensurePublisherConnected();
-
-      // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
-        logger.fine('Waiting for data channel ${reliability} to open...');
-        await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) => event.type == reliability,
-          duration: connectOptions.timeouts.connection,
-        );
-      }
-    }
-
-    // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
-
-    if (channel == null) {
-      throw UnexpectedStateException('Data channel for ${packet.kind.toSDKType()} is null');
-    }
-
-    if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
-      final encryptablePacket = asEncryptablePacket(packet);
-      if (encryptablePacket != null) {
-        final encryptedData = await _e2eeManager?.encryptData(data: encryptablePacket.writeToBuffer());
-
-        if (encryptedData == null) {
-          logger.warning('Failed to encrypt data packet');
-          return;
-        }
-
-        final encryptedPacket = lk_models.EncryptedPacket(
-          encryptionType: lk_models.Encryption_Type.GCM,
-          encryptedValue: encryptedData.data,
-          iv: encryptedData.iv,
-          keyIndex: encryptedData.keyIndex,
-        );
-
-        final dataToSend = lk_models.DataPacket(
-          participantIdentity: packet.participantIdentity,
-          kind: packet.kind,
-          encryptedPacket: encryptedPacket,
-          destinationIdentities: packet.destinationIdentities,
-          sequence: packet.hasSequence() ? packet.sequence : null,
-          participantSid: packet.hasParticipantSid() ? packet.participantSid : null,
-        );
-
-        message = rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
-      }
-    }
+    final dataToSend = encryptedPacket == null
+        ? packet
+        : lk_models.DataPacket(
+            participantIdentity: packet.participantIdentity,
+            kind: packet.kind,
+            encryptedPacket: encryptedPacket,
+            destinationIdentities: packet.destinationIdentities,
+            sequence: packet.hasSequence() ? packet.sequence : null,
+            participantSid: packet.hasParticipantSid() ? packet.participantSid : null,
+          );
+    final message = rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
 
     // Buffer reliable packets for potential resending
-    if (reliability == Reliability.reliable) {
+    if (isReliable) {
       _reliableMessageBuffer.push(
         BufferedDataPacket(
           packet: packet,
@@ -561,9 +591,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
     }
 
-    // Don't send during reconnection, but keep message buffered for resending
+    // A lossy packet is not held through a reconnect, it would only arrive stale.
     if (_isReconnecting) {
-      logger.fine('Deferring data packet send during reconnection (will resend when resumed)');
+      logger.fine('Dropping lossy data packet during reconnection');
       return;
     }
 
@@ -1403,6 +1433,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _reliableDCPub = null;
       _lossyDCSub = null;
       _lossyDCPub = null;
+
+      // The new session starts its reliable sequence over, and nothing sent on the old one is
+      // replayed into it.
+      _reliableDataSequence = 1;
+      _reliableMessageBuffer.clear();
 
       await _signalListener.cancelAll();
 
