@@ -274,4 +274,39 @@ void main() {
       expect(topLayer.maxBitrate, 2500000);
     });
   });
+
+  group('redactingAccessToken', () {
+    // On web the token rides in the query string, because browsers cannot set headers on a
+    // WebSocket. Logging the URL verbatim would write a usable credential to the app's logs.
+    test('masks the token but keeps the other parameters', () {
+      final uri = Uri.parse(
+        'wss://example.livekit.cloud/rtc'
+        '?access_token=secret-jwt&auto_subscribe=1&sdk=flutter',
+      );
+
+      final redacted = uri.redactingAccessToken;
+
+      expect(redacted.queryParameters['access_token'], '<redacted>');
+      expect(redacted.toString(), isNot(contains('secret-jwt')));
+      // The rest of the URL is untouched, so the log line stays useful.
+      expect(redacted.queryParameters['auto_subscribe'], '1');
+      expect(redacted.queryParameters['sdk'], 'flutter');
+      expect(redacted.scheme, 'wss');
+      expect(redacted.host, 'example.livekit.cloud');
+      expect(redacted.path, '/rtc');
+    });
+
+    test('leaves a url without the parameter unchanged', () {
+      // Native builds authenticate with a Bearer header, so there is nothing to mask.
+      final uri = Uri.parse('wss://example.livekit.cloud/rtc?auto_subscribe=1');
+
+      expect(uri.redactingAccessToken, uri);
+    });
+
+    test('masks an empty token value', () {
+      final uri = Uri.parse('wss://example.livekit.cloud/rtc?access_token=');
+
+      expect(uri.redactingAccessToken.queryParameters['access_token'], '<redacted>');
+    });
+  });
 }
