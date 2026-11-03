@@ -287,10 +287,10 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalJoinResponseEvent(response: msg.join));
         break;
       case lk_rtc.SignalResponse_Message.answer:
-        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
+        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType(), offerId: msg.answer.id));
         break;
       case lk_rtc.SignalResponse_Message.offer:
-        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
+        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType(), offerId: msg.offer.id));
         break;
       case lk_rtc.SignalResponse_Message.trickle:
         events.emit(
@@ -474,16 +474,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
 extension SignalClientRequests on SignalClient {
   @internal
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(
+  void sendOffer(rtc.RTCSessionDescription offer, int offerId) => _sendRequest(
     lk_rtc.SignalRequest(
-      offer: offer.toPBType(),
+      offer: offer.toPBType(id: offerId),
     ),
   );
 
   @internal
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer, int offerId) => _sendRequest(
     lk_rtc.SignalRequest(
-      answer: answer.toPBType(),
+      answer: answer.toPBType(id: offerId),
     ),
   );
 
