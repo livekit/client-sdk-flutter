@@ -84,29 +84,64 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
 
   AudioSenderStats? prevStats;
 
+  bool _nativeRecordingHeld = false;
+
+  /// Process-wide because [Native.startLocalRecording] starts one audio device
+  /// module, shared by every local audio track (pre-join mic, room mic,
+  /// pre-connect buffer).
+  static final NativeRecordingHolders _nativeRecordingHolders = NativeRecordingHolders();
+
   @override
   Future<void> startCapture() async {
     await super.startCapture();
-    if (lkPlatformSupportsExplicitAudioRecordingStart()) {
-      // Recording can start before any policy push (pre-connect audio,
-      // pre-join mic). Hand native the resolved Dart policy first — cache-only
-      // while the engine is idle — so the session is not left to the native
-      // built-in preset.
-      await AudioManager.instance.ensureAppleAudioSessionPolicy();
-      try {
-        // Match Swift: start the ADM before publishing so capture-time audio
-        // processing options are applied before WebRTC opens the microphone.
-        await Native.startLocalRecording(currentOptions.processing.toMap());
-      } on PlatformException catch (error) {
-        // Missing microphone permission or an audio session that does not
-        // permit recording are not audio processing failures, so they surface
-        // as their own exception types.
-        throw audioEngineExceptionFrom(error) ??
-            track_options.AudioProcessingException(
-              _audioProcessingFailureReason(error.code),
-              error.message ?? '',
-            );
-      }
+    if (_nativeRecordingHeld || !lkPlatformSupportsExplicitAudioRecordingStart()) {
+      return;
+    }
+
+    // Recording can start before any policy push (pre-connect audio,
+    // pre-join mic). Hand native the resolved Dart policy first — cache-only
+    // while the engine is idle — so the session is not left to the native
+    // built-in preset.
+    await AudioManager.instance.ensureAppleAudioSessionPolicy();
+    try {
+      // Match Swift: start the ADM before publishing so capture-time audio
+      // processing options are applied before WebRTC opens the microphone.
+      await Native.startLocalRecording(currentOptions.processing.toMap());
+    } on PlatformException catch (error) {
+      // Missing microphone permission or an audio session that does not
+      // permit recording are not audio processing failures, so they surface
+      // as their own exception types.
+      throw audioEngineExceptionFrom(error) ??
+          track_options.AudioProcessingException(
+            _audioProcessingFailureReason(error.code),
+            error.message ?? '',
+          );
+    }
+
+    _nativeRecordingHeld = true;
+    _nativeRecordingHolders.add(this);
+  }
+
+  @override
+  Future<void> stopCapture() async {
+    try {
+      await super.stopCapture();
+    } finally {
+      // startCapture() opens the audio device module directly. Stopping the
+      // MediaStreamTrack does not close it, so a pre-join microphone (no peer
+      // connection to tear the module down on disconnect) keeps recording
+      // until the last holder releases it.
+      await _releaseNativeRecording();
+    }
+  }
+
+  Future<void> _releaseNativeRecording() async {
+    if (!_nativeRecordingHeld) {
+      return;
+    }
+    _nativeRecordingHeld = false;
+    if (_nativeRecordingHolders.remove(this)) {
+      await Native.stopLocalRecording();
     }
   }
 
@@ -212,6 +247,31 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
     }
 
     return track;
+  }
+}
+
+/// Tracks which objects currently hold the process-wide native recording
+/// session. Recording stops only when the last holder releases it.
+@internal
+@visibleForTesting
+final class NativeRecordingHolders {
+  final Set<Object> _holders = <Object>{};
+
+  int get length => _holders.length;
+
+  void add(Object holder) {
+    _holders.add(holder);
+  }
+
+  /// Removes [holder].
+  ///
+  /// Returns true when [holder] was the last one and native recording should
+  /// stop.
+  bool remove(Object holder) {
+    if (!_holders.remove(holder)) {
+      return false;
+    }
+    return _holders.isEmpty;
   }
 }
 
