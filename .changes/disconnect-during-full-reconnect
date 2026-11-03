@@ -1,0 +1,1 @@
+patch type="fixed" "Calling disconnect() while a full reconnect is in progress no longer reconnects the room and joins again with the old token"

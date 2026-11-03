@@ -171,10 +171,7 @@ class MockPeerConnection extends RTCPeerConnection {
     MediaStreamTrack? track,
     RTCRtpMediaType? kind,
     RTCRtpTransceiverInit? init,
-  }) {
-    // TODO: implement addTransceiver
-    throw UnimplementedError();
-  }
+  }) async => MockRtpTransceiver(MockRtpSender(track));
 
   @override
   Future<void> close() async {
@@ -302,4 +299,27 @@ a=rtpmap:32 MPV/90000
   @override
   // TODO: implement restartIce
   Future<void> restartIce() => throw UnimplementedError();
+}
+
+class MockRtpSender implements RTCRtpSender {
+  MockRtpSender(this.track);
+
+  @override
+  MediaStreamTrack? track;
+
+  @override
+  Future<void> replaceTrack(MediaStreamTrack? track) async => this.track = track;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockRtpTransceiver implements RTCRtpTransceiver {
+  MockRtpTransceiver(this.sender);
+
+  @override
+  final RTCRtpSender sender;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
