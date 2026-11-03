@@ -82,8 +82,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // interleave.
   final _participantUpdateLock = sync.Lock();
 
-  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants =>
-      UnmodifiableMapView(_remoteParticipants.byIdentity);
+  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants => _remoteParticipants.byIdentity;
 
   /// the current participant
   LocalParticipant? get localParticipant => _localParticipant;
@@ -456,7 +455,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
 
       // find participant
-      final participant = _remoteParticipants.bySid[event.participantSid];
+      final participant = _remoteParticipants.findBySid(event.participantSid);
       if (participant == null) {
         return;
       }
@@ -746,7 +745,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
-      final participant = _remoteParticipants.bySid[participantSid];
+      final participant = _remoteParticipants.findBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
           throw TrackSubscriptionExceptionEvent(
@@ -911,7 +910,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     };
 
     for (final speaker in speakers) {
-      Participant? p = _remoteParticipants.bySid[speaker.sid];
+      Participant? p = _remoteParticipants.findBySid(speaker.sid);
       if (speaker.sid == localParticipant?.sid) p = localParticipant;
       if (p == null) continue;
 
@@ -934,7 +933,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     isConnected: connectionState == ConnectionState.connected,
     participantSid: participant?.sid,
     subscriber: (pending) async {
-      final target = participant ?? _remoteParticipants.bySid[pending.participantSid];
+      final target = participant ?? _remoteParticipants.findBySid(pending.participantSid);
       if (target == null) return false;
       try {
         await target.addSubscribedMediaTrack(
@@ -964,7 +963,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
       ?localParticipant?.sid: ?localParticipant,
-      ..._remoteParticipants.bySid,
+      for (final participant in _remoteParticipants) participant.sid: participant,
     };
 
     for (final speaker in speakers) {
@@ -995,7 +994,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (entry.participantSid == localParticipant?.sid) {
         participant = localParticipant;
       } else {
-        participant = _remoteParticipants.bySid[entry.participantSid];
+        participant = _remoteParticipants.findBySid(entry.participantSid);
       }
 
       if (participant != null) {
@@ -1008,7 +1007,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onSignalStreamStateUpdateEvent(List<lk_rtc.StreamStateInfo> updates) async {
     for (final update in updates) {
       // try to find RemoteParticipant
-      final participant = _remoteParticipants.bySid[update.participantSid];
+      final participant = _remoteParticipants.findBySid(update.participantSid);
       if (participant == null) {
         logger.warning('Participant not found for sid ${update.participantSid}');
         continue;
