@@ -42,7 +42,26 @@ import 'types/video_parameters.dart';
 extension UriExt on Uri {
   @internal
   bool get isSecureScheme => ['https', 'wss'].contains(scheme);
+
+  /// This URL with the `access_token` query parameter masked, for logging.
+  ///
+  /// On web the token travels in the query string because browsers cannot set headers on a
+  /// WebSocket, so a URL logged verbatim carries a usable credential: anyone who can read the
+  /// app's logs could join the room as that participant until the token expires. Only the token
+  /// is masked, so the remaining parameters stay useful for debugging.
+  @internal
+  Uri get redactingAccessToken {
+    if (!queryParameters.containsKey(_accessTokenParam)) return this;
+    return replace(
+      queryParameters: {
+        ...queryParameters,
+        _accessTokenParam: '<redacted>',
+      },
+    );
+  }
 }
+
+const _accessTokenParam = 'access_token';
 
 typedef RetryFuture<T> =
     Future<T> Function(
@@ -191,7 +210,7 @@ class Utils {
       scheme: validate ? httpScheme : wsScheme,
       pathSegments: pathSegments,
       queryParameters: <String, String>{
-        if (kIsWeb) 'access_token': token,
+        if (kIsWeb) _accessTokenParam: token,
         'auto_subscribe': connectOptions.autoSubscribe ? '1' : '0',
         'adaptive_stream': roomOptions.adaptiveStream ? '1' : '0',
         if (reconnect) 'reconnect': '1',
