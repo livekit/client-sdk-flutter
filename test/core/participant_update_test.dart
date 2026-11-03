@@ -67,6 +67,18 @@ Future<void> _connectWithQueuedUpdates(
 
 Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 50));
 
+/// Reports [sids] as the active speakers and returns the participants the room
+/// resolved them to.
+Future<List<Participant>> _resolveSpeakers(E2EContainer container, List<String> sids) async {
+  final changed = container.room.events.waitFor<ActiveSpeakersChangedEvent>(duration: const Duration(seconds: 1));
+  container.engine.events.emit(
+    EngineActiveSpeakersUpdateEvent(
+      speakers: [for (final sid in sids) lk_models.SpeakerInfo(sid: sid, level: 1, active: true)],
+    ),
+  );
+  return (await changed).speakers;
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -160,5 +172,33 @@ void main() {
     container.wsConnector.onData(_update(2, ['TR_A', 'TR_B']));
 
     expect((await subscribed).participant.identity, 'remote');
+  });
+
+  test('a session taking over an identity leaves no lookup by the old sid', () async {
+    await container.connectRoom();
+    container.wsConnector.onData(_update(3, []));
+    await _settle();
+
+    // The server sends only the new session's info, with no DISCONNECTED for
+    // the old sid, so the existing participant is updated in place.
+    final takeover = _info(1, [])..sid = 'PA_takeover';
+    container.wsConnector.onData(
+      lk_rtc.SignalResponse(update: lk_rtc.ParticipantUpdate(participants: [takeover])).writeToBuffer(),
+    );
+    await _settle();
+
+    final participant = room.remoteParticipants['remote']!;
+    expect(participant.sid, 'PA_takeover');
+    expect(await _resolveSpeakers(container, ['PA_takeover']), [same(participant)]);
+    expect(await _resolveSpeakers(container, ['PA_remote']), isEmpty);
+
+    final leave = takeover.deepCopy()..state = lk_models.ParticipantInfo_State.DISCONNECTED;
+    container.wsConnector.onData(
+      lk_rtc.SignalResponse(update: lk_rtc.ParticipantUpdate(participants: [leave])).writeToBuffer(),
+    );
+    await _settle();
+
+    expect(room.remoteParticipants, isEmpty);
+    expect(await _resolveSpeakers(container, ['PA_remote', 'PA_takeover']), isEmpty);
   });
 }
