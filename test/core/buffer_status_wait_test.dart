@@ -41,6 +41,22 @@ void main() {
     }
   }
 
+  /// Starts a full reconnect and answers its join, leaving it to wait for the subscriber offer.
+  /// The new, empty publisher channels exist from here on, but the reconnect has not finished.
+  Future<void> startFullReconnect() async {
+    final ws = container.wsConnector;
+    final previousHandlers = ws.handlers;
+    container.engine.fullReconnectOnNext = true;
+    ws.onDispose();
+    for (var i = 0; i < 200 && identical(ws.handlers, previousHandlers); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+    ws.onData(joinResponse.writeToBuffer());
+  }
+
+  void finishFullReconnect() => container.wsConnector.onData(offerResponse.writeToBuffer());
+
   /// Fills the reliable channel and sends once, so the engine's cached status also says it is full.
   Future<void> fillReliableChannel() async {
     // The mock loops published data back into this room as if a remote sent it, which the room
@@ -53,15 +69,33 @@ void main() {
     expect(container.engine.isBufferStatusLow(Reliability.reliable), isFalse);
   }
 
-  test('a wait ends once the channel is empty, even without a low-buffer event', () async {
+  test('a wait ends when a full reconnect replaces the full channel', () async {
     await fillReliableChannel();
     final wait = container.engine.waitForBufferStatusLow(Reliability.reliable);
 
-    // An empty channel that never reports the drain, as when a full reconnect replaces the
-    // channel the wait started on.
-    setBufferedAmount(null);
+    // The replaced channel never reports a drain, only the new one is empty.
+    await startFullReconnect();
+    finishFullReconnect();
 
     await wait.timeout(const Duration(seconds: 1));
+  });
+
+  test('a wait wakes as soon as the channel reports a drain', () async {
+    await fillReliableChannel();
+    var done = false;
+    final wait = container.engine.waitForBufferStatusLow(Reliability.reliable).whenComplete(() => done = true);
+    await pumpEventQueue();
+    expect(done, isFalse);
+
+    setBufferedAmount(null);
+    for (final dc in mockDataChannels) {
+      dc.onBufferedAmountLow?.call(0);
+    }
+
+    // Only zero-length timers run here, so a wait that polls on a timer would not have woken yet.
+    await pumpEventQueue();
+    expect(done, isTrue);
+    await wait;
   });
 
   test('a wait does not leave an engine listener behind', () async {
@@ -90,7 +124,6 @@ void main() {
 
   test('a wait holds until a full reconnect finishes', () async {
     final engine = container.engine;
-    final ws = container.wsConnector;
     await fillReliableChannel();
 
     final marker = lk_models.DataPacket(
@@ -110,21 +143,12 @@ void main() {
         .waitForBufferStatusLow(Reliability.reliable)
         .then((_) => engine.sendDataPacket(marker, reliability: Reliability.reliable));
 
-    final previousHandlers = ws.handlers;
-    engine.fullReconnectOnNext = true;
-    ws.onDispose();
-    for (var i = 0; i < 200 && identical(ws.handlers, previousHandlers); i++) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-    await Future<void>.delayed(const Duration(milliseconds: 1));
-    ws.onData(joinResponse.writeToBuffer());
-
-    // The new channel exists and is empty, but the reconnect waits for the subscriber
-    // transport. A real one takes longer than the wait's poll interval.
+    // The new channel exists and is empty, but the reconnect waits for the subscriber transport.
+    await startFullReconnect();
     await Future<void>.delayed(const Duration(milliseconds: 300));
     expect(markerSent, isFalse, reason: 'the write went out before the reconnect finished');
 
-    ws.onData(offerResponse.writeToBuffer());
+    finishFullReconnect();
     await write.timeout(const Duration(seconds: 2));
     expect(markerSent, isTrue, reason: 'the write never reached the new channel');
   });

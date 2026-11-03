@@ -41,6 +41,7 @@ import '../publication/local.dart';
 import '../support/disposable.dart';
 import '../support/platform.dart' show lkPlatformIsTest, lkPlatformIs, PlatformType;
 import '../support/region_url_provider.dart';
+import '../support/reusable_completer.dart';
 import '../support/websocket.dart';
 import '../track/local/local.dart';
 import '../track/local/video.dart';
@@ -178,6 +179,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     Reliability.lossy: false,
   };
 
+  // Completed whenever something a buffer wait depends on changes: a buffer status, the reconnect
+  // state or closure. A wait checks its condition again each time it wakes.
+  final ReusableCompleter<void> _sendStateChanged = ReusableCompleter<void>();
+
+  void _setBufferStatus(Reliability kind, bool isLow) {
+    _dcBufferStatus[kind] = isLow;
+    _sendStateChanged.complete();
+  }
+
   List<lk_models.Codec>? _enabledPublishCodecs;
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
@@ -197,7 +207,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     maxPacketCount: 1000, // max 1000 packets
   );
   final TTLMap<String, int> _reliableReceivedState = TTLMap<String, int>(30000);
-  bool _isReconnecting = false;
+  bool _reconnecting = false;
+  bool get _isReconnecting => _reconnecting;
+  set _isReconnecting(bool value) {
+    _reconnecting = value;
+    _sendStateChanged.complete();
+  }
 
   Completer<void>? _publisherConnectionCompleter;
 
@@ -422,18 +437,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     return null;
   }
 
-  Future<void> waitForBufferStatusLow(Reliability kind) async {
-    // The cached status only changes on a send or on the channel's low-buffer event. A channel
-    // that a full reconnect replaced fires neither, so the live channel is checked as well.
-    // A full reconnect creates its empty channel before it finishes, and a send made in between
-    // is parked for a resume that never comes, so the wait holds until the reconnect is over.
-    while (!_isClosed &&
-        !isDisposed &&
-        (_isReconnecting || (!_dcBufferStatus[kind]! && isBufferStatusLow(kind) != true))) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-    if (_isClosed || isDisposed) {
-      throw UnexpectedConnectionState('Engine disconnected');
+  // A full reconnect creates its empty channel before it finishes, and a send made in between
+  // is parked for a resume that never comes, so the wait also holds until the reconnect is over.
+  Future<void> waitForBufferStatusLow(Reliability kind) =>
+      _waitUntil(() => !_isReconnecting && (_dcBufferStatus[kind]! || isBufferStatusLow(kind) == true));
+
+  // Resolves once [isReady] holds, checking it again each time [_sendStateChanged] fires. Fails
+  // as soon as the engine closes, even when [isReady] already holds.
+  Future<void> _waitUntil(bool Function() isReady) async {
+    while (true) {
+      if (_isClosed || isDisposed) {
+        throw UnexpectedConnectionState('Engine disconnected');
+      }
+      if (isReady()) return;
+      await _sendStateChanged.future;
     }
   }
 
@@ -553,7 +570,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     logger.fine('sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
     await channel.send(message);
 
-    _dcBufferStatus[reliability] = await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!;
+    _setBufferStatus(reliability, await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!);
 
     // Align buffer with WebRTC buffer for reliable packets
     if (reliability == Reliability.reliable) {
@@ -867,9 +884,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // _onDCStateUpdated(Reliability.lossy, state)
       _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       // A new channel starts empty, whatever the one it replaces had buffered.
-      _dcBufferStatus[Reliability.lossy] = true;
+      _setBufferStatus(Reliability.lossy, true);
       _lossyDCPub?.onBufferedAmountLow = (_) {
-        _dcBufferStatus[Reliability.lossy] = (_lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
+        _setBufferStatus(Reliability.lossy, _lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -891,10 +908,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         ),
       );
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
-      _dcBufferStatus[Reliability.reliable] = true;
+      _setBufferStatus(Reliability.reliable, true);
       _reliableDCPub?.onBufferedAmountLow = (_) {
-        _dcBufferStatus[Reliability.reliable] =
-            (_reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!);
+        _setBufferStatus(
+          Reliability.reliable,
+          _reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!,
+        );
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -1682,6 +1701,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void markClosed() {
     if (_isClosed) return;
     _isClosed = true;
+    _sendStateChanged.complete();
     events.emit(EngineClosingEvent());
   }
 
