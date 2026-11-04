@@ -247,6 +247,11 @@ class NativeDataStreams implements DataStreams {
   /// buffer is below its low-water mark, before the next batch is pulled. That keeps order
   /// without a separate send chain and paces the wire as `WritableStream` did on main.
   ///
+  /// Every batch is then settled: the core holds the send that produced it until we do, so a
+  /// `sendText`/`sendBytes`/`write` resolves only once its packets are on the data channel, and
+  /// fails with a [DataStreamError] when they could not be put there. The core produces no further
+  /// batch meanwhile, which is what stops a `sendFile` from reading ahead of the wire.
+  ///
   /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
   /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
   /// queue rather than releasing it.
@@ -255,8 +260,16 @@ class NativeDataStreams implements DataStreams {
       while (true) {
         final batch = await _outgoingPackets.nextPackets();
         if (batch == null) break; // closed or shutting down
-        for (final encoded in batch) {
-          await _send(encoded);
+        try {
+          for (final encoded in batch.packets()) {
+            await _send(encoded);
+          }
+          batch.complete();
+        } catch (e) {
+          logger.warning('[DataStreams] failed to send outbound packets: $e');
+          batch.fail(reason: '$e');
+        } finally {
+          batch.dispose();
         }
       }
     } catch (e) {
@@ -268,19 +281,14 @@ class NativeDataStreams implements DataStreams {
 
   Future<void> _send(Uint8List encoded) async {
     final room = _room.target;
-    if (room == null || _disposed) return;
-    try {
-      await room.engine.waitForBufferStatusLow(Reliability.reliable);
-      // Back through the engine rather than the data channel directly, so E2EE wrapping,
-      // reliable sequencing and resume-resend all still apply.
-      await room.engine.sendDataPacket(
-        lk_models.DataPacket.fromBuffer(encoded),
-        reliability: Reliability.reliable,
-      );
-    } catch (e) {
-      // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
-      logger.warning('[DataStreams] failed to send outbound packet: $e');
-    }
+    if (room == null || _disposed) throw StateError('data streams were disposed');
+    await room.engine.waitForBufferStatusLow(Reliability.reliable);
+    // Back through the engine rather than the data channel directly, so E2EE wrapping, reliable
+    // sequencing and resume-resend all still apply.
+    await room.engine.sendDataPacket(
+      lk_models.DataPacket.fromBuffer(encoded),
+      reliability: Reliability.reliable,
+    );
   }
 
   // MARK: - Receive

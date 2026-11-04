@@ -102,3 +102,9 @@ topics:
   - video
   - livestream
   - conference
+
+# TEMPORARY: the polled outgoing queue's delivery acknowledgement (OutgoingPacketBatch) is not in a
+# published livekit_ffi yet. Replace with a version bump once livekit-ffi releases it.
+dependency_overrides:
+  livekit_ffi:
+    path: ../rust-sdks/.claude/worktrees/polled-delivery-ack/livekit-ffi/packages/dart

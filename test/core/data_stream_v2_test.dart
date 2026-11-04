@@ -211,6 +211,42 @@ void main() {
       await _waitUntil(() => sentTopics().contains('second'));
     });
 
+    test('a send resolves only once its packets are on the data channel', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      final reliable = mockDataChannels.where((dc) => dc.label == '_reliable').toList();
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = 1 << 30;
+      }
+      // Leaves the channel marked as above its low-water mark; see the backpressure test.
+      await room.localParticipant!.sendText('first', options: SendTextOptions(topic: 'first'));
+
+      var resolved = false;
+      final second = room.localParticipant!
+          .sendText('second', options: SendTextOptions(topic: 'second'))
+          .whenComplete(() => resolved = true);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(resolved, isFalse, reason: 'nothing has been sent yet');
+
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = null;
+        dc.onBufferedAmountLow?.call(0);
+      }
+      await second;
+      expect(streamPackets().map((p) => p.streamHeader.topic), contains('second'));
+    });
+
+    test('a send fails when its packets cannot be put on the data channel', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      for (final dc in mockDataChannels.where((dc) => dc.label == '_reliable')) {
+        dc.onMessageSend = (_) => throw StateError('data channel is gone');
+      }
+
+      await expectLater(
+        room.localParticipant!.sendText('lost', options: SendTextOptions(topic: 'lost')),
+        throwsA(isA<DataStreamError>()),
+      );
+    });
+
     group('MIME type inference', () {
       late Directory dir;
       setUp(() async => dir = await Directory.systemTemp.createTemp('lk_mime'));

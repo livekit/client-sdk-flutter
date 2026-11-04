@@ -443,10 +443,9 @@ packages:
   livekit_ffi:
     dependency: "direct main"
     description:
-      name: livekit_ffi
-      sha256: "2a13ec691d5ca44794772779bb6df0454f6db24c3d1962304af62bbb54a3ae14"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../rust-sdks/.claude/worktrees/polled-delivery-ack/livekit-ffi/packages/dart"
+      relative: true
+    source: path
     version: "0.13.3"
   logger:
     dependency: transitive
