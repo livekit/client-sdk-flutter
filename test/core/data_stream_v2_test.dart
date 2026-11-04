@@ -23,6 +23,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
@@ -185,6 +186,98 @@ void main() {
       expect(info.name, equals('unknown'));
       expect(info.mimeType, equals('application/octet-stream'));
     });
+
+    test('outbound packets wait for the reliable data channel buffer to drain', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      final reliable = mockDataChannels.where((dc) => dc.label == '_reliable').toList();
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = 1 << 30;
+      }
+      Iterable<String> sentTopics() => streamPackets().map((p) => p.streamHeader.topic);
+
+      // The engine samples the buffer after each send, so the first packet goes out and leaves
+      // the channel marked as above its low-water mark.
+      await room.localParticipant!.sendText('first', options: SendTextOptions(topic: 'first'));
+      await _waitUntil(() => sentTopics().contains('first'));
+
+      unawaited(room.localParticipant!.sendText('second', options: SendTextOptions(topic: 'second')));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(sentTopics(), isNot(contains('second')), reason: 'held while the buffer is full');
+
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = null;
+        dc.onBufferedAmountLow?.call(0);
+      }
+      await _waitUntil(() => sentTopics().contains('second'));
+    });
+
+    test('a send resolves only once its packets are on the data channel', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      final reliable = mockDataChannels.where((dc) => dc.label == '_reliable').toList();
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = 1 << 30;
+      }
+      // Leaves the channel marked as above its low-water mark; see the backpressure test.
+      await room.localParticipant!.sendText('first', options: SendTextOptions(topic: 'first'));
+
+      var resolved = false;
+      final second = room.localParticipant!
+          .sendText('second', options: SendTextOptions(topic: 'second'))
+          .whenComplete(() => resolved = true);
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(resolved, isFalse, reason: 'nothing has been sent yet');
+
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = null;
+        dc.onBufferedAmountLow?.call(0);
+      }
+      await second;
+      expect(streamPackets().map((p) => p.streamHeader.topic), contains('second'));
+    });
+
+    test('a send fails when its packets cannot be put on the data channel', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      for (final dc in mockDataChannels.where((dc) => dc.label == '_reliable')) {
+        dc.onMessageSend = (_) => throw StateError('data channel is gone');
+      }
+
+      await expectLater(
+        room.localParticipant!.sendText('lost', options: SendTextOptions(topic: 'lost')),
+        throwsA(isA<DataStreamError>()),
+      );
+    });
+
+    group('MIME type inference', () {
+      late Directory dir;
+      setUp(() async => dir = await Directory.systemTemp.createTemp('lk_mime'));
+      tearDown(() async => dir.delete(recursive: true));
+
+      Future<File> file(String name) async => File('${dir.path}/$name')..writeAsBytesSync([1, 2, 3, 4]);
+
+      test('sendFile infers the MIME type from the file name', () async {
+        await room.localParticipant!.sendFile(await file('hello.png'), options: SendFileOptions(topic: 'files'));
+        expect(streamPackets().first.streamHeader.mimeType, equals('image/png'));
+      });
+
+      test('an explicit MIME type wins over inference', () async {
+        await room.localParticipant!.sendFile(
+          await file('hello.png'),
+          options: SendFileOptions(topic: 'files', mimeType: 'application/x-custom'),
+        );
+        expect(streamPackets().first.streamHeader.mimeType, equals('application/x-custom'));
+      });
+
+      test('sendText attachments infer their MIME type', () async {
+        await room.localParticipant!.sendText(
+          'see attached',
+          options: SendTextOptions(topic: 'chat', attachments: [await file('notes.pdf')]),
+        );
+        final byteHeaders = streamPackets()
+            .where((p) => p.hasStreamHeader() && p.streamHeader.hasByteHeader())
+            .map((p) => p.streamHeader);
+        expect(byteHeaders.single.mimeType, equals('application/pdf'));
+      });
+    });
   });
 
   group('receive side', () {
@@ -264,6 +357,51 @@ void main() {
         reason: 'the payload really was compressed on the way out',
       );
       expect(await received.future, equals(text));
+    });
+
+    test('trailer attributes are merged into the reader info by the time the stream ends', () async {
+      final opened = Completer<void>();
+      final done = Completer<TextStreamInfo>();
+      room.registerTextStreamHandler('trailered', (reader, identity) async {
+        opened.complete();
+        expect(await reader.readAll(), equals('hello'));
+        done.complete(reader.info!);
+      });
+
+      lk_models.DataPacket packet() =>
+          lk_models.DataPacket(kind: lk_models.DataPacket_Kind.RELIABLE, participantIdentity: 'alice');
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamHeader = lk_models.DataStream_Header(
+            streamId: 'trailered-1',
+            topic: 'trailered',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            attributes: {'a': '1'}.entries,
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+      );
+      // The handler has to see the stream before the trailer lands, or the info it is handed would
+      // already include the trailer's attributes and prove nothing.
+      await opened.future.timeout(const Duration(seconds: 5));
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamChunk = lk_models.DataStream_Chunk(
+            streamId: 'trailered-1',
+            chunkIndex: Int64(0),
+            content: Uint8List.fromList(utf8.encode('hello')),
+          ),
+      );
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamTrailer = lk_models.DataStream_Trailer(
+            streamId: 'trailered-1',
+            attributes: {'b': '2'}.entries,
+          ),
+      );
+
+      final info = await done.future.timeout(const Duration(seconds: 5));
+      expect(info.attributes, equals({'a': '1', 'b': '2'}));
     });
 
     test('a stream on an unregistered topic is ignored', () async {
@@ -358,6 +496,50 @@ void main() {
   });
 
   group('open stream accounting', () {
+    test('cancelling the subscription ends the stream in the core', () async {
+      final ds = room.dataStreams as NativeDataStreams;
+      final cancelled = Completer<void>();
+      room.registerTextStreamHandler('cancelled', (reader, identity) async {
+        late final StreamSubscription<lk_models.DataStream_Chunk> sub;
+        sub = reader.listen((_) async {
+          await sub.cancel();
+          cancelled.complete();
+        });
+      });
+
+      lk_models.DataPacket packet() =>
+          lk_models.DataPacket(kind: lk_models.DataPacket_Kind.RELIABLE, participantIdentity: 'alice');
+      room.dataStreams.handleIncomingPacket(
+        packet()
+          ..streamHeader = lk_models.DataStream_Header(
+            streamId: 'cancelled-1',
+            topic: 'cancelled',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        EncryptionType.kNone,
+      );
+      room.dataStreams.handleIncomingPacket(
+        packet()
+          ..streamChunk = lk_models.DataStream_Chunk(
+            streamId: 'cancelled-1',
+            chunkIndex: Int64(0),
+            content: Uint8List.fromList(utf8.encode('first')),
+          ),
+        EncryptionType.kNone,
+      );
+
+      await cancelled.future.timeout(const Duration(seconds: 5));
+      // The pump is now parked in next() with the sender silent; only closing the reader frees
+      // the stream. The close reaches the core's loop asynchronously, so give it a moment.
+      final deadline = DateTime.now().add(const Duration(seconds: 2));
+      while (await ds.debugOpenStreamCount() != 0 && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(await ds.debugOpenStreamCount(), 0);
+    });
+
     test('the count follows headers, and reset discards the manager', () async {
       room.registerTextStreamHandler('counted', (reader, identity) async {});
       final ds = room.dataStreams as NativeDataStreams;
@@ -472,4 +654,13 @@ void main() {
       expect(await received.future, equals(text));
     });
   });
+}
+
+/// Polls [condition] until it holds, failing after [timeout].
+Future<void> _waitUntil(bool Function() condition, {Duration timeout = const Duration(seconds: 5)}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) fail('condition not met within $timeout');
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
 }

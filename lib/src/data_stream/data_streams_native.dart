@@ -20,6 +20,7 @@ import 'dart:typed_data';
 import 'package:fixnum/fixnum.dart';
 import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 import 'package:meta/meta.dart';
+import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' show basename;
 import 'package:uuid/uuid.dart';
 
@@ -79,10 +80,6 @@ class NativeDataStreams implements DataStreams {
 
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
   final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
-
-  /// Serializes outbound sends so packet order survives the hop from the pump into the engine's
-  /// async send.
-  Future<void> _sendChain = Future.value();
 
   bool _disposed = false;
 
@@ -183,7 +180,8 @@ class NativeDataStreams implements DataStreams {
           attributes: const {},
           destinationIdentities: options.destinationIdentities,
           id: id,
-          mimeType: options.mimeType,
+          // The core falls back to application/octet-stream and does no inference of its own.
+          mimeType: options.mimeType ?? mime(basename(file.path)),
           name: basename(file.path),
         ),
       ),
@@ -245,6 +243,15 @@ class NativeDataStreams implements DataStreams {
 
   /// Drains outbound packets from the core and puts them on the wire, in order.
   ///
+  /// Each batch is sent, one packet at a time and each only once the reliable data channel's
+  /// buffer is below its low-water mark, before the next batch is pulled. That keeps order
+  /// without a separate send chain and paces the wire as `WritableStream` did on main.
+  ///
+  /// Every batch is then settled: the core holds the send that produced it until we do, so a
+  /// `sendText`/`sendBytes`/`write` resolves only once its packets are on the data channel, and
+  /// fails with a [DataStreamError] when they could not be put there. The core produces no further
+  /// batch meanwhile, which is what stops a `sendFile` from reading ahead of the wire.
+  ///
   /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
   /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
   /// queue rather than releasing it.
@@ -253,8 +260,16 @@ class NativeDataStreams implements DataStreams {
       while (true) {
         final batch = await _outgoingPackets.nextPackets();
         if (batch == null) break; // closed or shutting down
-        for (final encoded in batch) {
-          _enqueueSend(encoded);
+        try {
+          for (final encoded in batch.packets()) {
+            await _send(encoded);
+          }
+          batch.complete();
+        } catch (e) {
+          logger.warning('[DataStreams] failed to send outbound packets: $e');
+          batch.fail(reason: '$e');
+        } finally {
+          batch.dispose();
         }
       }
     } catch (e) {
@@ -264,22 +279,16 @@ class NativeDataStreams implements DataStreams {
     }
   }
 
-  void _enqueueSend(Uint8List encoded) {
-    _sendChain = _sendChain.then((_) async {
-      final room = _room.target;
-      if (room == null || _disposed) return;
-      try {
-        // Back through the engine rather than the data channel directly, so E2EE wrapping,
-        // reliable sequencing and resume-resend all still apply.
-        await room.engine.sendDataPacket(
-          lk_models.DataPacket.fromBuffer(encoded),
-          reliability: Reliability.reliable,
-        );
-      } catch (e) {
-        // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
-        logger.warning('[DataStreams] failed to send outbound packet: $e');
-      }
-    });
+  Future<void> _send(Uint8List encoded) async {
+    final room = _room.target;
+    if (room == null || _disposed) throw StateError('data streams were disposed');
+    await room.engine.waitForBufferStatusLow(Reliability.reliable);
+    // Back through the engine rather than the data channel directly, so E2EE wrapping, reliable
+    // sequencing and resume-resend all still apply.
+    await room.engine.sendDataPacket(
+      lk_models.DataPacket.fromBuffer(encoded),
+      reliability: Reliability.reliable,
+    );
   }
 
   // MARK: - Receive
@@ -375,6 +384,8 @@ class NativeDataStreams implements DataStreams {
         next: textReader.next,
         toBytes: (piece) => Uint8List.fromList(utf8.encode(piece)),
         streamId: info.id,
+        latestAttributes: () => textReader.info().attributes,
+        close: textReader.close,
         dispose: textReader.dispose,
       );
       handler(TextStreamReader(info, controller, info.size), identity);
@@ -399,6 +410,8 @@ class NativeDataStreams implements DataStreams {
         next: byteReader.next,
         toBytes: (piece) => piece,
         streamId: info.id,
+        latestAttributes: () => byteReader.info().attributes,
+        close: byteReader.close,
         dispose: byteReader.dispose,
       );
       handler(ByteStreamReader(info, controller, info.size), identity);
@@ -411,14 +424,22 @@ class NativeDataStreams implements DataStreams {
   /// stops while the subscription is paused, so the core's backpressure is preserved rather than
   /// buffering the whole stream into Dart.
   ///
+  /// [info] is a snapshot taken when the stream opened, but a trailer can carry more attributes.
+  /// The core merges those into its own info before the read that ends the stream returns, so they
+  /// are copied over from [latestAttributes] then, before the stream closes, as the v1 path does.
+  ///
   /// The pump owns the reader's lifetime and is the only thing that may dispose it. Disposing from
   /// `onCancel` instead would free the Rust handle while a `next()` is still in flight — a
-  /// use-after-free that shows up as a SIGBUS, not a Dart exception.
+  /// use-after-free that shows up as a SIGBUS, not a Dart exception. `onCancel` calls [close]
+  /// instead: it returns at once, ends the stream in the core even if the sender goes quiet, and
+  /// fails a pending `next()` with `AlreadyClosed`, which wakes the pump so it can dispose.
   DataStreamController<lk_models.DataStream_Chunk> _controllerFor<T extends Object>({
     required BaseStreamInfo info,
     required Future<T?> Function() next,
     required Uint8List Function(T piece) toBytes,
     required String streamId,
+    required Map<String, String> Function() latestAttributes,
+    required void Function() close,
     required void Function() dispose,
   }) {
     late final StreamController<lk_models.DataStream_Chunk> controller;
@@ -440,7 +461,10 @@ class NativeDataStreams implements DataStreams {
       try {
         while (!cancelled && !controller.isClosed && !controller.isPaused) {
           final piece = await next();
-          if (piece == null) break;
+          if (piece == null) {
+            info.attributes = {...info.attributes, ...latestAttributes()};
+            break;
+          }
           if (cancelled || controller.isClosed) break;
           wrapper.write(
             lk_models.DataStream_Chunk(
@@ -456,7 +480,9 @@ class NativeDataStreams implements DataStreams {
           disposeOnce();
         }
       } on ffi.DataStreamException catch (e) {
-        wrapper.error(toLKError(e));
+        // A cancelled subscription closed the reader; the AlreadyClosed it causes is expected and
+        // there is nobody listening to report it to.
+        if (!cancelled) wrapper.error(toLKError(e));
         await wrapper.close();
         disposeOnce();
       } catch (e) {
@@ -476,10 +502,11 @@ class NativeDataStreams implements DataStreams {
     controller = StreamController<lk_models.DataStream_Chunk>(
       onListen: () => unawaited(pump()),
       onResume: () => unawaited(pump()),
-      // Only flag it: the pump disposes once it has stopped touching the reader. If it is blocked
-      // in `next()` the reader stays alive until that resolves, which is the safe order.
+      // Close, don't dispose: the pump disposes once it has stopped touching the reader. Closing
+      // fails a `next()` it is blocked in, so it gets there without waiting on the sender.
       onCancel: () {
         cancelled = true;
+        if (!disposed) close();
         if (!running) disposeOnce();
       },
     );
