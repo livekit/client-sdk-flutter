@@ -23,6 +23,7 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
@@ -184,6 +185,38 @@ void main() {
       expect(header.compression, lk_models.DataStream_CompressionType.DEFLATE_RAW);
       expect(info.name, equals('unknown'));
       expect(info.mimeType, equals('application/octet-stream'));
+    });
+
+    group('MIME type inference', () {
+      late Directory dir;
+      setUp(() async => dir = await Directory.systemTemp.createTemp('lk_mime'));
+      tearDown(() async => dir.delete(recursive: true));
+
+      Future<File> file(String name) async => File('${dir.path}/$name')..writeAsBytesSync([1, 2, 3, 4]);
+
+      test('sendFile infers the MIME type from the file name', () async {
+        await room.localParticipant!.sendFile(await file('hello.png'), options: SendFileOptions(topic: 'files'));
+        expect(streamPackets().first.streamHeader.mimeType, equals('image/png'));
+      });
+
+      test('an explicit MIME type wins over inference', () async {
+        await room.localParticipant!.sendFile(
+          await file('hello.png'),
+          options: SendFileOptions(topic: 'files', mimeType: 'application/x-custom'),
+        );
+        expect(streamPackets().first.streamHeader.mimeType, equals('application/x-custom'));
+      });
+
+      test('sendText attachments infer their MIME type', () async {
+        await room.localParticipant!.sendText(
+          'see attached',
+          options: SendTextOptions(topic: 'chat', attachments: [await file('notes.pdf')]),
+        );
+        final byteHeaders = streamPackets()
+            .where((p) => p.hasStreamHeader() && p.streamHeader.hasByteHeader())
+            .map((p) => p.streamHeader);
+        expect(byteHeaders.single.mimeType, equals('application/pdf'));
+      });
     });
   });
 

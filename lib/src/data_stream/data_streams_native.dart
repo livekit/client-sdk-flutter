@@ -20,6 +20,7 @@ import 'dart:typed_data';
 import 'package:fixnum/fixnum.dart';
 import 'package:livekit_ffi/livekit_ffi.dart' as ffi;
 import 'package:meta/meta.dart';
+import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart' show basename;
 import 'package:uuid/uuid.dart';
 
@@ -183,7 +184,8 @@ class NativeDataStreams implements DataStreams {
           attributes: const {},
           destinationIdentities: options.destinationIdentities,
           id: id,
-          mimeType: options.mimeType,
+          // The core falls back to application/octet-stream and does no inference of its own.
+          mimeType: options.mimeType ?? mime(basename(file.path)),
           name: basename(file.path),
         ),
       ),
