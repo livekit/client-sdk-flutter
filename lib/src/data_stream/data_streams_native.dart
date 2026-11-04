@@ -81,10 +81,6 @@ class NativeDataStreams implements DataStreams {
   final Map<String, TextStreamHandler> _textStreamHandlers = {};
   final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
 
-  /// Serializes outbound sends so packet order survives the hop from the pump into the engine's
-  /// async send.
-  Future<void> _sendChain = Future.value();
-
   bool _disposed = false;
 
   @override
@@ -247,6 +243,10 @@ class NativeDataStreams implements DataStreams {
 
   /// Drains outbound packets from the core and puts them on the wire, in order.
   ///
+  /// Each batch is sent, one packet at a time and each only once the reliable data channel's
+  /// buffer is below its low-water mark, before the next batch is pulled. That keeps order
+  /// without a separate send chain and paces the wire as `WritableStream` did on main.
+  ///
   /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
   /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
   /// queue rather than releasing it.
@@ -256,7 +256,7 @@ class NativeDataStreams implements DataStreams {
         final batch = await _outgoingPackets.nextPackets();
         if (batch == null) break; // closed or shutting down
         for (final encoded in batch) {
-          _enqueueSend(encoded);
+          await _send(encoded);
         }
       }
     } catch (e) {
@@ -266,22 +266,21 @@ class NativeDataStreams implements DataStreams {
     }
   }
 
-  void _enqueueSend(Uint8List encoded) {
-    _sendChain = _sendChain.then((_) async {
-      final room = _room.target;
-      if (room == null || _disposed) return;
-      try {
-        // Back through the engine rather than the data channel directly, so E2EE wrapping,
-        // reliable sequencing and resume-resend all still apply.
-        await room.engine.sendDataPacket(
-          lk_models.DataPacket.fromBuffer(encoded),
-          reliability: Reliability.reliable,
-        );
-      } catch (e) {
-        // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
-        logger.warning('[DataStreams] failed to send outbound packet: $e');
-      }
-    });
+  Future<void> _send(Uint8List encoded) async {
+    final room = _room.target;
+    if (room == null || _disposed) return;
+    try {
+      await room.engine.waitForBufferStatusLow(Reliability.reliable);
+      // Back through the engine rather than the data channel directly, so E2EE wrapping,
+      // reliable sequencing and resume-resend all still apply.
+      await room.engine.sendDataPacket(
+        lk_models.DataPacket.fromBuffer(encoded),
+        reliability: Reliability.reliable,
+      );
+    } catch (e) {
+      // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
+      logger.warning('[DataStreams] failed to send outbound packet: $e');
+    }
   }
 
   // MARK: - Receive

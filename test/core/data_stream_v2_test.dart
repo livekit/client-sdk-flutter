@@ -187,6 +187,30 @@ void main() {
       expect(info.mimeType, equals('application/octet-stream'));
     });
 
+    test('outbound packets wait for the reliable data channel buffer to drain', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      final reliable = mockDataChannels.where((dc) => dc.label == '_reliable').toList();
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = 1 << 30;
+      }
+      Iterable<String> sentTopics() => streamPackets().map((p) => p.streamHeader.topic);
+
+      // The engine samples the buffer after each send, so the first packet goes out and leaves
+      // the channel marked as above its low-water mark.
+      await room.localParticipant!.sendText('first', options: SendTextOptions(topic: 'first'));
+      await _waitUntil(() => sentTopics().contains('first'));
+
+      unawaited(room.localParticipant!.sendText('second', options: SendTextOptions(topic: 'second')));
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      expect(sentTopics(), isNot(contains('second')), reason: 'held while the buffer is full');
+
+      for (final dc in reliable) {
+        dc.bufferedAmountOverride = null;
+        dc.onBufferedAmountLow?.call(0);
+      }
+      await _waitUntil(() => sentTopics().contains('second'));
+    });
+
     group('MIME type inference', () {
       late Directory dir;
       setUp(() async => dir = await Directory.systemTemp.createTemp('lk_mime'));
@@ -594,4 +618,13 @@ void main() {
       expect(await received.future, equals(text));
     });
   });
+}
+
+/// Polls [condition] until it holds, failing after [timeout].
+Future<void> _waitUntil(bool Function() condition, {Duration timeout = const Duration(seconds: 5)}) async {
+  final deadline = DateTime.now().add(timeout);
+  while (!condition()) {
+    if (DateTime.now().isAfter(deadline)) fail('condition not met within $timeout');
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
 }
