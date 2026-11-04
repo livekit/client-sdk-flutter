@@ -371,7 +371,7 @@ class WebDataStreams implements DataStreams {
         streamId: streamId,
         totalSize: totalLength,
         name: basename(file.path),
-        mimeType: options.mimeType,
+        mimeType: options.mimeType ?? mime(basename(file.path)),
         topic: options.topic,
         destinationIdentities: options.destinationIdentities,
         encryptionType: options.encryptionType,
