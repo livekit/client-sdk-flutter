@@ -266,6 +266,51 @@ void main() {
       expect(await received.future, equals(text));
     });
 
+    test('trailer attributes are merged into the reader info by the time the stream ends', () async {
+      final opened = Completer<void>();
+      final done = Completer<TextStreamInfo>();
+      room.registerTextStreamHandler('trailered', (reader, identity) async {
+        opened.complete();
+        expect(await reader.readAll(), equals('hello'));
+        done.complete(reader.info!);
+      });
+
+      lk_models.DataPacket packet() =>
+          lk_models.DataPacket(kind: lk_models.DataPacket_Kind.RELIABLE, participantIdentity: 'alice');
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamHeader = lk_models.DataStream_Header(
+            streamId: 'trailered-1',
+            topic: 'trailered',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            attributes: {'a': '1'}.entries,
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+      );
+      // The handler has to see the stream before the trailer lands, or the info it is handed would
+      // already include the trailer's attributes and prove nothing.
+      await opened.future.timeout(const Duration(seconds: 5));
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamChunk = lk_models.DataStream_Chunk(
+            streamId: 'trailered-1',
+            chunkIndex: Int64(0),
+            content: Uint8List.fromList(utf8.encode('hello')),
+          ),
+      );
+      container.deliverInboundDataPacket(
+        packet()
+          ..streamTrailer = lk_models.DataStream_Trailer(
+            streamId: 'trailered-1',
+            attributes: {'b': '2'}.entries,
+          ),
+      );
+
+      final info = await done.future.timeout(const Duration(seconds: 5));
+      expect(info.attributes, equals({'a': '1', 'b': '2'}));
+    });
+
     test('a stream on an unregistered topic is ignored', () async {
       var fired = false;
       room.registerTextStreamHandler('registered', (reader, identity) async {

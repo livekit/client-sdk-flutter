@@ -375,6 +375,7 @@ class NativeDataStreams implements DataStreams {
         next: textReader.next,
         toBytes: (piece) => Uint8List.fromList(utf8.encode(piece)),
         streamId: info.id,
+        latestAttributes: () => textReader.info().attributes,
         dispose: textReader.dispose,
       );
       handler(TextStreamReader(info, controller, info.size), identity);
@@ -399,6 +400,7 @@ class NativeDataStreams implements DataStreams {
         next: byteReader.next,
         toBytes: (piece) => piece,
         streamId: info.id,
+        latestAttributes: () => byteReader.info().attributes,
         dispose: byteReader.dispose,
       );
       handler(ByteStreamReader(info, controller, info.size), identity);
@@ -411,6 +413,10 @@ class NativeDataStreams implements DataStreams {
   /// stops while the subscription is paused, so the core's backpressure is preserved rather than
   /// buffering the whole stream into Dart.
   ///
+  /// [info] is a snapshot taken when the stream opened, but a trailer can carry more attributes.
+  /// The core merges those into its own info before the read that ends the stream returns, so they
+  /// are copied over from [latestAttributes] then, before the stream closes, as the v1 path does.
+  ///
   /// The pump owns the reader's lifetime and is the only thing that may dispose it. Disposing from
   /// `onCancel` instead would free the Rust handle while a `next()` is still in flight — a
   /// use-after-free that shows up as a SIGBUS, not a Dart exception.
@@ -419,6 +425,7 @@ class NativeDataStreams implements DataStreams {
     required Future<T?> Function() next,
     required Uint8List Function(T piece) toBytes,
     required String streamId,
+    required Map<String, String> Function() latestAttributes,
     required void Function() dispose,
   }) {
     late final StreamController<lk_models.DataStream_Chunk> controller;
@@ -440,7 +447,10 @@ class NativeDataStreams implements DataStreams {
       try {
         while (!cancelled && !controller.isClosed && !controller.isPaused) {
           final piece = await next();
-          if (piece == null) break;
+          if (piece == null) {
+            info.attributes = {...info.attributes, ...latestAttributes()};
+            break;
+          }
           if (cancelled || controller.isClosed) break;
           wrapper.write(
             lk_models.DataStream_Chunk(
