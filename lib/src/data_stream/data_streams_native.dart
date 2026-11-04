@@ -378,6 +378,7 @@ class NativeDataStreams implements DataStreams {
         toBytes: (piece) => Uint8List.fromList(utf8.encode(piece)),
         streamId: info.id,
         latestAttributes: () => textReader.info().attributes,
+        close: textReader.close,
         dispose: textReader.dispose,
       );
       handler(TextStreamReader(info, controller, info.size), identity);
@@ -403,6 +404,7 @@ class NativeDataStreams implements DataStreams {
         toBytes: (piece) => piece,
         streamId: info.id,
         latestAttributes: () => byteReader.info().attributes,
+        close: byteReader.close,
         dispose: byteReader.dispose,
       );
       handler(ByteStreamReader(info, controller, info.size), identity);
@@ -421,13 +423,16 @@ class NativeDataStreams implements DataStreams {
   ///
   /// The pump owns the reader's lifetime and is the only thing that may dispose it. Disposing from
   /// `onCancel` instead would free the Rust handle while a `next()` is still in flight — a
-  /// use-after-free that shows up as a SIGBUS, not a Dart exception.
+  /// use-after-free that shows up as a SIGBUS, not a Dart exception. `onCancel` calls [close]
+  /// instead: it returns at once, ends the stream in the core even if the sender goes quiet, and
+  /// fails a pending `next()` with `AlreadyClosed`, which wakes the pump so it can dispose.
   DataStreamController<lk_models.DataStream_Chunk> _controllerFor<T extends Object>({
     required BaseStreamInfo info,
     required Future<T?> Function() next,
     required Uint8List Function(T piece) toBytes,
     required String streamId,
     required Map<String, String> Function() latestAttributes,
+    required void Function() close,
     required void Function() dispose,
   }) {
     late final StreamController<lk_models.DataStream_Chunk> controller;
@@ -468,7 +473,9 @@ class NativeDataStreams implements DataStreams {
           disposeOnce();
         }
       } on ffi.DataStreamException catch (e) {
-        wrapper.error(toLKError(e));
+        // A cancelled subscription closed the reader; the AlreadyClosed it causes is expected and
+        // there is nobody listening to report it to.
+        if (!cancelled) wrapper.error(toLKError(e));
         await wrapper.close();
         disposeOnce();
       } catch (e) {
@@ -488,10 +495,11 @@ class NativeDataStreams implements DataStreams {
     controller = StreamController<lk_models.DataStream_Chunk>(
       onListen: () => unawaited(pump()),
       onResume: () => unawaited(pump()),
-      // Only flag it: the pump disposes once it has stopped touching the reader. If it is blocked
-      // in `next()` the reader stays alive until that resolves, which is the safe order.
+      // Close, don't dispose: the pump disposes once it has stopped touching the reader. Closing
+      // fails a `next()` it is blocked in, so it gets there without waiting on the sender.
       onCancel: () {
         cancelled = true;
+        if (!disposed) close();
         if (!running) disposeOnce();
       },
     );
