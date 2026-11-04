@@ -436,6 +436,50 @@ void main() {
   });
 
   group('open stream accounting', () {
+    test('cancelling the subscription ends the stream in the core', () async {
+      final ds = room.dataStreams as NativeDataStreams;
+      final cancelled = Completer<void>();
+      room.registerTextStreamHandler('cancelled', (reader, identity) async {
+        late final StreamSubscription<lk_models.DataStream_Chunk> sub;
+        sub = reader.listen((_) async {
+          await sub.cancel();
+          cancelled.complete();
+        });
+      });
+
+      lk_models.DataPacket packet() =>
+          lk_models.DataPacket(kind: lk_models.DataPacket_Kind.RELIABLE, participantIdentity: 'alice');
+      room.dataStreams.handleIncomingPacket(
+        packet()
+          ..streamHeader = lk_models.DataStream_Header(
+            streamId: 'cancelled-1',
+            topic: 'cancelled',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        EncryptionType.kNone,
+      );
+      room.dataStreams.handleIncomingPacket(
+        packet()
+          ..streamChunk = lk_models.DataStream_Chunk(
+            streamId: 'cancelled-1',
+            chunkIndex: Int64(0),
+            content: Uint8List.fromList(utf8.encode('first')),
+          ),
+        EncryptionType.kNone,
+      );
+
+      await cancelled.future.timeout(const Duration(seconds: 5));
+      // The pump is now parked in next() with the sender silent; only closing the reader frees
+      // the stream. The close reaches the core's loop asynchronously, so give it a moment.
+      final deadline = DateTime.now().add(const Duration(seconds: 2));
+      while (await ds.debugOpenStreamCount() != 0 && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(await ds.debugOpenStreamCount(), 0);
+    });
+
     test('the count follows headers, and reset discards the manager', () async {
       room.registerTextStreamHandler('counted', (reader, identity) async {});
       final ds = room.dataStreams as NativeDataStreams;
