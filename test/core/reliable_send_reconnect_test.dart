@@ -16,8 +16,10 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCPeerConnectionState;
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../mock/e2e_container.dart';
@@ -154,5 +156,53 @@ void main() {
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     expect(sent.where(_isMarker), hasLength(1));
+  });
+
+  test('a reliable send after the reconnect response but before the resume ends goes out', () async {
+    final sent = <lk_models.DataPacket>[];
+    for (final dc in mockDataChannels) {
+      dc.onMessageSend = (message) => sent.add(lk_models.DataPacket.fromBuffer(message.binary));
+    }
+    await container.room.localParticipant!.publishData([1], reliable: true);
+    final acknowledged = sent.last.sequence;
+    // The first send negotiates the publisher after a debounce. Let that finish before the resume
+    // starts, the mock cannot run two offers at once.
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // Hold the primary connection in connecting so the resume is still running after its reconnect
+    // response has replayed the buffer.
+    final primary = container.engine.subscriber!.pc as MockPeerConnection;
+    primary.connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnecting;
+
+    final previousHandlers = ws.handlers;
+    ws.onDispose();
+    for (var i = 0; i < 200 && identical(ws.handlers, previousHandlers); i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(ws.uri?.queryParameters['reconnect'], '1', reason: 'this test needs a resume');
+
+    final responded = container.engine.events.waitFor<SignalReconnectedEvent>(duration: const Duration(seconds: 2));
+    ws.onData(
+      lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse(lastMessageSeq: acknowledged)).writeToBuffer(),
+    );
+    await responded;
+    // The resume sets restartingIce right before it waits for the primary connection.
+    for (var i = 0; i < 200 && container.engine.subscriber?.restartingIce != true; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(container.engine.subscriber?.restartingIce, isTrue, reason: 'the resume never waited for the primary');
+
+    // The replay is over and the resume is waiting for the primary. A send here used to be parked
+    // in the resend buffer, which nothing replayed again.
+    final send = container.engine.sendDataPacket(_marker(), reliability: Reliability.reliable);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    final reconnected = container.room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    primary.connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnected;
+    await reconnected;
+    await send.timeout(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+
+    expect(sent.where(_isMarker), hasLength(1), reason: 'the packet was buffered after the replay and never sent');
   });
 }
