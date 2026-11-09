@@ -84,6 +84,19 @@ jobs:
       - name: Dart Test Check
         run: flutter test
 
+  native-test-check:
+    name: Native Test
+    # The audio-session policy decisions are made in shared_swift and carry no
+    # Flutter, WebRTC or AVFoundation dependency, so they run as a plain host
+    # Swift package -- no simulator, device or pod install.
+    runs-on: macos-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+      - name: Native Test Check
+        run: swift test --package-path test/native
+
   build-for-android:
     name: Android
     runs-on: ubuntu-latest

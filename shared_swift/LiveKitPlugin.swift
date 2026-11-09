@@ -755,12 +755,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     /// and not forced to software keeps the platform path. Mirrors the Swift
     /// SDK's `AudioProcessingOptions.requestsPlatformEchoNoisePath`.
     static func requestsPlatformEchoNoisePath(from args: [String: Any?]) -> Bool {
-        let echoCancellation = (args["echoCancellation"] as? Bool) ?? true
-        let noiseSuppression = (args["noiseSuppression"] as? Bool) ?? true
-        let echoCancellationMode = audioProcessingMode(from: args["echoCancellationMode"] as? String)
-        let noiseSuppressionMode = audioProcessingMode(from: args["noiseSuppressionMode"] as? String)
-        return (echoCancellation && echoCancellationMode != .software)
-            || (noiseSuppression && noiseSuppressionMode != .software)
+        LKAudioSessionPolicyResolver.requestsPlatformEchoNoisePath(
+            echoCancellationEnabled: (args["echoCancellation"] as? Bool) ?? true,
+            echoCancellationForcesSoftware: audioProcessingMode(from: args["echoCancellationMode"] as? String) == .software,
+            noiseSuppressionEnabled: (args["noiseSuppression"] as? Bool) ?? true,
+            noiseSuppressionForcesSoftware: audioProcessingMode(from: args["noiseSuppressionMode"] as? String) == .software
+        )
     }
 
     /// Tells the session observer which voice processing implementation the
@@ -1187,12 +1187,11 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
         lock.lock()
         lastIsRecordingEnabled = isRecordingEnabled
-        if isRecordingEnabled {
-            hasRecorded = true
-        } else if !isPlayoutEnabled {
-            // The engine stopped, so the next one starts a fresh session.
-            hasRecorded = false
-        }
+        hasRecorded = LKAudioSessionPolicyResolver.stickyHasRecorded(
+            previous: hasRecorded,
+            isPlayoutEnabled: isPlayoutEnabled,
+            isRecordingEnabled: isRecordingEnabled
+        )
         sessionActive = isPlayoutEnabled || isRecordingEnabled
         lock.unlock()
     }
@@ -1240,39 +1239,35 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         guard let configuration = cachedConfiguration
             ?? (isAutomaticManagementEnabled ? defaultRecordingConfigurationLocked() : nil)
         else { return nil }
-        // The default preset is always resolved by engine state, like the Dart
-        // automatic-mode push it stands in for.
-        guard usesDefaultPreset || selectCategoryByEngineState else {
-            return (configuration, usesDefaultPreset)
-        }
 
-        guard isRecordingEnabled || hasRecorded else {
+        // The default preset is always resolved by engine state, like the Dart
+        // automatic-mode push it stands in for. The decision itself lives in
+        // LKAudioSessionPolicyResolver so the state matrix stays unit testable;
+        // only the mapping onto AVAudioSession values happens here.
+        switch LKAudioSessionPolicyResolver.decision(
+            resolvesByEngineState: usesDefaultPreset || selectCategoryByEngineState,
+            isRecordingEnabled: isRecordingEnabled,
+            hasRecorded: hasRecorded,
+            isPlatformVoiceProcessingExpected: isPlatformVoiceProcessingExpected
+        ) {
+        case .pushedVerbatim:
+            return (configuration, usesDefaultPreset)
+
+        case .playbackPreset:
             let playback = copyConfiguration(configuration)
             playback.category = AVAudioSession.Category.playback.rawValue
             playback.categoryOptions = [.mixWithOthers]
             playback.mode = AVAudioSession.Mode.spokenAudio.rawValue
             return (playback, usesDefaultPreset)
-        }
 
-        // Recording. Apple documents that for an app using a chat mode (voice,
-        // video or game) "but don't use Audio Unit Voice I/O or AVAudioEngine
-        // with setVoiceProcessingEnabled(_:), the system reduces the processing
-        // it applies to audio signals. Specifically, it doesn't apply
-        // voice-specific processing, like echo cancellation and automatic gain
-        // correction, and disables dynamic processing on input and output,
-        // which results in a lower playback level."
-        // (AVAudioSession.Mode.voiceChat / .videoChat). So a capture resolving
-        // to WebRTC software processing must not keep a chat mode: there is no
-        // VPIO to supply the compensating loudness stage.
-        // Keep the category and options and drop only the chat mode. The
-        // speaker route then comes from defaultToSpeaker, which the chat modes
-        // were applying automatically and `default` does not.
-        guard !isPlatformVoiceProcessingExpected else {
-            return (configuration, usesDefaultPreset)
+        case .recordingMediaMode:
+            // Keep the category and options and drop only the chat mode. The
+            // speaker route then comes from defaultToSpeaker, which the chat
+            // modes apply automatically and `default` does not.
+            let media = copyConfiguration(configuration)
+            media.mode = AVAudioSession.Mode.default.rawValue
+            return (media, usesDefaultPreset)
         }
-        let media = copyConfiguration(configuration)
-        media.mode = AVAudioSession.Mode.default.rawValue
-        return (media, usesDefaultPreset)
     }
 
     /// Built-in playAndRecord preset used until Dart pushes a policy. Must be
