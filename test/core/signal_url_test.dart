@@ -86,7 +86,9 @@ void main() {
     expect(validate.scheme, 'https');
     expect(validate.path, '/rtc/v1/validate');
     expect(validate.queryParameters['join_request'], rtc.queryParameters['join_request']);
-    expect(validate.queryParameters['access_token'], 'token');
+    // native clients send the token in the Authorization header only
+    expect(rtc.queryParameters.containsKey('access_token'), isFalse);
+    expect(validate.queryParameters.containsKey('access_token'), isFalse);
     expect(Utils.buildV1ValidateUri(Uri.parse('ws://h/rtc/v1?a=1'), forceSecure: true).scheme, 'https');
     expect(Utils.buildV1ValidateUri(Uri.parse('ws://h/rtc/v1?a=1')).toString(), 'http://h/rtc/v1/validate?a=1');
   });

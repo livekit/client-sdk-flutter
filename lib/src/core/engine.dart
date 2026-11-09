@@ -129,6 +129,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   bool _failNextV1Path = false;
 
+  /// Set when the server answered /rtc/v1 with ServiceNotFound and the session
+  /// fell back to /rtc. Kept across full reconnects, reset by [connect].
+  bool _v1PathUnavailable = false;
+
   /// Testing only: the next connect over the /rtc/v1 path fails as if the server
   /// did not have it (ServiceNotFound), so the client falls back to /rtc and
   /// dual peer connection. Mirrors client-sdk-js's `failNextV1Path`.
@@ -279,6 +283,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     RegionUrlProvider? regionUrlProvider,
   }) async {
     _isClosed = false;
+    // a new connection, possibly to another server, probes /rtc/v1 again
+    _v1PathUnavailable = false;
     // disconnect() cancels the signal listeners when it stops a pending
     // reconnect, so a connect starts from a fresh set.
     await _signalListener.cancelAll();
@@ -318,25 +324,31 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     try {
       // wait for socket to connect rtc server
+      // once this server turned out not to serve /rtc/v1, full reconnects go
+      // straight to /rtc instead of probing v1 again
+      final signalOptions = _v1PathUnavailable
+          ? this.connectOptions.copyWith(singlePeerConnection: false)
+          : this.connectOptions;
       try {
-        if (_failNextV1Path && this.connectOptions.singlePeerConnection) {
+        if (_failNextV1Path && signalOptions.singlePeerConnection) {
           _failNextV1Path = false;
           throw ConnectException('Simulated v1 path failure', reason: ConnectionErrorReason.ServiceNotFound);
         }
         await signalClient.connect(
           url,
           token,
-          connectOptions: this.connectOptions,
+          connectOptions: signalOptions,
           roomOptions: this.roomOptions,
         );
       } on ConnectException catch (e) {
         // If v1 path returned ServiceNotFound, fall back to v0 (dual PC)
-        if (e.reason == ConnectionErrorReason.ServiceNotFound && this.connectOptions.singlePeerConnection) {
+        if (e.reason == ConnectionErrorReason.ServiceNotFound && signalOptions.singlePeerConnection) {
           logger.warning('v1 signal path not found, falling back to dual PC mode');
+          _v1PathUnavailable = true;
           await signalClient.connect(
             url,
             token,
-            connectOptions: this.connectOptions.copyWith(singlePeerConnection: false),
+            connectOptions: signalOptions.copyWith(singlePeerConnection: false),
             roomOptions: this.roomOptions,
           );
         } else {
@@ -865,7 +877,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       };
     }
 
-    publisher?.onOffer = (offer, offerId) {
+    publisher?.onNumberedOffer = (offer, offerId) {
       logger.fine('publisher onOffer $offerId');
       signalClient.sendOffer(offer, offerId: offerId);
     };

@@ -86,7 +86,7 @@ void main() {
       await runZonedGuarded(() async {
         final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
         addTearDown(transport.dispose);
-        transport.onOffer = (_, _) {};
+        transport.onOffer = (_) {};
         transport.onNegotiationError = reported.complete;
 
         transport.negotiate(null);
@@ -104,7 +104,7 @@ void main() {
       final offers = <rtc.RTCSessionDescription>[];
       final transport = await Transport.create(MockPeerConnection.create, connectOptions: const ConnectOptions());
       addTearDown(transport.dispose);
-      transport.onOffer = (offer, _) => offers.add(offer);
+      transport.onOffer = offers.add;
       transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
 
       transport.negotiate(null);
@@ -120,7 +120,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_, _) {};
+      transport.onOffer = (_) {};
       final reported = Completer<Object>();
       transport.onNegotiationError = reported.complete;
 
@@ -143,7 +143,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_, _) {};
+      transport.onOffer = (_) {};
 
       await pc.setLocalDescription(await pc.createOffer());
       await transport.createAndSendOffer();
@@ -159,7 +159,7 @@ void main() {
     test('still throws from a direct createAndSendOffer', () async {
       final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
       addTearDown(transport.dispose);
-      transport.onOffer = (_, _) {};
+      transport.onOffer = (_) {};
       transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
 
       await expectLater(transport.createAndSendOffer(), throwsA(isA<NegotiationError>()));
@@ -174,7 +174,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_, _) {};
+      transport.onOffer = (_) {};
       return (transport, pc);
     }
 
@@ -232,7 +232,7 @@ void main() {
       );
       addTearDown(transport.dispose);
       final ids = <int>[];
-      transport.onOffer = (_, offerId) => ids.add(offerId);
+      transport.onNumberedOffer = (_, offerId) => ids.add(offerId);
       return (transport, pc, ids);
     }
 
@@ -251,26 +251,17 @@ void main() {
       final (transport, pc, _) = await makeTransport();
 
       await transport.createAndSendOffer();
-      expect(
-        await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1),
-        isTrue,
-      );
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1);
       await transport.createAndSendOffer();
       expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer);
 
       // A late copy of the first answer arrives while offer 2 waits for its own
       // answer. The signaling state alone would accept it.
       expect(transport.isStaleAnswer(1), isTrue);
-      expect(
-        await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nstale', 'answer'), offerId: 1),
-        isFalse,
-      );
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nstale', 'answer'), offerId: 1);
       expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na1');
 
-      expect(
-        await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na2', 'answer'), offerId: 2),
-        isTrue,
-      );
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na2', 'answer'), offerId: 2);
       expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na2');
     });
 
@@ -279,10 +270,7 @@ void main() {
 
       await transport.createAndSendOffer();
       await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1);
-      expect(
-        await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\ncopy', 'answer'), offerId: 1),
-        isFalse,
-      );
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\ncopy', 'answer'), offerId: 1);
       expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na1');
     });
 
@@ -292,7 +280,7 @@ void main() {
       await transport.createAndSendOffer();
       await transport.createAndSendOffer(); // deferred: offer 1 is still pending
       expect(transport.isStaleAnswer(0), isFalse);
-      expect(await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nlegacy', 'answer')), isTrue);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nlegacy', 'answer'));
       expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nlegacy');
     });
   });

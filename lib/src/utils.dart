@@ -285,7 +285,9 @@ class Utils {
       scheme: wsScheme,
       pathSegments: pathSegments,
       queryParameters: <String, String>{
-        'access_token': token,
+        // native clients authenticate with the Authorization header, as on /rtc,
+        // so the token stays out of the URL; browsers cannot set that header
+        if (kIsWeb) _accessTokenParam: token,
         'join_request': joinRequestBase64,
       },
     );

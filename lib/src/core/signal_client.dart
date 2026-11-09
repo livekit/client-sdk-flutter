@@ -235,7 +235,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           },
           networkOptions: roomOptions.networkOptions,
         );
-        if (validateResponse.statusCode == 404) {
+        if (useV1 && validateResponse.statusCode == 404) {
           finalError = ConnectException(
             validateResponse.body,
             reason: ConnectionErrorReason.ServiceNotFound,

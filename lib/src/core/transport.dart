@@ -204,9 +204,11 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
+typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+
 /// [offerId] numbers the offer, starting at 1, so its answer can be told apart
 /// from the answer to an earlier offer.
-typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
+typedef TransportOnNumberedOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
@@ -254,6 +256,9 @@ class Transport extends Disposable {
   /// that arrives mid-apply is recognised as a duplicate too.
   int? _answerInFlight;
   TransportOnOffer? onOffer;
+
+  /// Like [onOffer], with the offer's id. Takes precedence over [onOffer].
+  TransportOnNumberedOffer? onNumberedOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
@@ -338,24 +343,24 @@ class Transport extends Disposable {
   bool isStaleAnswer(int offerId) => latestOfferId > 0 && offerId > 0 && offerId != latestOfferId;
 
   /// Applies [sd]. For an answer, [offerId] is the offer it answers, 0 when the
-  /// server does not number offers. Returns false when the answer was dropped as
-  /// stale or as a duplicate.
-  Future<bool> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
+  /// server does not number offers. An answer to an older offer, or a repeat of
+  /// one already applied, is dropped.
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
-      return false;
+      return;
     }
 
     if (sd.type == 'answer') {
       if (isStaleAnswer(offerId)) {
         logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $latestOfferId');
-        return false;
+        return;
       }
       if (_answerInFlight == offerId || await _isAppliedAnswer(offerId)) {
         // a repeat of an answer already applied or being applied (e.g. duplicated
         // by a proxy): there is no local offer left to answer
         logger.warning('[$objectId] ignoring duplicate answer (offer $offerId)');
-        return false;
+        return;
       }
       // claimed before the apply, so a copy arriving mid-apply is caught too
       _answerInFlight = offerId;
@@ -389,7 +394,6 @@ class Transport extends Disposable {
         await _createAndSendOfferReportingErrors();
       }
     }
-    return true;
   }
 
   /// With an offer id, an answer is a duplicate once that offer's answer was
@@ -406,7 +410,7 @@ class Transport extends Disposable {
       return;
     }
 
-    if (onOffer == null) {
+    if (onOffer == null && onNumberedOffer == null) {
       logger.warning('onOffer is null');
       return;
     }
@@ -508,7 +512,11 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
-    onOffer?.call(offer, offerId);
+    if (onNumberedOffer != null) {
+      onNumberedOffer!(offer, offerId);
+    } else {
+      onOffer?.call(offer);
+    }
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
@@ -556,6 +564,28 @@ class Transport extends Disposable {
     // growing for the lifetime of the connection.
     _bitrateTrackers.removeWhere((e) => e.cid != null && e.cid == info.cid);
     _bitrateTrackers.add(info);
+  }
+
+  /// Adds the dependency descriptor extension to an SVC video section. Offers
+  /// now go through [ensureVideoDDExtension], which keeps one id for the whole
+  /// bundle; this per-section variant is kept for compatibility.
+  @Deprecated('Use Transport.ensureVideoDDExtension')
+  bool ensureVideoDDExtensionForSVC(
+    Map<String, dynamic> media,
+    String? type,
+    num port,
+    String protocol,
+    String? payloads,
+  ) {
+    final codec = media['rtp']?[0]?['codec']?.toLowerCase();
+    if (!isSVCCodec(codec ?? '')) {
+      return false;
+    }
+    final ddFound = (media['ext'] as List<dynamic>?)?.any((e) => e['uri'] == ddExtensionURI) ?? false;
+    if (!ddFound) {
+      _ddExtID = ensureVideoDDExtension(media, [media], _ddExtID);
+    }
+    return ddFound;
   }
 
   /// Adds the AV1 dependency descriptor extension to [media] unless it is
