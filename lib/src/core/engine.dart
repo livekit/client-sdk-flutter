@@ -598,13 +598,34 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     logger.fine('sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
-    await channel.send(message);
+    try {
+      await channel.send(message);
+    } catch (e) {
+      if (_isClosed) throw UnexpectedConnectionState('Engine closed before the data packet was sent: $e');
+      rethrow;
+    }
+    await _recordBufferedAmount(channel, reliability);
+  }
 
-    _setBufferStatus(reliability, await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!);
-
-    // Align buffer with WebRTC buffer for reliable packets
+  /// Reads the channel's buffered amount after a send, to keep the cached buffer status honest and
+  /// trim the resend buffer. A channel the engine closed or replaced since the send has nothing to
+  /// report, and the packet it carried is already out, so the send does not fail over it.
+  Future<void> _recordBufferedAmount(rtc.RTCDataChannel channel, Reliability reliability) async {
+    bool dropped() => _isClosed || !identical(channel, _publisherDataChannel(reliability));
+    final int buffered;
+    try {
+      buffered = await channel.getBufferedAmount();
+    } catch (e) {
+      if (dropped()) {
+        logger.fine('Skipped the buffer bookkeeping of a ${reliability.name} channel the engine dropped: $e');
+        return;
+      }
+      rethrow;
+    }
+    if (dropped()) return;
+    _setBufferStatus(reliability, buffered <= channel.bufferedAmountLowThreshold!);
     if (reliability == Reliability.reliable) {
-      _reliableMessageBuffer.alignBufferedAmount(await channel.getBufferedAmount());
+      _reliableMessageBuffer.alignBufferedAmount(buffered);
     }
   }
 
