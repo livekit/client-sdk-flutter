@@ -1280,6 +1280,9 @@ extension RoomDebugMethods on Room {
   /// - [disconnectSignalOnResumeNoMessages] is the same, but the server closes
   ///   the socket before sending anything, for the next three resumes.
   /// - [leaveRequestFullReconnect] makes the server send a `Leave{RECONNECT}`.
+  /// - [failOnV1Path] makes the next connect over the /rtc/v1 signal path fail
+  ///   as if the server lacked it, so the client falls back to /rtc and dual
+  ///   peer connection. Client side only, it can be set before connecting.
   Future<void> sendSimulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,
@@ -1292,7 +1295,12 @@ extension RoomDebugMethods on Room {
     bool? disconnectSignalOnResume,
     bool? disconnectSignalOnResumeNoMessages,
     bool? leaveRequestFullReconnect,
+    bool? failOnV1Path,
   }) async {
+    if (failOnV1Path ?? false) {
+      engine.failNextV1Path();
+      return;
+    }
     if (signalReconnect != null && signalReconnect) {
       await engine.signalClient.cleanUp();
       return;

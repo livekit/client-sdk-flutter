@@ -122,6 +122,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // this is helpful to know if we need to restart ICE on the publisher connection
   bool _hasPublished = false;
 
+  /// Whether the publisher transport has to be connected and restarted with the
+  /// session. In single PC mode it carries subscribed media and data from the
+  /// start, as `needsPublisher` is for client-sdk-js's publisher-only mode.
+  bool get _publisherRequired => _singlePCMode || _hasPublished;
+
+  bool _failNextV1Path = false;
+
+  /// Testing only: the next connect over the /rtc/v1 path fails as if the server
+  /// did not have it (ServiceNotFound), so the client falls back to /rtc and
+  /// dual peer connection. Mirrors client-sdk-js's `failNextV1Path`.
+  @internal
+  void failNextV1Path() => _failNextV1Path = true;
+
   lk_models.ClientConfiguration? _clientConfiguration;
 
   // remember url and token for reconnect
@@ -306,6 +319,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       // wait for socket to connect rtc server
       try {
+        if (_failNextV1Path && this.connectOptions.singlePeerConnection) {
+          _failNextV1Path = false;
+          throw ConnectException('Simulated v1 path failure', reason: ConnectionErrorReason.ServiceNotFound);
+        }
         await signalClient.connect(
           url,
           token,
@@ -1389,7 +1406,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('resumeConnection: reason: ${reason.name}');
 
-    if (_hasPublished) {
+    if (_publisherRequired) {
       logger.fine('resumeConnection: negotiating publisher...');
       await publisher!.createAndSendOffer(
         const RTCOfferOptions(
@@ -1477,7 +1494,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         fastConnectOptions: fastConnectOptions,
       );
 
-      if (_hasPublished) {
+      if (_publisherRequired) {
         await ensurePublisherConnected();
       }
 
@@ -1592,7 +1609,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
-      if (!_subscriberPrimary || event.response.fastPublish) {
+      if (_singlePCMode || !_subscriberPrimary || event.response.fastPublish) {
         _enabledPublishCodecs = event.response.enabledPublishCodecs;
 
         /// for subscriberPrimary, we negotiate when necessary (lazy)
@@ -1629,7 +1646,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await subscriber?.pc.setConfiguration(rtcConfiguration.toMap());
       }
 
-      if (!_subscriberPrimary) {
+      if (_singlePCMode || !_subscriberPrimary) {
         await negotiate();
       }
 
