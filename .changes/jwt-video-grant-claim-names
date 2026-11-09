@@ -1,0 +1,1 @@
+patch type="fixed" "`LiveKitVideoGrant` now reads the camelCase keys of the `video` claim (`roomJoin`, `canPublish`, and so on), so `TokenSourceResponse.jwtPayload?.video` returns the grants of a real LiveKit token instead of null fields"

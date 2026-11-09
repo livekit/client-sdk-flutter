@@ -27,10 +27,12 @@
 
 #include <algorithm>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
 
+#include "audio_renderer.h"
 #include "audio_visualizer.h"
 #include "task_runner_windows.h"
 
@@ -135,6 +137,104 @@ private:
   int bar_count_ = 7;
 };
 
+class AudioRendererSink : public libwebrtc::AudioTrackSink {
+public:
+  AudioRendererSink(
+      BinaryMessenger *messenger, std::string event_channel_name,
+      libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track,
+      RendererAudioFormat format)
+      : channel_(
+            std::make_unique<flutter::EventChannel<flutter::EncodableValue>>(
+                messenger, event_channel_name,
+                &flutter::StandardMethodCodec::GetInstance())),
+        media_track_(media_track), format_(format) {
+    task_runner_ = std::make_unique<livekit_client_plugin::TaskRunnerWindows>();
+    auto handler = std::make_unique<
+        flutter::StreamHandlerFunctions<flutter::EncodableValue>>(
+        [&](const flutter::EncodableValue *arguments,
+            std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>
+                &&events)
+            -> std::unique_ptr<
+                flutter::StreamHandlerError<flutter::EncodableValue>> {
+          sink_ = std::move(events);
+          on_listen_called_ = true;
+          return nullptr;
+        },
+        [&](const flutter::EncodableValue *arguments)
+            -> std::unique_ptr<
+                flutter::StreamHandlerError<flutter::EncodableValue>> {
+          on_listen_called_ = false;
+          return nullptr;
+        });
+
+    channel_->SetStreamHandler(std::move(handler));
+    ((libwebrtc::RTCAudioTrack *)media_track_.get())->AddSink(this);
+  }
+  ~AudioRendererSink() override {}
+
+public:
+  void OnData(const void *audio_data, int bits_per_sample, int sample_rate,
+              size_t number_of_channels, size_t number_of_frames) override {
+    // Unlike VisualizerSink, live audio must not be queued while no
+    // subscriber is attached — drop the frame instead.
+    if (!on_listen_called_) {
+      return;
+    }
+
+    AudioConversionResult conversion =
+        ConvertAudioData(audio_data, bits_per_sample, sample_rate,
+                        number_of_channels, number_of_frames, format_);
+    if (!conversion.success) {
+      LogDroppedFrame();
+      return;
+    }
+
+    EncodableMap payload;
+    payload[EncodableValue("commonFormat")] =
+        EncodableValue(format_.common_format);
+    payload[EncodableValue("sampleRate")] =
+        EncodableValue(format_.sample_rate);
+    payload[EncodableValue("channels")] = EncodableValue(conversion.channels);
+    payload[EncodableValue("frameLength")] =
+        EncodableValue(conversion.frame_length);
+    payload[EncodableValue("data")] = EncodableValue(std::move(conversion.data));
+
+    PostEvent(EncodableValue(payload));
+  }
+
+  void PostEvent(const flutter::EncodableValue &event) {
+    std::weak_ptr<flutter::EventSink<EncodableValue>> weak_sink = sink_;
+    task_runner_->EnqueueTask([weak_sink, event]() {
+      auto sink = weak_sink.lock();
+      if (sink) {
+        sink->Success(event);
+      }
+    });
+  }
+
+  void RemoveSink() {
+    ((libwebrtc::RTCAudioTrack *)media_track_.get())->RemoveSink(this);
+    channel_->SetStreamHandler(nullptr);
+  }
+
+private:
+  void LogDroppedFrame() {
+    dropped_frame_count_ += 1;
+    if (dropped_frame_count_ <= 5 || dropped_frame_count_ % 100 == 0) {
+      std::cerr << "[LiveKit] Dropping audio frame #" << dropped_frame_count_
+                << " for audio renderer" << std::endl;
+    }
+  }
+
+  std::unique_ptr<livekit_client_plugin::TaskRunnerWindows> task_runner_;
+  std::unique_ptr<flutter::EventChannel<flutter::EncodableValue>> channel_;
+  std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink_;
+  bool on_listen_called_ = false;
+  libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track_;
+  RendererAudioFormat format_;
+  int64_t dropped_frame_count_ = 0;
+};
+
 class LiveKitPlugin : public flutter::Plugin {
 public:
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
@@ -152,6 +252,8 @@ private:
 private:
   flutter_webrtc_plugin::FlutterWebRTC *webrtc_instance_ = nullptr;
   std::unordered_map<std::string, std::unique_ptr<VisualizerSink>> visualizers_;
+  std::unordered_map<std::string, std::unique_ptr<AudioRendererSink>>
+      renderers_;
   BinaryMessenger *messenger_ = nullptr;
   mutable std::mutex mutex_;
 };
@@ -247,6 +349,82 @@ void LiveKitPlugin::HandleMethodCall(
     }
 
     result->Success();
+  } else if (method_call.method_name().compare("startAudioRenderer") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    flutter::EncodableMap params =
+        GetValue<flutter::EncodableMap>(*method_call.arguments());
+    std::string trackId = findString(params, "trackId");
+    std::string rendererId = findString(params, "rendererId");
+    if (trackId.empty()) {
+      result->Error("INVALID_ARGUMENT", "trackId is required");
+      return;
+    }
+    if (rendererId.empty()) {
+      result->Error("INVALID_ARGUMENT", "rendererId is required");
+      return;
+    }
+
+    auto formatIt = params.find(EncodableValue("format"));
+    if (formatIt == params.end()) {
+      result->Error("INVALID_ARGUMENT", "format is required");
+      return;
+    }
+    if (!TypeIs<EncodableMap>(formatIt->second)) {
+      result->Error("INVALID_ARGUMENT", "Failed to parse format");
+      return;
+    }
+    EncodableMap formatMap = GetValue<EncodableMap>(formatIt->second);
+    RendererAudioFormat format = RendererAudioFormat::FromValues(
+        findString(formatMap, "commonFormat"), findInt(formatMap, "sampleRate"),
+        findInt(formatMap, "channels"));
+
+    libwebrtc::scoped_refptr<libwebrtc::RTCMediaTrack> media_track =
+        webrtc_instance_->MediaTrackForId(trackId);
+    if (!media_track) {
+      result->Error("INVALID_ARGUMENT", "No such track");
+      return;
+    }
+
+    mutex_.lock();
+    if (renderers_.find(rendererId) != renderers_.end()) {
+      mutex_.unlock();
+      result->Success(flutter::EncodableValue(true));
+      return;
+    }
+
+    std::ostringstream oss;
+    oss << "io.livekit.audio.renderer/channel-" << rendererId;
+
+    renderers_[rendererId] = std::make_unique<AudioRendererSink>(
+        messenger_, oss.str(), media_track, format);
+    mutex_.unlock();
+
+    result->Success(flutter::EncodableValue(true));
+  } else if (method_call.method_name().compare("stopAudioRenderer") == 0) {
+    if (!method_call.arguments()) {
+      result->Error("Bad Arguments", "Null arguments received");
+      return;
+    }
+    flutter::EncodableMap params =
+        GetValue<flutter::EncodableMap>(*method_call.arguments());
+    std::string rendererId = findString(params, "rendererId");
+    if (rendererId.empty()) {
+      result->Error("INVALID_ARGUMENT", "rendererId is required");
+      return;
+    }
+
+    mutex_.lock();
+    auto it = renderers_.find(rendererId);
+    if (it != renderers_.end()) {
+      it->second->RemoveSink();
+      renderers_.erase(it);
+    }
+    mutex_.unlock();
+
+    result->Success(flutter::EncodableValue(true));
   } else {
     result->NotImplemented();
   }

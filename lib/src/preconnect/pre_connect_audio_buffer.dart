@@ -14,9 +14,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-import 'package:flutter_webrtc/flutter_webrtc.dart' as webrtc;
 import 'package:uuid/uuid.dart';
 
 import '../audio/audio_frame_capture.dart';
@@ -25,6 +22,8 @@ import '../events.dart';
 import '../logger.dart';
 import '../participant/local.dart';
 import '../support/byte_ring_buffer.dart';
+import '../support/native.dart';
+import '../support/platform.dart';
 import '../support/reusable_completer.dart';
 import '../track/local/audio.dart';
 import '../types/data_stream.dart';
@@ -78,8 +77,8 @@ class PreConnectAudioBuffer {
     this._room, {
     PreConnectOnError? onError,
     int sampleRate = defaultSampleRate,
-  })  : _onError = onError,
-        _requestSampleRate = sampleRate;
+  }) : _onError = onError,
+       _requestSampleRate = sampleRate;
 
   /// Whether pre-connect recording is currently active.
   bool get isRecording => _isRecording;
@@ -106,8 +105,9 @@ class PreConnectAudioBuffer {
   /// [agentReadyFuture] completes with an error and callers should [reset] the
   /// buffer.
   ///
-  /// Ensure microphone permissions are granted before calling this.
-  /// Audio capture may fail without permissions.
+  /// Requires microphone permission. On iOS/macOS it is requested here while
+  /// the app is in the foreground. Throws a [TrackCreateException] when it is
+  /// denied or cannot be requested (app not in the foreground).
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {
@@ -120,7 +120,14 @@ class PreConnectAudioBuffer {
     // Set up timeout for agent readiness
     _agentReadyManager.setTimer(timeout, timeoutReason: 'Agent did not become ready within timeout');
 
-    _localTrack = await LocalAudioTrack.create();
+    try {
+      _localTrack = await LocalAudioTrack.create();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to create local track: $error');
+      _notifyError(error);
+      await stopRecording(withError: error);
+      rethrow;
+    }
     logger.fine('[Preconnect audio] created local track ${_localTrack!.mediaStreamTrack.id}');
 
     final rendererId = Uuid().v4();
@@ -138,16 +145,23 @@ class PreConnectAudioBuffer {
     if (!result) {
       final error = StateError('Failed to start audio renderer ($result)');
       logger.severe('[Preconnect audio] $error');
-      _onError?.call(error);
+      _notifyError(error);
       await stopRecording(withError: error);
       await _localTrack?.stop();
       _localTrack = null;
       throw error;
     }
 
-    if (!kIsWeb) {
-      await webrtc.NativeAudioManagement.startLocalRecording();
-      _nativeRecordingStarted = true;
+    try {
+      await _localTrack!.start();
+      _nativeRecordingStarted = lkPlatformSupportsExplicitAudioRecordingStart();
+    } catch (error) {
+      logger.severe('[Preconnect audio] failed to start local recording: $error');
+      _notifyError(error);
+      await stopRecording(withError: error);
+      await _localTrack?.stop();
+      _localTrack = null;
+      rethrow;
     }
 
     logger.info('startAudioRenderer result: $result');
@@ -169,17 +183,18 @@ class PreConnectAudioBuffer {
 
     // Listen for agent readiness and send the buffer when active.
     _participantStateListener = _room.events.on<ParticipantStateUpdatedEvent>(
-        filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
-        (event) async {
-      logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
-      try {
-        await sendAudioData(agents: [event.participant.identity]);
-        _agentReadyManager.complete();
-      } catch (error) {
-        _agentReadyManager.completeError(error);
-        _onError?.call(error);
-      }
-    });
+      filter: (event) => event.participant.kind == ParticipantKind.AGENT && event.state == ParticipantState.active,
+      (event) async {
+        logger.info('[Preconnect audio] Agent is active: ${event.participant.identity}');
+        try {
+          await sendAudioData(agents: [event.participant.identity]);
+          _agentReadyManager.complete();
+        } catch (error) {
+          _agentReadyManager.completeError(error);
+          _notifyError(error);
+        }
+      },
+    );
 
     _localTrackPublishedEvent = _room.events.waitFor<LocalTrackPublishedEvent>(
       duration: Duration(seconds: 10),
@@ -187,10 +202,12 @@ class PreConnectAudioBuffer {
     );
 
     // Emit the started event
-    _room.events.emit(PreConnectAudioBufferStartedEvent(
-      sampleRate: _requestSampleRate,
-      timeout: timeout,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStartedEvent(
+        sampleRate: _requestSampleRate,
+        timeout: timeout,
+      ),
+    );
   }
 
   /// Stops recording and releases audio capture resources.
@@ -212,7 +229,7 @@ class PreConnectAudioBuffer {
 
     // Only stop native recording on error, the room's mic track still uses it.
     if (withError != null && _nativeRecordingStarted) {
-      await webrtc.NativeAudioManagement.stopLocalRecording();
+      await Native.stopLocalRecording();
     }
 
     _nativeRecordingStarted = false;
@@ -221,10 +238,12 @@ class PreConnectAudioBuffer {
     withError != null ? _agentReadyManager.completeError(withError) : _agentReadyManager.complete();
 
     // Emit the stopped event
-    _room.events.emit(PreConnectAudioBufferStoppedEvent(
-      bufferedSize: _buffer.length,
-      isBufferSent: _isBufferSent,
-    ));
+    _room.events.emit(
+      PreConnectAudioBufferStoppedEvent(
+        bufferedSize: _buffer.length,
+        isBufferSent: _isBufferSent,
+      ),
+    );
 
     logger.info('[Preconnect audio] stopped recording');
   }
@@ -326,11 +345,23 @@ class PreConnectAudioBuffer {
     final double secondsOfAudio = totalFrames / sampleRate;
 
     logger.info(
-        '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)');
+      '[Preconnect audio] sent ${(data.length / 1024).toStringAsFixed(1)}KB of audio (${secondsOfAudio.toStringAsFixed(2)} seconds) to ${agents} agent(s)',
+    );
   }
 
   /// Updates the callback invoked when pre-connect audio fails.
   void setErrorHandler(PreConnectOnError? onError) {
     _onError = onError;
+  }
+
+  /// Invokes the app-provided error callback without letting a throwing
+  /// callback derail the failure path it is called from: cleanup must still
+  /// run and the original error must stay the one callers see.
+  void _notifyError(Object error) {
+    try {
+      _onError?.call(error);
+    } catch (callbackError) {
+      logger.warning('[Preconnect audio] onError callback threw: $callbackError');
+    }
   }
 }

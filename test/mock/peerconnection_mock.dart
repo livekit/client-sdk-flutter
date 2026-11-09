@@ -30,6 +30,19 @@ MockDataChannel? findMockDataChannelByLabel(String label, {bool requireListener 
   return null;
 }
 
+/// All mock data channels created in the current test process. Test code can wrap
+/// `onMessageSend` to capture outbound packets without breaking the existing
+/// publisher↔subscriber loopback.
+List<MockDataChannel> get mockDataChannels => _dataChannels;
+
+/// Reset the global mock-channel list. Tests that create a fresh `E2EContainer`
+/// after an earlier one finished must call this before re-connecting, otherwise
+/// the publisher↔subscriber pairing (which only fires when the list reaches
+/// length 2) will not happen on the new channels.
+void resetMockDataChannels() {
+  _dataChannels.clear();
+}
+
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
@@ -154,11 +167,11 @@ class MockPeerConnection extends RTCPeerConnection {
   }
 
   @override
-  Future<RTCRtpTransceiver> addTransceiver(
-      {MediaStreamTrack? track, RTCRtpMediaType? kind, RTCRtpTransceiverInit? init}) {
-    // TODO: implement addTransceiver
-    throw UnimplementedError();
-  }
+  Future<RTCRtpTransceiver> addTransceiver({
+    MediaStreamTrack? track,
+    RTCRtpMediaType? kind,
+    RTCRtpTransceiverInit? init,
+  }) async => MockRtpTransceiver(MockRtpSender(track));
 
   @override
   Future<void> close() async {
@@ -269,17 +282,44 @@ a=rtpmap:32 MPV/90000
   @override
   Future<bool> removeTrack(RTCRtpSender sender) async => true;
 
+  /// Last configuration applied via [setConfiguration] (set on resume, when the
+  /// server hands out new ICE servers in the `ReconnectResponse`).
+  Map<String, dynamic>? appliedConfiguration;
+
   @override
-  Future<void> setConfiguration(Map<String, dynamic> configuration) {
-    // TODO: implement setConfiguration
-    throw UnimplementedError();
+  Future<void> setConfiguration(Map<String, dynamic> configuration) async {
+    appliedConfiguration = configuration;
   }
 
-  static Future<RTCPeerConnection> create(Map<String, dynamic> configuration,
-          [Map<String, dynamic>? constraints]) async =>
-      MockPeerConnection();
+  static Future<RTCPeerConnection> create(
+    Map<String, dynamic> configuration, [
+    Map<String, dynamic>? constraints,
+  ]) async => MockPeerConnection();
 
   @override
   // TODO: implement restartIce
   Future<void> restartIce() => throw UnimplementedError();
+}
+
+class MockRtpSender implements RTCRtpSender {
+  MockRtpSender(this.track);
+
+  @override
+  MediaStreamTrack? track;
+
+  @override
+  Future<void> replaceTrack(MediaStreamTrack? track) async => this.track = track;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class MockRtpTransceiver implements RTCRtpTransceiver {
+  MockRtpTransceiver(this.sender);
+
+  @override
+  final RTCRtpSender sender;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

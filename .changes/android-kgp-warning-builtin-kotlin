@@ -1,0 +1,1 @@
+patch type="fixed" "Apply kotlin-android through pluginManager on Android so Flutter no longer warns that livekit_client applies the Kotlin Gradle Plugin when built-in Kotlin is active"

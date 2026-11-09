@@ -75,15 +75,17 @@ void main() {
         expectedMessages.add(messageContent);
 
         try {
-          final info = await room.localParticipant?.sendText(messageContent,
-              options: SendTextOptions(
-                topic: 'reliability-test',
-                onProgress: (progress) {
-                  // Verify progress is within bounds (0.0-1.0)
-                  expect(progress, greaterThanOrEqualTo(0.0));
-                  expect(progress, lessThanOrEqualTo(1.0));
-                },
-              ));
+          final info = await room.localParticipant?.sendText(
+            messageContent,
+            options: SendTextOptions(
+              topic: 'reliability-test',
+              onProgress: (progress) {
+                // Verify progress is within bounds (0.0-1.0)
+                expect(progress, greaterThanOrEqualTo(0.0));
+                expect(progress, lessThanOrEqualTo(1.0));
+              },
+            ),
+          );
           expect(info, isNotNull);
 
           // Small delay between messages to create realistic load
@@ -99,18 +101,27 @@ void main() {
       await receivedCompleter.future.timeout(Duration(seconds: 12));
 
       // Verify all messages received exactly once
-      expect(receivedMessages.length, equals(messageCount),
-          reason: 'All ${messageCount} messages should be received exactly once');
+      expect(
+        receivedMessages.length,
+        equals(messageCount),
+        reason: 'All ${messageCount} messages should be received exactly once',
+      );
 
       // Verify no duplicates
       final uniqueMessages = receivedMessages.toSet();
-      expect(uniqueMessages.length, equals(receivedMessages.length),
-          reason: 'No duplicate messages should be received');
+      expect(
+        uniqueMessages.length,
+        equals(receivedMessages.length),
+        reason: 'No duplicate messages should be received',
+      );
 
       // Verify each expected message was received
       for (final expectedMessage in expectedMessages) {
-        expect(receivedMessages, contains(expectedMessage),
-            reason: 'Expected message should be received: $expectedMessage');
+        expect(
+          receivedMessages,
+          contains(expectedMessage),
+          reason: 'Expected message should be received: $expectedMessage',
+        );
       }
 
       print('✅ Text stream reliability test passed: All ${messageCount} messages received correctly');
@@ -205,7 +216,8 @@ void main() {
         // Print first 10 bytes for debugging
         final firstBytes = fileData.take(10).toList();
         print(
-            'Received reliable byte stream ${receivedFiles.length}/${chunkCount}: ${fileData.length} bytes from $participantIdentity');
+          'Received reliable byte stream ${receivedFiles.length}/${chunkCount}: ${fileData.length} bytes from $participantIdentity',
+        );
         print('  First 10 bytes: $firstBytes');
 
         if (receivedFiles.length >= chunkCount) {
@@ -228,12 +240,14 @@ void main() {
           final firstBytes = fileData.take(10).toList();
           print('Sending file ${i}: ${fileData.length} bytes, first 10: $firstBytes');
 
-          final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
-            topic: 'reliability-bytes',
-            name: 'reliable-test-file-${i}.bin',
-            mimeType: 'application/octet-stream',
-            totalSize: chunkSize,
-          ));
+          final stream = await room.localParticipant?.streamBytes(
+            StreamBytesOptions(
+              topic: 'reliability-bytes',
+              name: 'reliable-test-file-${i}.bin',
+              mimeType: 'application/octet-stream',
+              totalSize: chunkSize,
+            ),
+          );
 
           await stream?.write(Uint8List.fromList(fileData));
           await stream?.close();
@@ -252,8 +266,11 @@ void main() {
       expect(receivedFiles.length, equals(chunkCount), reason: 'All ${chunkCount} byte streams should be received');
 
       // Verify data integrity - all expected files should be received (order may vary)
-      expect(receivedFiles.length, equals(expectedFiles.length),
-          reason: 'Should receive exactly ${expectedFiles.length} files');
+      expect(
+        receivedFiles.length,
+        equals(expectedFiles.length),
+        reason: 'Should receive exactly ${expectedFiles.length} files',
+      );
 
       // Use deep equality comparison for lists
 
@@ -262,15 +279,19 @@ void main() {
         final expectedFile = expectedFiles[i];
         final matchingFiles = receivedFiles.where((received) => listEquality.equals(received, expectedFile)).toList();
 
-        expect(matchingFiles.length, equals(1),
-            reason: 'Expected file ${i} should be received exactly once, found ${matchingFiles.length} matches');
+        expect(
+          matchingFiles.length,
+          equals(1),
+          reason: 'Expected file ${i} should be received exactly once, found ${matchingFiles.length} matches',
+        );
       }
 
       // Verify no unexpected files received
       for (int i = 0; i < receivedFiles.length; i++) {
         final receivedFile = receivedFiles[i];
-        final matchingExpected =
-            expectedFiles.where((expected) => listEquality.equals(receivedFile, expected)).toList();
+        final matchingExpected = expectedFiles
+            .where((expected) => listEquality.equals(receivedFile, expected))
+            .toList();
 
         expect(matchingExpected.length, equals(1), reason: 'Received file ${i} should match exactly one expected file');
       }
@@ -314,8 +335,11 @@ void main() {
 
       // Verify no duplicates (each sequence should appear exactly once)
       for (final entry in duplicateTracker.entries) {
-        expect(entry.value, equals(1),
-            reason: 'Sequence ${entry.key} should appear exactly once, but appeared ${entry.value} times');
+        expect(
+          entry.value,
+          equals(1),
+          reason: 'Sequence ${entry.key} should appear exactly once, but appeared ${entry.value} times',
+        );
       }
 
       // Verify correct count of unique sequences
@@ -358,8 +382,10 @@ void main() {
         sendFutures.add(() async {
           for (int msgId = 0; msgId < messagesPerStream; msgId++) {
             try {
-              await room.localParticipant
-                  ?.sendText('Stream${streamId}_Message${msgId}', options: SendTextOptions(topic: topic));
+              await room.localParticipant?.sendText(
+                'Stream${streamId}_Message${msgId}',
+                options: SendTextOptions(topic: topic),
+              );
               // Small randomized delay to create realistic concurrent load
               await Future.delayed(Duration(milliseconds: Random().nextInt(30) + 10));
             } catch (e) {
@@ -378,24 +404,34 @@ void main() {
       // Verify all messages received correctly
       for (int streamId = 0; streamId < concurrentStreams; streamId++) {
         final topic = 'concurrent-${streamId}';
-        expect(receivedMessages[topic]!.length, equals(messagesPerStream),
-            reason: 'Stream ${streamId} should receive all ${messagesPerStream} messages');
+        expect(
+          receivedMessages[topic]!.length,
+          equals(messagesPerStream),
+          reason: 'Stream ${streamId} should receive all ${messagesPerStream} messages',
+        );
 
         // Verify message content uniqueness within each stream
         final uniqueInStream = receivedMessages[topic]!.toSet();
-        expect(uniqueInStream.length, equals(messagesPerStream),
-            reason: 'Stream ${streamId} should have ${messagesPerStream} unique messages');
+        expect(
+          uniqueInStream.length,
+          equals(messagesPerStream),
+          reason: 'Stream ${streamId} should have ${messagesPerStream} unique messages',
+        );
 
         // Verify expected messages
         for (int msgId = 0; msgId < messagesPerStream; msgId++) {
           final expectedMessage = 'Stream${streamId}_Message${msgId}';
-          expect(receivedMessages[topic], contains(expectedMessage),
-              reason: 'Stream ${streamId} should contain message ${msgId}');
+          expect(
+            receivedMessages[topic],
+            contains(expectedMessage),
+            reason: 'Stream ${streamId} should contain message ${msgId}',
+          );
         }
       }
 
       print(
-          '✅ Concurrent streams test passed: ${concurrentStreams * messagesPerStream} total messages across ${concurrentStreams} streams');
+        '✅ Concurrent streams test passed: ${concurrentStreams * messagesPerStream} total messages across ${concurrentStreams} streams',
+      );
     });
 
     test('Mixed Data Types Reliability Test', () async {
@@ -423,7 +459,8 @@ void main() {
         // Print first 10 bytes for debugging
         final firstBytes = data.take(10).toList();
         print(
-            'Received mixed byte stream ${receivedBytes.length}/${byteStreams}: ${data.length} bytes, first 10: $firstBytes');
+          'Received mixed byte stream ${receivedBytes.length}/${byteStreams}: ${data.length} bytes, first 10: $firstBytes',
+        );
 
         if (receivedBytes.length >= byteStreams) {
           byteCompleter.complete();
@@ -436,8 +473,10 @@ void main() {
       // Send text messages
       for (int i = 0; i < textMessages; i++) {
         futures.add(() async {
-          await room.localParticipant
-              ?.sendText('Mixed text message ${i}', options: SendTextOptions(topic: 'mixed-text'));
+          await room.localParticipant?.sendText(
+            'Mixed text message ${i}',
+            options: SendTextOptions(topic: 'mixed-text'),
+          );
         }());
       }
 
@@ -452,11 +491,13 @@ void main() {
           final firstBytes = data.take(10).toList();
           print('Sending mixed byte stream ${i}: ${data.length} bytes, first 10: $firstBytes');
 
-          final stream = await room.localParticipant?.streamBytes(StreamBytesOptions(
-            topic: 'mixed-bytes',
-            name: 'mixed-file-${i}.dat',
-            totalSize: data.length,
-          ));
+          final stream = await room.localParticipant?.streamBytes(
+            StreamBytesOptions(
+              topic: 'mixed-bytes',
+              name: 'mixed-file-${i}.dat',
+              totalSize: data.length,
+            ),
+          );
           await stream?.write(Uint8List.fromList(data));
           await stream?.close();
         }());
@@ -498,7 +539,7 @@ void main() {
         'testfiles/progress_test_2.bin',
         'testfiles/progress_test_3.bin',
         'testfiles/progress_test_4.bin',
-        'testfiles/progress_test_5.bin'
+        'testfiles/progress_test_5.bin',
       ];
 
       /// Create test files with random data
@@ -531,19 +572,21 @@ void main() {
 
       // Send text with multiple file attachments - this triggers incremental progress
       print('Sending text with ${numFiles} file attachments to test incremental progress...');
-      final info = await room.localParticipant?.sendText('Message with ${numFiles} attachments',
-          options: SendTextOptions(
-            topic: 'progress-test',
-            attachments: tempFiles,
-            onProgress: (progress) {
-              progressValues.add(progress);
-              print('Progress: ${(progress * 100).toStringAsFixed(1)}% (${progressValues.length} updates)');
+      final info = await room.localParticipant?.sendText(
+        'Message with ${numFiles} attachments',
+        options: SendTextOptions(
+          topic: 'progress-test',
+          attachments: tempFiles,
+          onProgress: (progress) {
+            progressValues.add(progress);
+            print('Progress: ${(progress * 100).toStringAsFixed(1)}% (${progressValues.length} updates)');
 
-              // Verify progress bounds
-              expect(progress, greaterThanOrEqualTo(0.0));
-              expect(progress, lessThanOrEqualTo(1.0));
-            },
-          ));
+            // Verify progress bounds
+            expect(progress, greaterThanOrEqualTo(0.0));
+            expect(progress, lessThanOrEqualTo(1.0));
+          },
+        ),
+      );
 
       expect(info, isNotNull);
       await Future.wait([textCompleter.future, receivedCompleter.future]).timeout(Duration(seconds: 15));
@@ -567,8 +610,11 @@ void main() {
 
       // Verify progress is non-decreasing
       for (int i = 1; i < progressValues.length; i++) {
-        expect(progressValues[i], greaterThanOrEqualTo(progressValues[i - 1]),
-            reason: 'Progress should be non-decreasing');
+        expect(
+          progressValues[i],
+          greaterThanOrEqualTo(progressValues[i - 1]),
+          reason: 'Progress should be non-decreasing',
+        );
       }
 
       print('✅ Incremental progress test passed: ${progressValues.length} progress updates from 0% to 100%');

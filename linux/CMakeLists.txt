@@ -29,6 +29,7 @@ list(APPEND PLUGIN_SOURCES
   "task_runner_linux.cc"
   "../shared_cpp/fft_processor.cpp"
   "../shared_cpp/audio_visualizer.cpp"
+  "../shared_cpp/audio_renderer.cpp"
   "../shared_cpp/pffft.c"
   "flutter/core_implementations.cc"
   "flutter/standard_codec.cc"

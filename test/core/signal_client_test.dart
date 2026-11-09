@@ -40,11 +40,12 @@ void main() {
   group('connection', () {
     test('connect', () async {
       expect(
-          client.events.streamCtrl.stream,
-          emitsInOrder(<Matcher>[
-            predicate<SignalConnectingEvent>((event) => true),
-            predicate<SignalConnectedEvent>((event) => true),
-          ]));
+        client.events.streamCtrl.stream,
+        emitsInOrder(<Matcher>[
+          predicate<SignalConnectingEvent>((event) => true),
+          predicate<SignalConnectedEvent>((event) => true),
+        ]),
+      );
       await client.connect(
         exampleUri,
         token,
@@ -55,11 +56,12 @@ void main() {
 
     test('reconnect', () async {
       expect(
-          client.events.streamCtrl.stream,
-          emitsInOrder(<Matcher>[
-            predicate<SignalReconnectingEvent>((event) => true),
-            predicate<SignalConnectedEvent>((event) => true),
-          ]));
+        client.events.streamCtrl.stream,
+        emitsInOrder(<Matcher>[
+          predicate<SignalReconnectingEvent>((event) => true),
+          predicate<SignalConnectedEvent>((event) => true),
+        ]),
+      );
       await client.connect(
         exampleUri,
         token,
@@ -100,10 +102,11 @@ final lk_rtc.SignalResponse joinResponse = lk_rtc.SignalResponse(
 );
 
 final lk_rtc.SignalResponse offerResponse = lk_rtc.SignalResponse(
-    offer: lk_rtc.SessionDescription(
-  sdp: 'remote_offer',
-  type: 'offer',
-));
+  offer: lk_rtc.SessionDescription(
+    sdp: 'remote_offer',
+    type: 'offer',
+  ),
+);
 
 final lk_rtc.SignalResponse participantJoinResponse = lk_rtc.SignalResponse(
   update: lk_rtc.ParticipantUpdate(
@@ -135,12 +138,14 @@ final lk_rtc.SignalResponse roomUpdateResponse = lk_rtc.SignalResponse(
 );
 
 final lk_rtc.SignalResponse connectionQualityResponse = lk_rtc.SignalResponse(
-  connectionQuality: lk_rtc.ConnectionQualityUpdate(updates: [
-    lk_rtc.ConnectionQualityInfo(
-      participantSid: localParticipantData.sid,
-      quality: lk_models.ConnectionQuality.EXCELLENT,
-    )
-  ]),
+  connectionQuality: lk_rtc.ConnectionQualityUpdate(
+    updates: [
+      lk_rtc.ConnectionQualityInfo(
+        participantSid: localParticipantData.sid,
+        quality: lk_models.ConnectionQuality.EXCELLENT,
+      ),
+    ],
+  ),
 );
 
 final lk_rtc.SignalResponse activeSpeakerResponse = lk_rtc.SignalResponse(

@@ -16,10 +16,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
+import '../../audio/audio_engine_error.dart';
 import '../../audio/audio_frame_capture.dart';
 import '../../events.dart';
 import '../../exceptions.dart';
@@ -27,6 +29,7 @@ import '../../extensions.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../participant/remote.dart';
+import '../../support/native.dart';
 import '../../support/platform.dart';
 import '../../types/other.dart';
 import '../options.dart';
@@ -35,27 +38,32 @@ import '../processor_native.dart' if (dart.library.js_interop) '../processor_web
 import '../remote/audio.dart';
 import '../remote/video.dart';
 import '../track.dart';
+import '../video_track_view_registration.dart';
 import 'audio.dart';
 import 'video.dart';
 
 /// Used to group [LocalVideoTrack] and [RemoteVideoTrack].
 mixin VideoTrack on Track {
+  /// The views attached to this track. Set by [VideoTrackRenderer] and read by
+  /// the visibility observer to compute adaptive-stream dimensions.
   @internal
-  final List<GlobalKey> viewKeys = [];
+  final List<VideoTrackViewRegistration> viewRegistrations = [];
 
   @internal
-  Function(Key)? onVideoViewBuild;
+  VoidCallback? onVideoViewBuild;
 
   @internal
-  GlobalKey addViewKey() {
-    final key = GlobalKey();
-    viewKeys.add(key);
-    return key;
+  VideoTrackViewRegistration addViewRegistration({
+    AdaptiveStreamPixelDensity pixelDensity = AdaptiveStreamPixelDensity.auto,
+  }) {
+    final registration = VideoTrackViewRegistration(pixelDensity: pixelDensity);
+    viewRegistrations.add(registration);
+    return registration;
   }
 
   @internal
-  void removeViewKey(GlobalKey key) {
-    viewKeys.remove(key);
+  void removeViewRegistration(VideoTrackViewRegistration registration) {
+    viewRegistrations.remove(registration);
   }
 }
 
@@ -91,13 +99,13 @@ mixin AudioTrack on Track {
   }
 
   @override
-  Future<void> onStarted() async {
-    logger.fine('AudioTrack.onStarted()');
+  Future<void> startCapture() async {
+    logger.fine('AudioTrack.startCapture()');
   }
 
   @override
-  Future<void> onStopped() async {
-    logger.fine('AudioTrack.onStopped()');
+  Future<void> stopCapture() async {
+    logger.fine('AudioTrack.stopCapture()');
     for (final group in _captureGroups.values) {
       await group.stop();
     }
@@ -168,12 +176,12 @@ abstract class LocalTrack extends Track {
   TrackProcessor? get processor => _processor;
 
   LocalTrack(TrackType kind, TrackSource source, rtc.MediaStream mediaStream, rtc.MediaStreamTrack mediaStreamTrack)
-      : super(
-          kind,
-          source,
-          mediaStream,
-          mediaStreamTrack,
-        ) {
+    : super(
+        kind,
+        source,
+        mediaStream,
+        mediaStreamTrack,
+      ) {
     mediaStreamTrack.onEnded = () {
       logger.fine('MediaStreamTrack.onEnded()');
       events.emit(TrackEndedEvent(track: this));
@@ -188,7 +196,7 @@ abstract class LocalTrack extends Track {
     if (muted) return false; // already muted
     await disable();
     if (!skipStopForTrackMute() && stopOnMute) {
-      await stop();
+      await _stopKeepingProcessor();
     }
     updateMuted(true, shouldSendSignal: true);
     return true;
@@ -210,7 +218,24 @@ abstract class LocalTrack extends Track {
 
   @override
   Future<bool> stop() async {
-    final didStop = await super.stop() || !_stopped;
+    final didStop = await _disposeMediaTrack(await super.stop());
+    // Also runs when a stop-on-mute already stopped the media track and kept
+    // the processor for the restart.
+    try {
+      await stopProcessor();
+    } catch (error) {
+      logger.severe('LocalTrack.stopProcessor did throw: $error');
+    }
+    return didStop;
+  }
+
+  // Keeps the processor, which restartTrack restarts on the new media track.
+  Future<bool> _stopKeepingProcessor() async => _disposeMediaTrack(await super.stop());
+
+  // Takes the result of super.stop() because stop() has to call it directly
+  // (Track.stop is @mustCallSuper).
+  Future<bool> _disposeMediaTrack(bool trackStopped) async {
+    final didStop = trackStopped || !_stopped;
     if (didStop) {
       logger.fine('Stopping mediaStreamTrack...');
       try {
@@ -224,13 +249,6 @@ abstract class LocalTrack extends Track {
         logger.severe('MediaStreamTrack.dispose() did throw $error');
       }
       _stopped = true;
-      try {
-        if (_processor != null) {
-          await stopProcessor();
-        }
-      } catch (error) {
-        logger.severe('LocalTrack.stopProcessor did throw: $error');
-      }
     }
     return didStop;
   }
@@ -244,10 +262,24 @@ abstract class LocalTrack extends Track {
       'audio': options is AudioCaptureOptions
           ? options.toMediaConstraintsMap()
           : options is ScreenShareCaptureOptions
-              ? (options).captureScreenAudio
-              : false,
+          ? (options).captureScreenAudio
+          : false,
       'video': options is VideoCaptureOptions ? options.toMediaConstraintsMap() : false,
     };
+
+    if (options is AudioCaptureOptions && lkPlatformIsApple()) {
+      // The WebRTC audio device only checks microphone permission and fails
+      // when it is missing, so the SDK requests it before opening the mic. On
+      // iOS this fails fast while the app is not in the foreground instead of
+      // suspending getUserMedia (and the publish queue behind it) on a prompt
+      // the system cannot show yet.
+      try {
+        await Native.ensureMicrophoneAccess();
+      } on PlatformException catch (error) {
+        throw audioEngineExceptionFrom(error) ??
+            TrackCreateException(error.message ?? 'Microphone permission is not granted');
+      }
+    }
 
     final rtc.MediaStream stream;
     if (options is ScreenShareCaptureOptions) {
@@ -292,42 +324,53 @@ abstract class LocalTrack extends Track {
     currentOptions = options ?? currentOptions;
 
     // stop if not already stopped...
-    await stop();
+    await _stopKeepingProcessor();
 
     // create new track with options
     final newStream = await LocalTrack.createStream(currentOptions);
     final newTrack = newStream.getTracks().first;
 
-    final processor = _processor;
-
-    await stopProcessor();
-
-    // replace track on sender
-    try {
-      await sender?.replaceTrack(newTrack);
-      if (this is LocalVideoTrack) {
-        final videoTrack = this as LocalVideoTrack;
-        await videoTrack.replaceTrackForMultiCodecSimulcast(newTrack);
-      }
-    } catch (error) {
-      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
-    }
-
     // set new stream & track to this object
     updateMediaStreamAndTrack(newStream, newTrack);
 
+    // Restart the processor on the new track before the sender gets it, so
+    // the sender carries the processed track when the processor has one.
+    final processor = _processor;
     if (processor != null) {
-      await setProcessor(processor);
+      try {
+        await processor.restart(
+          kind == TrackType.VIDEO ? VideoProcessorOptions(track: newTrack) : AudioProcessorOptions(track: newTrack),
+        );
+        final processedTrack = processor.processedTrack;
+        if (processedTrack != null) {
+          setProcessedTrack(processedTrack);
+        }
+      } catch (error) {
+        logger.severe('TrackProcessor.restart() did throw $error');
+      }
+    }
+
+    // replace track on sender
+    try {
+      await sender?.replaceTrack(mediaStreamTrack);
+      if (this is LocalVideoTrack) {
+        final videoTrack = this as LocalVideoTrack;
+        await videoTrack.replaceTrackForMultiCodecSimulcast(mediaStreamTrack);
+      }
+    } catch (error) {
+      logger.severe('RTCRtpSender.replaceTrack() did throw $error');
     }
 
     // mark as started
     await start();
 
     // notify so VideoView can re-compute mirror mode if necessary
-    events.emit(LocalTrackOptionsUpdatedEvent(
-      track: this,
-      options: currentOptions,
-    ));
+    events.emit(
+      LocalTrackOptionsUpdatedEvent(
+        track: this,
+        options: currentOptions,
+      ),
+    );
   }
 
   Future<void> setProcessor(TrackProcessor? processor) async {

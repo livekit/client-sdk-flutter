@@ -13,6 +13,26 @@ flutter pub get
 flutter run --dart-define=URL=wss://${LIVEKIT_SERVER_IP_OR_DOMAIN} --dart-define=TOKEN=${YOUR_TOKEN}
 ```
 
+## Using a token server
+
+Instead of pasting a pre-generated token, the example can fetch credentials from a
+[token server](https://docs.livekit.io/frontends/build/authentication/) at connect time,
+the same way `TokenSource.endpoint(...)` and `TokenSource.developmentTokenServer(...)`
+work in the JS and Rust SDKs:
+
+1. Open **Connect Options** and enable **Server URL is token server**
+2. In the **Token Server URL** field enter one of:
+   - a token endpoint URL (e.g. `https://example.com/api/token`). The app POSTs a JSON
+     token request to it and expects `server_url` and `participant_token` in the JSON response
+   - your LiveKit Cloud sandbox app URL (e.g. `https://myproject-abc123.sandbox.livekit.io`)
+   - your LiveKit Cloud **development token server ID** (e.g. `myproject-abc123`)
+3. Enter a **Room Name** to join a specific room, or leave it empty to let the token server pick one
+4. Press **Connect**
+
+The last two use LiveKit Cloud's development token server
+(`https://cloud-api.livekit.io/api/v2/sandbox/connection-details` with the `X-Sandbox-ID` header).
+The Room Name field replaces the Token field while this option is enabled.
+
 ## End-to-End Encryption (E2EE)
 
 The example app supports end-to-end encryption for audio and video tracks. To enable E2EE:

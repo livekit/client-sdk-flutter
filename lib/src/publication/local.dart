@@ -46,7 +46,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   Future<void> unmute({bool stopOnMute = true}) async => await track?.unmute(stopOnMute: stopOnMute);
 
   lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() => lk_rtc.TrackPublishedResponse(
-        cid: track?.mediaStreamTrack.id,
-        track: latestInfo,
-      );
+    cid: track?.mediaStreamTrack.id,
+    track: latestInfo,
+  );
 }

@@ -73,9 +73,9 @@ class TranscriptionStreamReceiver implements MessageReceiver {
     this.topic = 'lk.transcription',
     void Function(String topic, TextStreamHandler handler)? registerHandler,
     void Function(String topic)? unregisterHandler,
-  })  : _room = room,
-        _registerHandler = registerHandler ?? room.registerTextStreamHandler,
-        _unregisterHandler = unregisterHandler ?? room.unregisterTextStreamHandler;
+  }) : _room = room,
+       _registerHandler = registerHandler ?? room.registerTextStreamHandler,
+       _unregisterHandler = unregisterHandler ?? room.unregisterTextStreamHandler;
 
   final Room _room;
   final String topic;
@@ -217,8 +217,9 @@ class TranscriptionStreamReceiver implements MessageReceiver {
     final displayTimestamp = partial?.timestamp ?? timestamp;
     final isLocalParticipant = _room.localParticipant?.identity == participantIdentity;
 
-    final ReceivedMessageContent content =
-        isLocalParticipant ? UserTranscript(displayContent) : AgentTranscript(displayContent);
+    final ReceivedMessageContent content = isLocalParticipant
+        ? UserTranscript(displayContent)
+        : AgentTranscript(displayContent);
 
     return ReceivedMessage(
       id: segmentId,

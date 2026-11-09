@@ -1,0 +1,1 @@
+patch type="fixed" "The last subscribed codecs are now re-applied to the local video senders after each publisher renegotiation, so simulcast layers that dynacast paused are no longer re-enabled by the SFU answer"

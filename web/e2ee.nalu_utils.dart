@@ -188,23 +188,23 @@ bool isH264SliceNALU(int naluType) {
 /// @returns True if the NALU is a slice
 bool isH265SliceNALU(int naluType) {
   return (
-      // VCL NALUs (Video Coding Layer) - slice segments
-      naluType == H265NALUType.TRAIL_N ||
-          naluType == H265NALUType.TRAIL_R ||
-          naluType == H265NALUType.TSA_N ||
-          naluType == H265NALUType.TSA_R ||
-          naluType == H265NALUType.STSA_N ||
-          naluType == H265NALUType.STSA_R ||
-          naluType == H265NALUType.RADL_N ||
-          naluType == H265NALUType.RADL_R ||
-          naluType == H265NALUType.RASL_N ||
-          naluType == H265NALUType.RASL_R ||
-          naluType == H265NALUType.BLA_W_LP ||
-          naluType == H265NALUType.BLA_W_RADL ||
-          naluType == H265NALUType.BLA_N_LP ||
-          naluType == H265NALUType.IDR_W_RADL ||
-          naluType == H265NALUType.IDR_N_LP ||
-          naluType == H265NALUType.CRA_NUT);
+  // VCL NALUs (Video Coding Layer) - slice segments
+  naluType == H265NALUType.TRAIL_N ||
+      naluType == H265NALUType.TRAIL_R ||
+      naluType == H265NALUType.TSA_N ||
+      naluType == H265NALUType.TSA_R ||
+      naluType == H265NALUType.STSA_N ||
+      naluType == H265NALUType.STSA_R ||
+      naluType == H265NALUType.RADL_N ||
+      naluType == H265NALUType.RADL_R ||
+      naluType == H265NALUType.RASL_N ||
+      naluType == H265NALUType.RASL_R ||
+      naluType == H265NALUType.BLA_W_LP ||
+      naluType == H265NALUType.BLA_W_RADL ||
+      naluType == H265NALUType.BLA_N_LP ||
+      naluType == H265NALUType.IDR_W_RADL ||
+      naluType == H265NALUType.IDR_N_LP ||
+      naluType == H265NALUType.CRA_NUT);
 }
 
 /// Result of NALU processing for frame encryption
@@ -342,5 +342,8 @@ NALUProcessingResult processNALUsForEncryption(
   }
 
   return NALUProcessingResult(
-      unencryptedBytes: unencryptedBytes, detectedCodec: detectedCodec, requiresNALUProcessing: true);
+    unencryptedBytes: unencryptedBytes,
+    detectedCodec: detectedCodec,
+    requiresNALUProcessing: true,
+  );
 }

@@ -40,10 +40,12 @@ class AudioVisualizerNative extends AudioVisualizer {
 
     _eventChannel = EventChannel('io.livekit.audio.visualizer/eventChannel-${mediaStreamTrack.id}-$visualizerId');
     _streamSubscription = _eventChannel?.receiveBroadcastStream().listen((event) {
-      events.emit(AudioVisualizerEvent(
-        track: _audioTrack!,
-        event: event,
-      ));
+      events.emit(
+        AudioVisualizerEvent(
+          track: _audioTrack!,
+          event: event,
+        ),
+      );
     });
   }
 

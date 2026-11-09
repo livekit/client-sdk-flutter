@@ -113,19 +113,23 @@ void main() {
       final frames = <AudioFrame>[];
       final sub = capture.frameStream.listen(frames.add);
 
-      capture.emitFrame(AudioFrame(
-        sampleRate: 24000,
-        channels: 1,
-        data: int16Bytes([1000, -1000]),
-        format: AudioFormat.Int16,
-      ));
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 24000,
+          channels: 1,
+          data: int16Bytes([1000, -1000]),
+          format: AudioFormat.Int16,
+        ),
+      );
 
-      capture.emitFrame(AudioFrame(
-        sampleRate: 24000,
-        channels: 1,
-        data: int16Bytes([2000, -2000]),
-        format: AudioFormat.Int16,
-      ));
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 24000,
+          channels: 1,
+          data: int16Bytes([2000, -2000]),
+          format: AudioFormat.Int16,
+        ),
+      );
 
       // Let microtasks run.
       await Future<void>.delayed(Duration.zero);
@@ -268,12 +272,14 @@ void main() {
       // Simulate 3 frames of 480 samples each (10ms at 48kHz mono int16).
       for (var i = 0; i < 3; i++) {
         final samples = List<int>.generate(480, (j) => (j * 10) - 2400);
-        capture.emitFrame(AudioFrame(
-          sampleRate: 48000,
-          channels: 1,
-          data: int16Bytes(samples),
-          format: AudioFormat.Int16,
-        ));
+        capture.emitFrame(
+          AudioFrame(
+            sampleRate: 48000,
+            channels: 1,
+            data: int16Bytes(samples),
+            format: AudioFormat.Int16,
+          ),
+        );
       }
 
       await Future<void>.delayed(Duration.zero);
@@ -313,18 +319,22 @@ void main() {
       });
 
       // Write 60 bytes, then 60 more → should overflow at 100.
-      capture.emitFrame(AudioFrame(
-        sampleRate: 24000,
-        channels: 1,
-        data: Uint8List(60),
-        format: AudioFormat.Int16,
-      ));
-      capture.emitFrame(AudioFrame(
-        sampleRate: 24000,
-        channels: 1,
-        data: Uint8List(60),
-        format: AudioFormat.Int16,
-      ));
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 24000,
+          channels: 1,
+          data: Uint8List(60),
+          format: AudioFormat.Int16,
+        ),
+      );
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 24000,
+          channels: 1,
+          data: Uint8List(60),
+          format: AudioFormat.Int16,
+        ),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -357,12 +367,14 @@ void main() {
 
       // Emit raw float32 data (as if from the worklet).
       final samples = Float32List.fromList(List<double>.generate(128, (i) => i / 128.0));
-      capture.emitFrame(AudioFrame(
-        sampleRate: 48000,
-        channels: 1,
-        data: samples.buffer.asUint8List(),
-        format: AudioFormat.Float32,
-      ));
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 48000,
+          channels: 1,
+          data: samples.buffer.asUint8List(),
+          format: AudioFormat.Float32,
+        ),
+      );
 
       await Future<void>.delayed(Duration.zero);
 
@@ -404,12 +416,14 @@ void main() {
 
       // Interleaved stereo: [L0=0.5, R0=-0.5, L1=0.25, R1=-0.25]
       final stereo = Float32List.fromList([0.5, -0.5, 0.25, -0.25]);
-      capture.emitFrame(AudioFrame(
-        sampleRate: 48000,
-        channels: 2,
-        data: stereo.buffer.asUint8List(),
-        format: AudioFormat.Float32,
-      ));
+      capture.emitFrame(
+        AudioFrame(
+          sampleRate: 48000,
+          channels: 2,
+          data: stereo.buffer.asUint8List(),
+          format: AudioFormat.Float32,
+        ),
+      );
 
       await Future<void>.delayed(Duration.zero);
 

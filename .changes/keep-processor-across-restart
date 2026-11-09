@@ -1,0 +1,1 @@
+patch type="fixed" "A track processor now stays attached across mute and unmute with the default stop-on-mute capture options, and across restartTrack such as a camera switch, instead of being silently dropped. It is restarted on the new media track, and the sender carries its processed track when it has one"

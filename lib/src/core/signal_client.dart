@@ -20,7 +20,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:fixnum/fixnum.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
-import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import '../events.dart';
@@ -33,6 +32,7 @@ import '../options.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../support/disposable.dart';
+import '../support/http_client.dart';
 import '../support/platform.dart';
 import '../support/websocket.dart';
 import '../types/other.dart';
@@ -122,10 +122,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           } else {
             logger.info('Connectivity changed, ${_connectivityResult} => ${result}');
           }
-          events.emit(SignalConnectivityChangedEvent(
-            oldState: _connectivityResult,
-            state: result,
-          ));
+          events.emit(
+            SignalConnectivityChangedEvent(
+              oldState: _connectivityResult,
+              state: result,
+            ),
+          );
           _connectivityResult = result;
         }
       });
@@ -167,7 +169,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       _useV1SignalPath = useV1;
     }
 
-    logger.fine('SignalClient connecting with url: $rtcUri');
+    logger.fine('SignalClient connecting with url: ${rtcUri.redactingAccessToken}');
 
     try {
       if (reconnect == true) {
@@ -190,6 +192,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         headers: {
           'Authorization': 'Bearer $token',
         },
+        networkOptions: roomOptions.networkOptions,
       );
       future = future.timeout(connectOptions.timeouts.connection);
       _ws = await future;
@@ -197,6 +200,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
     } catch (socketError) {
+      if (socketError is CertificatePinningException) {
+        // In reconnect mode the engine owns state and event emission,
+        // emitting here would race its reconnect handling.
+        if (!reconnect) {
+          _connectionState = ConnectionState.disconnected;
+          events.emit(SignalDisconnectedEvent(reason: DisconnectReason.signalingConnectionFailure));
+        }
+        rethrow;
+      }
+
       // Skip validation if reconnect mode
       if (reconnect) rethrow;
 
@@ -221,21 +234,27 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
                 forceSecure: rtcUri.isSecureScheme,
               );
 
-        final validateResponse = await http.get(
+        final validateResponse = await sdkHttpGet(
           validateUri,
           headers: {
             'Authorization': 'Bearer $token',
           },
+          networkOptions: roomOptions.networkOptions,
         );
         if (validateResponse.statusCode == 404) {
-          finalError =
-              ConnectException(validateResponse.body, reason: ConnectionErrorReason.ServiceNotFound, statusCode: 404);
+          finalError = ConnectException(
+            validateResponse.body,
+            reason: ConnectionErrorReason.ServiceNotFound,
+            statusCode: 404,
+          );
         } else if (validateResponse.statusCode != 200) {
-          finalError = ConnectException(validateResponse.body,
-              reason: validateResponse.statusCode >= 400
-                  ? ConnectionErrorReason.NotAllowed
-                  : ConnectionErrorReason.InternalError,
-              statusCode: validateResponse.statusCode);
+          finalError = ConnectException(
+            validateResponse.body,
+            reason: validateResponse.statusCode >= 400
+                ? ConnectionErrorReason.NotAllowed
+                : ConnectionErrorReason.InternalError,
+            statusCode: validateResponse.statusCode,
+          );
         }
       } catch (error) {
         if (socketError.runtimeType != error.runtimeType) {
@@ -249,12 +268,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   }
 
   Future<void> sendLeave() async {
-    _sendRequest(lk_rtc.SignalRequest(
+    _sendRequest(
+      lk_rtc.SignalRequest(
         leave: lk_rtc.LeaveRequest(
-      reason: lk_models.DisconnectReason.CLIENT_INITIATED,
-      // server doesn't process this field, keeping it here to indicate the intent of a full disconnect
-      action: lk_rtc.LeaveRequest_Action.DISCONNECT,
-    )));
+          reason: lk_models.DisconnectReason.CLIENT_INITIATED,
+          // server doesn't process this field, keeping it here to indicate the intent of a full disconnect
+          action: lk_rtc.LeaveRequest_Action.DISCONNECT,
+        ),
+      ),
+    );
   }
 
   // resets internal state to a re-usable state
@@ -312,29 +334,37 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
         break;
       case lk_rtc.SignalResponse_Message.trickle:
-        events.emit(SignalTrickleEvent(
-          candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
-          target: msg.trickle.target,
-        ));
+        events.emit(
+          SignalTrickleEvent(
+            candidate: RTCIceCandidateExt.fromJson(msg.trickle.candidateInit),
+            target: msg.trickle.target,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.update:
         events.emit(SignalParticipantUpdateEvent(participants: msg.update.participants));
         break;
       case lk_rtc.SignalResponse_Message.trackPublished:
-        events.emit(SignalLocalTrackPublishedEvent(
-          cid: msg.trackPublished.cid,
-          track: msg.trackPublished.track,
-        ));
+        events.emit(
+          SignalLocalTrackPublishedEvent(
+            cid: msg.trackPublished.cid,
+            track: msg.trackPublished.track,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.trackUnpublished:
-        events.emit(SignalTrackUnpublishedEvent(
-          trackSid: msg.trackUnpublished.trackSid,
-        ));
+        events.emit(
+          SignalTrackUnpublishedEvent(
+            trackSid: msg.trackUnpublished.trackSid,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.trackSubscribed:
-        events.emit(SignalLocalTrackSubscribedEvent(
-          trackSid: msg.trackSubscribed.trackSid,
-        ));
+        events.emit(
+          SignalLocalTrackSubscribedEvent(
+            trackSid: msg.trackSubscribed.trackSid,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.speakersChanged:
         events.emit(SignalSpeakersChangedEvent(speakers: msg.speakersChanged.speakers));
@@ -343,38 +373,48 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalRoomUpdateEvent(room: msg.roomUpdate.room));
         break;
       case lk_rtc.SignalResponse_Message.connectionQuality:
-        events.emit(SignalConnectionQualityUpdateEvent(
-          updates: msg.connectionQuality.updates,
-        ));
+        events.emit(
+          SignalConnectionQualityUpdateEvent(
+            updates: msg.connectionQuality.updates,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.leave:
         events.emit(SignalLeaveEvent(request: msg.leave));
         break;
       case lk_rtc.SignalResponse_Message.mute:
-        events.emit(SignalRemoteMuteTrackEvent(
-          sid: msg.mute.sid,
-          muted: msg.mute.muted,
-        ));
+        events.emit(
+          SignalRemoteMuteTrackEvent(
+            sid: msg.mute.sid,
+            muted: msg.mute.muted,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.streamStateUpdate:
-        events.emit(SignalStreamStateUpdatedEvent(
-          updates: msg.streamStateUpdate.streamStates,
-        ));
+        events.emit(
+          SignalStreamStateUpdatedEvent(
+            updates: msg.streamStateUpdate.streamStates,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.subscribedQualityUpdate:
-        events.emit(SignalSubscribedQualityUpdatedEvent(
-          trackSid: msg.subscribedQualityUpdate.trackSid,
-          // ignore: deprecated_member_use_from_same_package
-          subscribedQualities: msg.subscribedQualityUpdate.subscribedQualities,
-          subscribedCodecs: msg.subscribedQualityUpdate.subscribedCodecs,
-        ));
+        events.emit(
+          SignalSubscribedQualityUpdatedEvent(
+            trackSid: msg.subscribedQualityUpdate.trackSid,
+            // ignore: deprecated_member_use_from_same_package
+            subscribedQualities: msg.subscribedQualityUpdate.subscribedQualities,
+            subscribedCodecs: msg.subscribedQualityUpdate.subscribedCodecs,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.subscriptionPermissionUpdate:
-        events.emit(SignalSubscriptionPermissionUpdateEvent(
-          participantSid: msg.subscriptionPermissionUpdate.participantSid,
-          trackSid: msg.subscriptionPermissionUpdate.trackSid,
-          allowed: msg.subscriptionPermissionUpdate.allowed,
-        ));
+        events.emit(
+          SignalSubscriptionPermissionUpdateEvent(
+            participantSid: msg.subscriptionPermissionUpdate.participantSid,
+            trackSid: msg.subscriptionPermissionUpdate.trackSid,
+            allowed: msg.subscriptionPermissionUpdate.allowed,
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.refreshToken:
         events.emit(SignalTokenUpdatedEvent(token: msg.refreshToken));
@@ -406,13 +446,17 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalRoomMovedEvent(response: msg.roomMoved));
         break;
       case lk_rtc.SignalResponse_Message.mediaSectionsRequirement:
-        logger.fine('received media sections requirement: '
-            'audios=${msg.mediaSectionsRequirement.numAudios}, '
-            'videos=${msg.mediaSectionsRequirement.numVideos}');
-        events.emit(SignalMediaSectionsRequirementEvent(
-          numAudios: msg.mediaSectionsRequirement.numAudios,
-          numVideos: msg.mediaSectionsRequirement.numVideos,
-        ));
+        logger.fine(
+          'received media sections requirement: '
+          'audios=${msg.mediaSectionsRequirement.numAudios}, '
+          'videos=${msg.mediaSectionsRequirement.numVideos}',
+        );
+        events.emit(
+          SignalMediaSectionsRequirementEvent(
+            numAudios: msg.mediaSectionsRequirement.numAudios,
+            numVideos: msg.mediaSectionsRequirement.numVideos,
+          ),
+        );
         break;
       default:
         logger.warning('received unknown signal message');
@@ -437,11 +481,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     final now = DateTime.timestamp().millisecondsSinceEpoch;
     // Send both ping and pingReq for compatibility with old and new servers
     _sendRequest(lk_rtc.SignalRequest()..ping = Int64(now));
-    _sendRequest(lk_rtc.SignalRequest()
-      ..pingReq = lk_rtc.Ping(
-        timestamp: Int64(now),
-        rtt: Int64(_rtt),
-      ));
+    _sendRequest(
+      lk_rtc.SignalRequest()
+        ..pingReq = lk_rtc.Ping(
+          timestamp: Int64(now),
+          rtt: Int64(_rtt),
+        ),
+    );
   }
 
   void _startPingInterval() {
@@ -482,37 +528,45 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
 extension SignalClientRequests on SignalClient {
   @internal
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(lk_rtc.SignalRequest(
-        offer: offer.toPBType(),
-      ));
+  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(
+    lk_rtc.SignalRequest(
+      offer: offer.toPBType(),
+    ),
+  );
 
   @internal
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(lk_rtc.SignalRequest(
-        answer: answer.toPBType(),
-      ));
+  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(
+    lk_rtc.SignalRequest(
+      answer: answer.toPBType(),
+    ),
+  );
 
   @internal
   void sendIceCandidate(rtc.RTCIceCandidate candidate, lk_rtc.SignalTarget target) => _sendRequest(
-        lk_rtc.SignalRequest(
-          trickle: lk_rtc.TrickleRequest(
-            candidateInit: candidate.toJson(),
-            target: target,
-          ),
-        ),
-      );
+    lk_rtc.SignalRequest(
+      trickle: lk_rtc.TrickleRequest(
+        candidateInit: candidate.toJson(),
+        target: target,
+      ),
+    ),
+  );
 
   @internal
-  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(lk_rtc.SignalRequest(
-        mute: lk_rtc.MuteTrackRequest(
-          sid: trackSid,
-          muted: muted,
-        ),
-      ));
+  void sendMuteTrack(String trackSid, bool muted) => _sendRequest(
+    lk_rtc.SignalRequest(
+      mute: lk_rtc.MuteTrackRequest(
+        sid: trackSid,
+        muted: muted,
+      ),
+    ),
+  );
 
   @internal
-  void sendAddTrack(lk_rtc.AddTrackRequest req) => _sendRequest(lk_rtc.SignalRequest(
-        addTrack: req,
-      ));
+  void sendAddTrack(lk_rtc.AddTrackRequest req) => _sendRequest(
+    lk_rtc.SignalRequest(
+      addTrack: req,
+    ),
+  );
 
   @internal
   int sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) {
@@ -523,26 +577,31 @@ extension SignalClientRequests on SignalClient {
   }
 
   @internal
-  void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) => _sendRequest(lk_rtc.SignalRequest(
-        trackSetting: settings,
-      ));
+  void sendUpdateTrackSettings(lk_rtc.UpdateTrackSettings settings) => _sendRequest(
+    lk_rtc.SignalRequest(
+      trackSetting: settings,
+    ),
+  );
 
   @internal
-  void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) => _sendRequest(lk_rtc.SignalRequest(
-        subscription: subscription,
-      ));
+  void sendUpdateSubscription(lk_rtc.UpdateSubscription subscription) => _sendRequest(
+    lk_rtc.SignalRequest(
+      subscription: subscription,
+    ),
+  );
 
   @internal
   void sendUpdateSubscriptionPermissions({
     required bool allParticipants,
     required Iterable<lk_rtc.TrackPermission> trackPermissions,
-  }) =>
-      _sendRequest(lk_rtc.SignalRequest(
-        subscriptionPermission: lk_rtc.SubscriptionPermission(
-          allParticipants: allParticipants,
-          trackPermissions: trackPermissions,
-        ),
-      ));
+  }) => _sendRequest(
+    lk_rtc.SignalRequest(
+      subscriptionPermission: lk_rtc.SubscriptionPermission(
+        allParticipants: allParticipants,
+        trackPermissions: trackPermissions,
+      ),
+    ),
+  );
 
   @internal
   void sendSyncState({
@@ -553,18 +612,19 @@ extension SignalClientRequests on SignalClient {
     required Iterable<lk_rtc.DataChannelInfo>? dataChannelInfo,
     required List<String> trackSidsDisabled,
     List<lk_rtc.DataChannelReceiveState>? dataChannelReceiveStates,
-  }) =>
-      _sendRequest(lk_rtc.SignalRequest(
-        syncState: lk_rtc.SyncState(
-          answer: answer,
-          offer: offer,
-          subscription: subscription,
-          publishTracks: publishTracks,
-          dataChannels: dataChannelInfo,
-          trackSidsDisabled: trackSidsDisabled,
-          datachannelReceiveStates: dataChannelReceiveStates,
-        ),
-      ));
+  }) => _sendRequest(
+    lk_rtc.SignalRequest(
+      syncState: lk_rtc.SyncState(
+        answer: answer,
+        offer: offer,
+        subscription: subscription,
+        publishTracks: publishTracks,
+        dataChannels: dataChannelInfo,
+        trackSidsDisabled: trackSidsDisabled,
+        datachannelReceiveStates: dataChannelReceiveStates,
+      ),
+    ),
+  );
 
   @internal
   void sendSimulateScenario({
@@ -573,28 +633,37 @@ extension SignalClientRequests on SignalClient {
     bool? migration,
     bool? serverLeave,
     bool? switchCandidate,
-  }) =>
-      _sendRequest(lk_rtc.SignalRequest(
-        simulate: lk_rtc.SimulateScenario(
-          speakerUpdate: speakerUpdate,
-          nodeFailure: nodeFailure,
-          migration: migration,
-          serverLeave: serverLeave,
-          switchCandidateProtocol: (switchCandidate != null && switchCandidate) ? lk_rtc.CandidateProtocol.TCP : null,
-        ),
-      ));
+    int? subscriberBandwidth,
+    bool? disconnectSignalOnResume,
+    bool? disconnectSignalOnResumeNoMessages,
+    bool? leaveRequestFullReconnect,
+  }) => _sendRequest(
+    lk_rtc.SignalRequest(
+      simulate: lk_rtc.SimulateScenario(
+        speakerUpdate: speakerUpdate,
+        nodeFailure: nodeFailure,
+        migration: migration,
+        serverLeave: serverLeave,
+        switchCandidateProtocol: (switchCandidate != null && switchCandidate) ? lk_rtc.CandidateProtocol.TCP : null,
+        subscriberBandwidth: subscriberBandwidth != null ? Int64(subscriberBandwidth) : null,
+        disconnectSignalOnResume: disconnectSignalOnResume,
+        disconnectSignalOnResumeNoMessages: disconnectSignalOnResumeNoMessages,
+        leaveRequestFullReconnect: leaveRequestFullReconnect,
+      ),
+    ),
+  );
 }
 
 // private methods
 extension on lk_rtc.SignalRequest {
   // returns if this request can be queued
   bool _canQueue() => ![
-        // list of types that cannot be queued
-        lk_rtc.SignalRequest_Message.syncState,
-        lk_rtc.SignalRequest_Message.trickle,
-        lk_rtc.SignalRequest_Message.answer,
-        lk_rtc.SignalRequest_Message.simulate
-      ].contains(whichMessage());
+    // list of types that cannot be queued
+    lk_rtc.SignalRequest_Message.syncState,
+    lk_rtc.SignalRequest_Message.trickle,
+    lk_rtc.SignalRequest_Message.answer,
+    lk_rtc.SignalRequest_Message.simulate,
+  ].contains(whichMessage());
 }
 
 // internal methods

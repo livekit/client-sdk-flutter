@@ -44,6 +44,28 @@ class StreamState extends $pb.ProtobufEnum {
   const StreamState._(super.value, super.name);
 }
 
+class NegotiatedDataChannelID extends $pb.ProtobufEnum {
+  static const NegotiatedDataChannelID NDCI_INVALID =
+      NegotiatedDataChannelID._(0, _omitEnumNames ? '' : 'NDCI_INVALID');
+  static const NegotiatedDataChannelID NDCI_RELIABLE =
+      NegotiatedDataChannelID._(100, _omitEnumNames ? '' : 'NDCI_RELIABLE');
+  static const NegotiatedDataChannelID NDCI_LOSSY = NegotiatedDataChannelID._(101, _omitEnumNames ? '' : 'NDCI_LOSSY');
+  static const NegotiatedDataChannelID NDCI_DATA_TRACK =
+      NegotiatedDataChannelID._(102, _omitEnumNames ? '' : 'NDCI_DATA_TRACK');
+
+  static const $core.List<NegotiatedDataChannelID> values = <NegotiatedDataChannelID>[
+    NDCI_INVALID,
+    NDCI_RELIABLE,
+    NDCI_LOSSY,
+    NDCI_DATA_TRACK,
+  ];
+
+  static final $core.Map<$core.int, NegotiatedDataChannelID> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static NegotiatedDataChannelID? valueOf($core.int value) => _byValue[value];
+
+  const NegotiatedDataChannelID._(super.value, super.name);
+}
+
 class CandidateProtocol extends $pb.ProtobufEnum {
   static const CandidateProtocol UDP = CandidateProtocol._(0, _omitEnumNames ? '' : 'UDP');
   static const CandidateProtocol TCP = CandidateProtocol._(1, _omitEnumNames ? '' : 'TCP');
@@ -98,6 +120,8 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
       RequestResponse_Reason._(9, _omitEnumNames ? '' : 'DUPLICATE_HANDLE');
   static const RequestResponse_Reason DUPLICATE_NAME =
       RequestResponse_Reason._(10, _omitEnumNames ? '' : 'DUPLICATE_NAME');
+  static const RequestResponse_Reason INVALID_REQUEST =
+      RequestResponse_Reason._(11, _omitEnumNames ? '' : 'INVALID_REQUEST');
 
   static const $core.List<RequestResponse_Reason> values = <RequestResponse_Reason>[
     OK,
@@ -111,9 +135,10 @@ class RequestResponse_Reason extends $pb.ProtobufEnum {
     INVALID_NAME,
     DUPLICATE_HANDLE,
     DUPLICATE_NAME,
+    INVALID_REQUEST,
   ];
 
-  static final $core.List<RequestResponse_Reason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 10);
+  static final $core.List<RequestResponse_Reason?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 11);
   static RequestResponse_Reason? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 

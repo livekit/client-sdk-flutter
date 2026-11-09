@@ -1,0 +1,1 @@
+patch type="fixed" "A duplicated server answer is now ignored instead of being applied a second time, which failed on the peer connection and re-ran the transport's post-answer work for a message that should have been dropped"

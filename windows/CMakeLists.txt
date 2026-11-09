@@ -28,6 +28,7 @@ add_library(${PLUGIN_NAME} SHARED
   "task_runner_windows.cpp"
   "../shared_cpp/fft_processor.cpp"
   "../shared_cpp/audio_visualizer.cpp"
+  "../shared_cpp/audio_renderer.cpp"
   "../shared_cpp/pffft.c"
 )
 

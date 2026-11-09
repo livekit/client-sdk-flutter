@@ -52,6 +52,18 @@ class MediaConnectException extends LiveKitException {
   MediaConnectException([String msg = 'Ice connection failed']) : super._(msg);
 }
 
+/// Certificate pinning validation failed for an SDK-owned TLS connection.
+class CertificatePinningException extends LiveKitException {
+  final String host;
+  final String? presentedPin;
+
+  CertificatePinningException(
+    String msg, {
+    required this.host,
+    this.presentedPin,
+  }) : super._(msg);
+}
+
 /// An internal state of the SDK is not correct and can not continue to execute.
 /// This should not occur frequently.
 class UnexpectedStateException extends LiveKitException {
@@ -69,6 +81,17 @@ class NegotiationError extends LiveKitException {
 /// - Constraints(Capture options) rejected by the platform.
 class TrackCreateException extends LiveKitException {
   TrackCreateException([String msg = 'Failed to create track']) : super._(msg);
+}
+
+/// The platform audio session could not be configured for, or does not permit,
+/// the requested audio operation (iOS; macOS has no audio session, so engine
+/// failures there keep their generic error codes).
+/// Common reasons:
+/// - Recording was started while the app-managed audio session
+///   (`AudioSessionManagementMode.manual`) has a category without input.
+/// - The system rejected the audio session configuration.
+class AudioSessionException extends LiveKitException {
+  AudioSessionException([String msg = 'Audio session error']) : super._(msg);
 }
 
 /// Failed to publish a local track.

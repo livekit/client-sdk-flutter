@@ -24,6 +24,6 @@ class RTCOfferOptions {
   });
 
   Map<String, dynamic> toMap() => <String, dynamic>{
-        if (iceRestart) 'iceRestart': true,
-      };
+    if (iceRestart) 'iceRestart': true,
+  };
 }

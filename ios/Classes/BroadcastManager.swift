@@ -16,6 +16,7 @@
 
 import Combine
 import ReplayKit
+import UIKit
 
 @available(iOS 13.0, *)
 final class BroadcastManager {
@@ -44,8 +45,10 @@ final class BroadcastManager {
         view.preferredExtension = preferredExtension
         view.showsMicrophoneButton = false
 
-        let selector = NSSelectorFromString("buttonPressed:")
-        guard view.responds(to: selector) else { return }
-        view.perform(selector, with: nil)
+        guard let button = view.subviews.compactMap({ $0 as? UIButton }).first else {
+            print("[LiveKit] Unable to find button in RPSystemBroadcastPickerView")
+            return
+        }
+        button.sendActions(for: .touchUpInside)
     }
 }
