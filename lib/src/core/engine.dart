@@ -135,6 +135,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   bool _subscriberPrimary = false;
   bool _singlePCMode = false;
 
+  /// Track sid per media section mid, from the latest server description that
+  /// carried one. In single PC mode the receiving track's id is generated
+  /// locally, so this is the only way to tell which track arrived.
+  Map<String, String> _midToTrackId = const {};
+
   String? _connectedServerAddress;
   String? get connectedServerAddress => _connectedServerAddress;
 
@@ -378,6 +383,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     subscriber = null;
 
     _singlePCMode = false;
+    _midToTrackId = const {};
 
     await signalClient.cleanUp();
 
@@ -779,12 +785,33 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     );
   }
 
+  /// The track sid for the media section [receiver] belongs to, from the
+  /// server's mid to track id mapping. Null when the receiver's transceiver is
+  /// not found or its mid is not mapped.
+  @internal
+  Future<String?> getTrackIdForReceiver(rtc.RTCRtpReceiver? receiver) async {
+    if (receiver == null || _midToTrackId.isEmpty) return null;
+    final pc = (subscriber ?? publisher)?.pc;
+    if (pc == null) return null;
+    try {
+      final transceivers = await pc.getTransceivers();
+      final receiverId = receiver.receiverId;
+      for (final transceiver in transceivers) {
+        if (transceiver.receiver.receiverId == receiverId) {
+          return _midToTrackId[transceiver.mid];
+        }
+      }
+    } catch (e) {
+      logger.warning('[$objectId] getTrackIdForReceiver() failed: $e');
+    }
+    return null;
+  }
+
   Future<void> _createPeerConnections(RTCConfiguration rtcConfiguration) async {
     publisher = await Transport.create(
       _peerConnectionCreate,
       rtcConfig: rtcConfiguration,
       connectOptions: connectOptions,
-      singlePCMode: _singlePCMode,
     );
 
     if (!_singlePCMode) {
@@ -821,12 +848,14 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       };
     }
 
-    publisher?.onOffer = (offer) {
-      logger.fine('publisher onOffer');
-      signalClient.sendOffer(offer);
+    publisher?.onOffer = (offer, offerId) {
+      logger.fine('publisher onOffer $offerId');
+      signalClient.sendOffer(offer, offerId: offerId);
     };
 
     publisher?.onNegotiationError = _onPublisherNegotiationError;
+    // subscribed video arrives on the publisher's recvonly sections in single PC mode
+    publisher?.negotiateReceivedVideoDependencyDescriptor = _singlePCMode;
 
     // In single PC mode, server opens data channels on publisher.
     // In dual PC subscriber-primary mode, server opens data channels on subscriber.
@@ -1659,6 +1688,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
       logger.finer('sdp: ${event.sd.sdp}');
 
+      _midToTrackId = event.midToTrackId;
       await subscriber!.setRemoteDescription(event.sd);
 
       try {
@@ -1666,7 +1696,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.fine('Created answer');
         logger.finer('sdp: ${answer.sdp}');
         await subscriber!.pc.setLocalDescription(answer);
-        signalClient.sendAnswer(answer);
+        signalClient.sendAnswer(answer, offerId: event.offerId);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
       }
@@ -1675,9 +1705,22 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (publisher == null) {
         return;
       }
-      logger.fine('received answer (type: ${event.sd.type})');
-      logger.finer('sdp: ${event.sd.sdp}');
-      await publisher!.setRemoteDescription(event.sd);
+      // an answer to an older offer is never applied by the publisher transport, so
+      // neither its mapping nor anything else in it may replace the current state
+      if (publisher!.isStaleAnswer(event.offerId)) {
+        logger.warning(
+          'ignoring answer for old offer ${event.offerId}, latest is ${publisher!.latestOfferId}',
+        );
+        return;
+      }
+      logger.fine('received answer (type: ${event.sd.type}, offerId: ${event.offerId})');
+      logger.finer('sdp: ${event.sd.sdp}, midToTrackId: ${event.midToTrackId}');
+      // In dual PC mode the publisher answer carries no mapping and must not clobber
+      // the subscriber offer's. An empty mapping would wipe the current one as well.
+      if (_singlePCMode && event.midToTrackId.isNotEmpty) {
+        _midToTrackId = event.midToTrackId;
+      }
+      await publisher!.setRemoteDescription(event.sd, offerId: event.offerId);
       events.emit(const EngineSubscribedCodecRefreshRequestedEvent());
     })
     ..on<SignalTrickleEvent>((event) async {

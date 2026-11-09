@@ -218,13 +218,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       try {
         // Re-build same uri for validate mode, matching the signal path version
         final validateUri = useV1
-            ? await Utils.buildV1ValidateUri(
-                uriString,
-                token: token,
-                connectOptions: connectOptions,
-                roomOptions: roomOptions,
-                forceSecure: rtcUri.isSecureScheme,
-              )
+            ? Utils.buildV1ValidateUri(rtcUri, forceSecure: rtcUri.isSecureScheme)
             : await Utils.buildV0Uri(
                 uriString,
                 token: token,
@@ -328,10 +322,22 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalJoinResponseEvent(response: msg.join));
         break;
       case lk_rtc.SignalResponse_Message.answer:
-        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
+        events.emit(
+          SignalAnswerEvent(
+            sd: msg.answer.toSDKType(),
+            offerId: msg.answer.id,
+            midToTrackId: Map.of(msg.answer.midToTrackId),
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.offer:
-        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
+        events.emit(
+          SignalOfferEvent(
+            sd: msg.offer.toSDKType(),
+            offerId: msg.offer.id,
+            midToTrackId: Map.of(msg.offer.midToTrackId),
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.trickle:
         events.emit(
@@ -528,16 +534,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
 extension SignalClientRequests on SignalClient {
   @internal
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(
+  void sendOffer(rtc.RTCSessionDescription offer, {int offerId = 0}) => _sendRequest(
     lk_rtc.SignalRequest(
-      offer: offer.toPBType(),
+      offer: offer.toPBType(id: offerId),
     ),
   );
 
   @internal
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer, {int offerId = 0}) => _sendRequest(
     lk_rtc.SignalRequest(
-      answer: answer.toPBType(),
+      answer: answer.toPBType(id: offerId),
     ),
   );
 

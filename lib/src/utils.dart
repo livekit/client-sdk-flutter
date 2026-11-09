@@ -291,31 +291,16 @@ class Utils {
     );
   }
 
-  /// Converts a v1 WebSocket URL to its HTTP validation counterpart.
-  /// `wss://host/rtc/v1` → `https://host/rtc/v1/validate`
+  /// The HTTP validation counterpart of a v1 signal URL built by [buildV1Uri]:
+  /// `wss://host/rtc/v1?…` → `https://host/rtc/v1/validate?…`. It keeps every
+  /// query parameter, `join_request` included, because the server rejects a v1
+  /// validate request without one (400) before it gets to the real reason.
   @internal
-  static Future<Uri> buildV1ValidateUri(
-    String uriString, {
-    required String token,
-    required ConnectOptions connectOptions,
-    required RoomOptions roomOptions,
-    bool forceSecure = false,
-  }) async {
-    final Uri uri = Uri.parse(uriString);
-
-    final useSecure = uri.isSecureScheme || forceSecure;
-    final httpScheme = useSecure ? 'https' : 'http';
-
-    final pathSegments = List<String>.from(uri.pathSegments);
-    pathSegments.removeWhere((e) => e.isEmpty);
-    pathSegments.addAll(['rtc', 'v1', 'validate']);
-
-    return uri.replace(
-      scheme: httpScheme,
-      pathSegments: pathSegments,
-      queryParameters: <String, String>{
-        'access_token': token,
-      },
+  static Uri buildV1ValidateUri(Uri rtcUri, {bool forceSecure = false}) {
+    final useSecure = rtcUri.isSecureScheme || forceSecure;
+    return rtcUri.replace(
+      scheme: useSecure ? 'https' : 'http',
+      pathSegments: [...rtcUri.pathSegments.where((e) => e.isNotEmpty), 'validate'],
     );
   }
 

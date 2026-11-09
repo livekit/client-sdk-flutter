@@ -73,4 +73,21 @@ void main() {
     expect(fallback.timeouts, options.timeouts);
     expect(fallback.rtcConfiguration, options.rtcConfiguration);
   });
+
+  test('v1 validate URL keeps the join request of the signal URL', () async {
+    final rtc = await Utils.buildV1Uri(
+      'wss://example.livekit.cloud',
+      token: 'token',
+      connectOptions: const ConnectOptions(),
+      roomOptions: const RoomOptions(),
+    );
+    final validate = Utils.buildV1ValidateUri(rtc);
+
+    expect(validate.scheme, 'https');
+    expect(validate.path, '/rtc/v1/validate');
+    expect(validate.queryParameters['join_request'], rtc.queryParameters['join_request']);
+    expect(validate.queryParameters['access_token'], 'token');
+    expect(Utils.buildV1ValidateUri(Uri.parse('ws://h/rtc/v1?a=1'), forceSecure: true).scheme, 'https');
+    expect(Utils.buildV1ValidateUri(Uri.parse('ws://h/rtc/v1?a=1')).toString(), 'http://h/rtc/v1/validate?a=1');
+  });
 }

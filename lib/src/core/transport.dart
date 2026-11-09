@@ -204,7 +204,9 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
-typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+/// [offerId] numbers the offer, starting at 1, so its answer can be told apart
+/// from the answer to an earlier offer.
+typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
@@ -231,17 +233,33 @@ class Transport extends Disposable {
   bool restartingIce = false;
   bool renegotiate = false;
 
-  /// Whether an answer is being applied right now, so a copy that arrives
-  /// mid-apply is recognised as a duplicate too.
-  bool _answerInFlight = false;
+  /// Id the dependency descriptor extension was mapped to in the last offer, 0
+  /// before one was chosen. See [ensureVideoDDExtension].
+  int _ddExtID = 0;
+
+  /// Also negotiate the dependency descriptor on receive-only video sections. Set
+  /// in single PC mode, where subscribed video arrives on this transport's
+  /// recvonly sections, so SVC layers can be told apart on receive.
+  @internal
+  bool negotiateReceivedVideoDependencyDescriptor = false;
+
+  /// Id of the last offer created on this transport, 0 before the first one.
+  @internal
+  int latestOfferId = 0;
+
+  /// Id of the offer whose answer was last applied, 0 when none was numbered.
+  int _answeredOfferId = 0;
+
+  /// Offer id of the answer being applied right now (0 if unnumbered), so a copy
+  /// that arrives mid-apply is recognised as a duplicate too.
+  int? _answerInFlight;
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
-  final bool singlePCMode;
 
   // private constructor
-  Transport._(this.pc, this.connectOptions, {this.singlePCMode = false}) {
+  Transport._(this.pc, this.connectOptions) {
     //
     onDispose(() async {
       _cancelDebounce?.call();
@@ -279,12 +297,11 @@ class Transport extends Disposable {
     PeerConnectionCreate peerConnectionCreate, {
     RTCConfiguration? rtcConfig,
     required ConnectOptions connectOptions,
-    bool singlePCMode = false,
   }) async {
     rtcConfig ??= const RTCConfiguration();
     logger.fine('[PCTransport] creating ${rtcConfig.toMap()}');
     final pc = await peerConnectionCreate(rtcConfig.toMap());
-    return Transport._(pc, connectOptions, singlePCMode: singlePCMode);
+    return Transport._(pc, connectOptions);
   }
 
   void setConnectStopwatch(Stopwatch stopwatch) {
@@ -316,30 +333,42 @@ class Transport extends Disposable {
     }
   }
 
-  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
+  /// Whether an answer for [offerId] answers an offer older than the latest one
+  /// sent. Unnumbered answers (0, from servers that do not echo the id) never are.
+  bool isStaleAnswer(int offerId) => latestOfferId > 0 && offerId > 0 && offerId != latestOfferId;
+
+  /// Applies [sd]. For an answer, [offerId] is the offer it answers, 0 when the
+  /// server does not number offers. Returns false when the answer was dropped as
+  /// stale or as a duplicate.
+  Future<bool> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
-      return;
+      return false;
     }
 
     if (sd.type == 'answer') {
-      // Offers are not numbered on this transport, so the signaling state is what says
-      // whether an answer is still wanted: in `stable` there is no local offer left to
-      // answer, and a copy arriving mid-apply is caught by the in-flight flag.
-      if (_answerInFlight || await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable) {
-        logger.warning('[$objectId] ignoring duplicate answer');
-        return;
+      if (isStaleAnswer(offerId)) {
+        logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $latestOfferId');
+        return false;
       }
-      _answerInFlight = true;
+      if (_answerInFlight == offerId || await _isAppliedAnswer(offerId)) {
+        // a repeat of an answer already applied or being applied (e.g. duplicated
+        // by a proxy): there is no local offer left to answer
+        logger.warning('[$objectId] ignoring duplicate answer (offer $offerId)');
+        return false;
+      }
+      // claimed before the apply, so a copy arriving mid-apply is caught too
+      _answerInFlight = offerId;
     }
 
     try {
       await pc.setRemoteDescription(sd);
+      if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
     } finally {
       // released however the apply ends, so a genuine retry is still possible
-      if (sd.type == 'answer') _answerInFlight = false;
+      if (sd.type == 'answer') _answerInFlight = null;
     }
 
     for (final candidate in _pendingCandidates) {
@@ -360,6 +389,15 @@ class Transport extends Disposable {
         await _createAndSendOfferReportingErrors();
       }
     }
+    return true;
+  }
+
+  /// With an offer id, an answer is a duplicate once that offer's answer was
+  /// applied. Without one, the signaling state decides: in `stable` there is no
+  /// local offer left to answer.
+  Future<bool> _isAppliedAnswer(int offerId) async {
+    if (offerId > 0) return offerId == _answeredOfferId;
+    return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
   Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
@@ -398,6 +436,9 @@ class Transport extends Disposable {
 
     // actually negotiate
     logger.fine('starting to negotiate');
+    // numbered before the first await, so the id is always > 0 and 0 keeps meaning
+    // "unnumbered" for servers that do not echo it
+    final offerId = ++latestOfferId;
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
 
     if ((offer.sdp ?? '').contains('goog-sped-v1')) {
@@ -423,7 +464,11 @@ class Transport extends Disposable {
     var appliedVideoStartBitrate = false;
     sdpParsed['media']?.forEach((media) {
       if (media['type'] == 'video') {
-        ensureVideoDDExtensionForSVC(media, media['type'], media['port'], media['protocol'], media['payloads']);
+        final codec = (media['rtp']?[0]?['codec'] as String?) ?? '';
+        final receiveOnly = media['direction'] == 'recvonly';
+        if (isSVCCodec(codec) || (receiveOnly && negotiateReceivedVideoDependencyDescriptor)) {
+          _ddExtID = ensureVideoDDExtension(media, sdpParsed['media'] ?? const [], _ddExtID);
+        }
 
         // mung sdp for codec bitrate setting that can't apply by sendEncoding
         for (var trackbr in _bitrateTrackers) {
@@ -444,12 +489,13 @@ class Transport extends Disposable {
       }
     });
 
-    var mungedSdp = sdp_transform.write(sdpParsed, null);
+    final mungedSdp = sdp_transform.write(sdpParsed, null);
 
-    // In single PC mode, munge a=inactive to a=recvonly for RTP media sections.
-    // WebRTC can generate inactive direction even when transceivers were configured as recvonly.
-    if (singlePCMode) {
-      mungedSdp = mungeInactiveToRecvOnlyForMedia(mungedSdp);
+    if (latestOfferId > offerId) {
+      // a newer offer started while this one was being created and supersedes it,
+      // so this one is neither set locally nor sent
+      logger.warning('[$objectId] offer $offerId superseded by $latestOfferId');
+      return;
     }
 
     try {
@@ -462,7 +508,7 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
-    onOffer?.call(offer);
+    onOffer?.call(offer, offerId);
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
@@ -512,41 +558,68 @@ class Transport extends Disposable {
     _bitrateTrackers.add(info);
   }
 
-  bool ensureVideoDDExtensionForSVC(
-    Map<String, dynamic> media,
-    String? type,
-    num port,
-    String protocol,
-    String? payloads,
-  ) {
-    final codec = media['rtp']?[0]?['codec']?.toLowerCase();
-    if (!isSVCCodec(codec)) {
-      return false;
+  /// Adds the AV1 dependency descriptor extension to [media] unless it is
+  /// already there, and returns the id it is mapped to so the caller can pass it
+  /// back in as [ddExtID] (0 when no id has been chosen yet). Returns [ddExtID]
+  /// unchanged when no id is consistent for the whole bundle.
+  ///
+  /// A bundle has to map one URI to one id, so an id already used for the
+  /// extension anywhere in [allMedia] wins over both the cached one and a fresh
+  /// one: libwebrtc advertises the extension on sections it can send on, and an
+  /// earlier offer may have munged it into others. In single PC mode sending and
+  /// receiving sections share the bundle, which is where a per-section id clashes.
+  @internal
+  static int ensureVideoDDExtension(Map<String, dynamic> media, List<dynamic> allMedia, int ddExtID) {
+    final id = _ddExtensionIdFor(allMedia, ddExtID);
+    if (id == null) return ddExtID;
+    final ext = (media['ext'] as List<dynamic>?) ?? (media['ext'] = <dynamic>[]);
+    if (!ext.any((e) => e['uri'] == ddExtensionURI)) {
+      ext.add({'value': id, 'uri': ddExtensionURI});
     }
+    return id;
+  }
 
-    var maxID = 0;
-    bool ddFound = false;
-    final List<dynamic>? ext = media['ext'];
-    if (ext != null) {
-      for (var e in ext) {
-        if (e['uri'] == ddExtensionURI) {
-          ddFound = true;
-          continue;
-        }
-        if (e['value'] > maxID) {
-          maxID = e['value'];
-        }
-      }
+  static int? _ddExtensionIdFor(List<dynamic> allMedia, int cachedId) {
+    final mapped = _mappedExtensionId(allMedia, ddExtensionURI);
+    if (mapped != null) {
+      // an id that also stands for another URI is what the bundle is rejected
+      // over, and libwebrtc's half of the map is not ours to renumber
+      return _usedForOtherUri(allMedia, mapped, ddExtensionURI) ? null : mapped;
     }
-
-    if (!ddFound) {
-      ext?.add({
-        'value': maxID + 1,
-        'uri': ddExtensionURI,
-      });
+    // reusing the last offer's id keeps the mapping stable across renegotiations,
+    // as long as libwebrtc has not since given it to one of its own extensions
+    if (cachedId != 0 && !_usedForOtherUri(allMedia, cachedId, ddExtensionURI)) {
+      return cachedId;
     }
+    return _unusedExtensionId(allMedia);
+  }
 
-    return ddFound;
+  static Iterable<Map<dynamic, dynamic>> _extensions(List<dynamic> allMedia) sync* {
+    for (final media in allMedia) {
+      final ext = media['ext'];
+      if (ext is List) yield* ext.whereType<Map<dynamic, dynamic>>();
+    }
+  }
+
+  static int? _mappedExtensionId(List<dynamic> allMedia, String uri) {
+    for (final e in _extensions(allMedia)) {
+      if (e['uri'] == uri) return e['value'] as int;
+    }
+    return null;
+  }
+
+  static bool _usedForOtherUri(List<dynamic> allMedia, int id, String uri) =>
+      _extensions(allMedia).any((e) => e['value'] == id && e['uri'] != uri);
+
+  /// Above every id in use rather than filling gaps, so it is less likely to be
+  /// an id libwebrtc allocates next, and stepping over 15, which RFC 8285 reserves.
+  static int _unusedExtensionId(List<dynamic> allMedia) {
+    var maxId = 0;
+    for (final e in _extensions(allMedia)) {
+      final value = e['value'] as int;
+      if (value > maxId) maxId = value;
+    }
+    return maxId + 1 == 15 ? 16 : maxId + 1;
   }
 
   Future<void> setMungedSDP({required rtc.RTCSessionDescription sd, String? munged, bool? remote}) async {
@@ -580,72 +653,4 @@ class Transport extends Disposable {
       rethrow;
     }
   }
-
-  /// Munge SDP to change `a=inactive` to `a=recvonly` for RTP media sections
-  /// that have no SSRC (i.e. receive-only transceivers with no local media).
-  ///
-  /// In single PC mode, libWebRTC may incorrectly generate `a=inactive` for
-  /// transceivers that were configured as recvonly. We only fix sections
-  /// without SSRC lines to avoid touching sendonly/sendrecv transceivers that
-  /// have been intentionally set to inactive (e.g. after unpublishing).
-  static String mungeInactiveToRecvOnlyForMedia(String sdp) {
-    final usesCRLF = sdp.contains('\r\n');
-    final eol = usesCRLF ? '\r\n' : '\n';
-    final lines = sdp.split(eol);
-
-    // Two-pass approach: first collect media section ranges and whether they
-    // contain SSRC lines, then rewrite only the qualifying sections.
-    final sections = <_MediaSection>[];
-    for (int i = 0; i < lines.length; i++) {
-      final l = lines[i].trim();
-      if (l.startsWith('m=')) {
-        sections.add(
-          _MediaSection(
-            startIndex: i,
-            isRTP: l.contains('RTP/'),
-          ),
-        );
-      } else if (sections.isNotEmpty) {
-        if (l.startsWith('a=ssrc:')) {
-          sections.last.hasSSRC = true;
-        }
-      }
-    }
-
-    // Build a set of line indices where a=inactive should be rewritten.
-    final rewriteIndices = <int>{};
-    for (final section in sections) {
-      if (!section.isRTP || section.hasSSRC) continue;
-      final end = sections.indexOf(section) + 1 < sections.length
-          ? sections[sections.indexOf(section) + 1].startIndex
-          : lines.length;
-      for (int i = section.startIndex; i < end; i++) {
-        if (lines[i].trim() == 'a=inactive') {
-          rewriteIndices.add(i);
-        }
-      }
-    }
-
-    final out = <String>[];
-    for (int i = 0; i < lines.length; i++) {
-      if (rewriteIndices.contains(i)) {
-        out.add('a=recvonly');
-      } else {
-        out.add(lines[i]);
-      }
-    }
-
-    var result = out.join(eol);
-    if (sdp.endsWith(eol) && !result.endsWith(eol)) {
-      result += eol;
-    }
-    return result;
-  }
-}
-
-class _MediaSection {
-  final int startIndex;
-  final bool isRTP;
-  bool hasSSRC = false;
-  _MediaSection({required this.startIndex, required this.isRTP});
 }

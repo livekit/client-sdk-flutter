@@ -128,8 +128,9 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
 // not so neat to directly expose protobuf types so we
 // define our own types (and convert methods)
 extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
-  lk_rtc.SessionDescription toPBType() {
-    return lk_rtc.SessionDescription(type: type, sdp: sdp);
+  /// [id] is the offer id, `SessionDescription.id`. 0 leaves it unset.
+  lk_rtc.SessionDescription toPBType({int id = 0}) {
+    return lk_rtc.SessionDescription(type: type, sdp: sdp, id: id > 0 ? id : null);
   }
 }
 

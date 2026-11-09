@@ -342,23 +342,43 @@ class SignalDisconnectedEvent with SignalEvent, InternalEvent {
 @internal
 class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// `SessionDescription.id`: the offer this description belongs to, 0 when the
+  /// server does not number offers.
+  final int offerId;
+
+  /// `SessionDescription.mid_to_track_id`: track sid per media section mid.
+  final Map<String, String> midToTrackId;
+
   const SignalOfferEvent({
     required this.sd,
+    this.offerId = 0,
+    this.midToTrackId = const {},
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: $offerId, midToTrackId: $midToTrackId)';
 }
 
 @internal
 class SignalAnswerEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// `SessionDescription.id`: the offer this description belongs to, 0 when the
+  /// server does not number offers.
+  final int offerId;
+
+  /// `SessionDescription.mid_to_track_id`: track sid per media section mid.
+  final Map<String, String> midToTrackId;
+
   const SignalAnswerEvent({
     required this.sd,
+    this.offerId = 0,
+    this.midToTrackId = const {},
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: $offerId, midToTrackId: $midToTrackId)';
 }
 
 @internal

@@ -745,6 +745,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
+      // In single peer connection mode the track id is generated locally, not the
+      // TR_ prefixed sid from the server, so the media section's mid finds the track.
+      if (trackSid == null || !trackSid.startsWith('TR')) {
+        final mapped = await engine.getTrackIdForReceiver(event.receiver);
+        if (mapped != null) {
+          trackSid = mapped;
+        } else {
+          logger.warning(
+            'could not map track ${event.track.id} of participant $participantSid to a track sid, '
+            'stream $streamId',
+          );
+        }
+      }
+
       final participant = _remoteParticipants.findBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
