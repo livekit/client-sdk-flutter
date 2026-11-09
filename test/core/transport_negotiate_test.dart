@@ -49,6 +49,34 @@ class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
   }
 }
 
+/// Tracks the signaling state from the order descriptions are set in, as a real
+/// peer connection does, so a second offer after an answer is have-local-offer.
+class _OrderedPeerConnection extends MockPeerConnection {
+  rtc.RTCSignalingState _state = rtc.RTCSignalingState.RTCSignalingStateStable;
+
+  @override
+  rtc.RTCSignalingState? get signalingState => _state;
+
+  @override
+  Future<rtc.RTCSignalingState?> getSignalingState() async => _state;
+
+  @override
+  Future<void> setLocalDescription(rtc.RTCSessionDescription description) async {
+    await super.setLocalDescription(description);
+    _state = description.type == 'offer'
+        ? rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer
+        : rtc.RTCSignalingState.RTCSignalingStateStable;
+  }
+
+  @override
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription description) async {
+    await super.setRemoteDescription(description);
+    _state = description.type == 'offer'
+        ? rtc.RTCSignalingState.RTCSignalingStateHaveRemoteOffer
+        : rtc.RTCSignalingState.RTCSignalingStateStable;
+  }
+}
+
 void main() {
   group('Transport.negotiate', () {
     test('reports a failed offer to onNegotiationError instead of leaking an unhandled error', () async {
@@ -192,6 +220,68 @@ void main() {
 
       final remote = await pc.getRemoteDescription();
       expect(remote?.sdp, 'v=0\r\nremote-offer');
+    });
+  });
+
+  group('Transport offer ids', () {
+    Future<(Transport, _OrderedPeerConnection, List<int>)> makeTransport() async {
+      final pc = _OrderedPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      final ids = <int>[];
+      transport.onNumberedOffer = (_, offerId) => ids.add(offerId);
+      return (transport, pc, ids);
+    }
+
+    test('numbers offers from 1', () async {
+      final (transport, _, ids) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1);
+      await transport.createAndSendOffer();
+
+      expect(ids, [1, 2]);
+      expect(transport.latestOfferId, 2);
+    });
+
+    test('ignores the answer to an older offer while a newer one is pending', () async {
+      final (transport, pc, _) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1);
+      await transport.createAndSendOffer();
+      expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer);
+
+      // A late copy of the first answer arrives while offer 2 waits for its own
+      // answer. The signaling state alone would accept it.
+      expect(transport.isStaleAnswer(1), isTrue);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nstale', 'answer'), offerId: 1);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na1');
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na2', 'answer'), offerId: 2);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na2');
+    });
+
+    test('ignores a numbered duplicate of the applied answer', () async {
+      final (transport, pc, _) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\na1', 'answer'), offerId: 1);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\ncopy', 'answer'), offerId: 1);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\na1');
+    });
+
+    test('applies unnumbered answers from servers that do not echo the id', () async {
+      final (transport, pc, _) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.createAndSendOffer(); // deferred: offer 1 is still pending
+      expect(transport.isStaleAnswer(0), isFalse);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nlegacy', 'answer'));
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nlegacy');
     });
   });
 }

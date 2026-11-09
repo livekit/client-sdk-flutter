@@ -97,6 +97,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     });
   }
 
+  // Whether the established connection used the v1 signal path (single PC mode).
+  bool _useV1SignalPath = false;
+
+  @internal
+  bool get useV1SignalPath => _useV1SignalPath;
+
   @internal
   Future<void> connect(
     String uriString,
@@ -132,15 +138,36 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
     }
 
-    final rtcUri = await Utils.buildUri(
-      uriString,
-      token: token,
-      connectOptions: connectOptions,
-      roomOptions: roomOptions,
-      reconnect: reconnect,
-      sid: reconnect ? participantSid : null,
-      reconnectReason: reconnectReason,
-    );
+    // Use v1 path for initial connection when singlePeerConnection is requested.
+    // For quick reconnect, use the same path version as the established connection.
+    final useV1 = reconnect ? _useV1SignalPath : connectOptions.singlePeerConnection;
+
+    final Uri rtcUri;
+    if (useV1) {
+      rtcUri = await Utils.buildV1Uri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
+      );
+    } else {
+      rtcUri = await Utils.buildV0Uri(
+        uriString,
+        token: token,
+        connectOptions: connectOptions,
+        roomOptions: roomOptions,
+        reconnect: reconnect,
+        sid: reconnect ? participantSid : null,
+        reconnectReason: reconnectReason,
+      );
+    }
+
+    if (!reconnect) {
+      _useV1SignalPath = useV1;
+    }
 
     logger.fine('SignalClient connecting with url: ${rtcUri.redactingAccessToken}');
 
@@ -189,15 +216,17 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       // Attempt Validation
       var finalError = socketError;
       try {
-        // Re-build same uri for validate mode
-        final validateUri = await Utils.buildUri(
-          uriString,
-          token: token,
-          connectOptions: connectOptions,
-          roomOptions: roomOptions,
-          validate: true,
-          forceSecure: rtcUri.isSecureScheme,
-        );
+        // Re-build same uri for validate mode, matching the signal path version
+        final validateUri = useV1
+            ? Utils.buildV1ValidateUri(rtcUri, forceSecure: rtcUri.isSecureScheme)
+            : await Utils.buildV0Uri(
+                uriString,
+                token: token,
+                connectOptions: connectOptions,
+                roomOptions: roomOptions,
+                validate: true,
+                forceSecure: rtcUri.isSecureScheme,
+              );
 
         final validateResponse = await sdkHttpGet(
           validateUri,
@@ -206,7 +235,13 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
           },
           networkOptions: roomOptions.networkOptions,
         );
-        if (validateResponse.statusCode != 200) {
+        if (useV1 && validateResponse.statusCode == 404) {
+          finalError = ConnectException(
+            validateResponse.body,
+            reason: ConnectionErrorReason.ServiceNotFound,
+            statusCode: 404,
+          );
+        } else if (validateResponse.statusCode != 200) {
           finalError = ConnectException(
             validateResponse.body,
             reason: validateResponse.statusCode >= 400
@@ -287,10 +322,22 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         events.emit(SignalJoinResponseEvent(response: msg.join));
         break;
       case lk_rtc.SignalResponse_Message.answer:
-        events.emit(SignalAnswerEvent(sd: msg.answer.toSDKType()));
+        events.emit(
+          SignalAnswerEvent(
+            sd: msg.answer.toSDKType(),
+            offerId: msg.answer.id,
+            midToTrackId: Map.of(msg.answer.midToTrackId),
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.offer:
-        events.emit(SignalOfferEvent(sd: msg.offer.toSDKType()));
+        events.emit(
+          SignalOfferEvent(
+            sd: msg.offer.toSDKType(),
+            offerId: msg.offer.id,
+            midToTrackId: Map.of(msg.offer.midToTrackId),
+          ),
+        );
         break;
       case lk_rtc.SignalResponse_Message.trickle:
         events.emit(
@@ -404,6 +451,19 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         }
         events.emit(SignalRoomMovedEvent(response: msg.roomMoved));
         break;
+      case lk_rtc.SignalResponse_Message.mediaSectionsRequirement:
+        logger.fine(
+          'received media sections requirement: '
+          'audios=${msg.mediaSectionsRequirement.numAudios}, '
+          'videos=${msg.mediaSectionsRequirement.numVideos}',
+        );
+        events.emit(
+          SignalMediaSectionsRequirementEvent(
+            numAudios: msg.mediaSectionsRequirement.numAudios,
+            numVideos: msg.mediaSectionsRequirement.numVideos,
+          ),
+        );
+        break;
       default:
         logger.warning('received unknown signal message');
     }
@@ -474,16 +534,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
 extension SignalClientRequests on SignalClient {
   @internal
-  void sendOffer(rtc.RTCSessionDescription offer) => _sendRequest(
+  void sendOffer(rtc.RTCSessionDescription offer, {int offerId = 0}) => _sendRequest(
     lk_rtc.SignalRequest(
-      offer: offer.toPBType(),
+      offer: offer.toPBType(id: offerId),
     ),
   );
 
   @internal
-  void sendAnswer(rtc.RTCSessionDescription answer) => _sendRequest(
+  void sendAnswer(rtc.RTCSessionDescription answer, {int offerId = 0}) => _sendRequest(
     lk_rtc.SignalRequest(
-      answer: answer.toPBType(),
+      answer: answer.toPBType(id: offerId),
     ),
   );
 

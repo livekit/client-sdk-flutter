@@ -752,6 +752,20 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
+      // In single peer connection mode the track id is generated locally, not the
+      // TR_ prefixed sid from the server, so the media section's mid finds the track.
+      if (trackSid == null || !trackSid.startsWith('TR')) {
+        final mapped = await engine.getTrackIdForReceiver(event.receiver);
+        if (mapped != null) {
+          trackSid = mapped;
+        } else {
+          logger.warning(
+            'could not map track ${event.track.id} of participant $participantSid to a track sid, '
+            'stream $streamId',
+          );
+        }
+      }
+
       final participant = _remoteParticipants.findBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
@@ -1273,6 +1287,9 @@ extension RoomDebugMethods on Room {
   /// - [disconnectSignalOnResumeNoMessages] is the same, but the server closes
   ///   the socket before sending anything, for the next three resumes.
   /// - [leaveRequestFullReconnect] makes the server send a `Leave{RECONNECT}`.
+  /// - [failOnV1Path] makes the next connect over the /rtc/v1 signal path fail
+  ///   as if the server lacked it, so the client falls back to /rtc and dual
+  ///   peer connection. Client side only, it can be set before connecting.
   Future<void> sendSimulateScenario({
     int? speakerUpdate,
     bool? nodeFailure,
@@ -1285,7 +1302,12 @@ extension RoomDebugMethods on Room {
     bool? disconnectSignalOnResume,
     bool? disconnectSignalOnResumeNoMessages,
     bool? leaveRequestFullReconnect,
+    bool? failOnV1Path,
   }) async {
+    if (failOnV1Path ?? false) {
+      engine.failNextV1Path();
+      return;
+    }
     if (signalReconnect != null && signalReconnect) {
       await engine.signalClient.cleanUp();
       return;

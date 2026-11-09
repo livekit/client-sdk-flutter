@@ -26,6 +26,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 
 import './proto/livekit_models.pb.dart' as lk_models;
+import './proto/livekit_rtc.pb.dart' as lk_rtc;
 import './support/native.dart';
 import 'extensions.dart';
 import 'livekit.dart';
@@ -179,7 +180,7 @@ class Utils {
   }
 
   @internal
-  static Future<Uri> buildUri(
+  static Future<Uri> buildV0Uri(
     String uriString, {
     required String token,
     required ConnectOptions connectOptions,
@@ -230,6 +231,78 @@ class Utils {
           if (clientInfo.hasBrowserVersion()) 'browser_version': clientInfo.browserVersion,
         },
       },
+    );
+  }
+
+  @internal
+  static Future<Uri> buildV1Uri(
+    String uriString, {
+    required String token,
+    required ConnectOptions connectOptions,
+    required RoomOptions roomOptions,
+    bool reconnect = false,
+    String? sid,
+    lk_models.ReconnectReason? reconnectReason,
+  }) async {
+    final Uri uri = Uri.parse(uriString);
+
+    final useSecure = uri.isSecureScheme;
+    final wsScheme = useSecure ? 'wss' : 'ws';
+
+    final pathSegments = List<String>.from(uri.pathSegments);
+    pathSegments.removeWhere((e) => e.isEmpty);
+    pathSegments.addAll(['rtc', 'v1']);
+
+    final networkType = await getNetworkType();
+
+    // Populate ClientInfo with the same fields that v0 sends as query params.
+    // Other participants read client_protocol from it to pick RPC v1 or v2.
+    final clientInfo = (await _clientInfo() ?? lk_models.ClientInfo())
+      ..sdk = lk_models.ClientInfo_SDK.FLUTTER
+      ..version = LiveKitClient.version
+      ..protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0
+      ..clientProtocol = connectOptions.clientProtocolVersion.wireValue
+      ..network = networkType;
+
+    final joinRequest = lk_rtc.JoinRequest(
+      clientInfo: clientInfo,
+      connectionSettings: lk_rtc.ConnectionSettings(
+        autoSubscribe: connectOptions.autoSubscribe,
+        adaptiveStream: roomOptions.adaptiveStream,
+      ),
+      reconnect: reconnect ? true : null,
+      participantSid: reconnect ? sid : null,
+      reconnectReason: reconnect ? reconnectReason : null,
+    );
+
+    final wrappedJoinRequest = lk_rtc.WrappedJoinRequest(
+      joinRequest: joinRequest.writeToBuffer(),
+    );
+
+    final joinRequestBase64 = base64Encode(wrappedJoinRequest.writeToBuffer());
+
+    return uri.replace(
+      scheme: wsScheme,
+      pathSegments: pathSegments,
+      queryParameters: <String, String>{
+        // native clients authenticate with the Authorization header, as on /rtc,
+        // so the token stays out of the URL; browsers cannot set that header
+        if (kIsWeb) _accessTokenParam: token,
+        'join_request': joinRequestBase64,
+      },
+    );
+  }
+
+  /// The HTTP validation counterpart of a v1 signal URL built by [buildV1Uri]:
+  /// `wss://host/rtc/v1?…` → `https://host/rtc/v1/validate?…`. It keeps every
+  /// query parameter, `join_request` included, because the server rejects a v1
+  /// validate request without one (400) before it gets to the real reason.
+  @internal
+  static Uri buildV1ValidateUri(Uri rtcUri, {bool forceSecure = false}) {
+    final useSecure = rtcUri.isSecureScheme || forceSecure;
+    return rtcUri.replace(
+      scheme: useSecure ? 'https' : 'http',
+      pathSegments: [...rtcUri.pathSegments.where((e) => e.isNotEmpty), 'validate'],
     );
   }
 
