@@ -237,6 +237,7 @@ class ConnectOptions {
     bool? autoSubscribe,
     RTCConfiguration? rtcConfiguration,
     ProtocolVersion? protocolVersion,
+    ClientProtocolVersion? clientProtocolVersion,
     Timeouts? timeouts,
     bool? singlePeerConnection,
   }) {
@@ -244,6 +245,7 @@ class ConnectOptions {
       autoSubscribe: autoSubscribe ?? this.autoSubscribe,
       rtcConfiguration: rtcConfiguration ?? this.rtcConfiguration,
       protocolVersion: protocolVersion ?? this.protocolVersion,
+      clientProtocolVersion: clientProtocolVersion ?? this.clientProtocolVersion,
       timeouts: timeouts ?? this.timeouts,
       singlePeerConnection: singlePeerConnection ?? this.singlePeerConnection,
     );

@@ -253,16 +253,16 @@ class Utils {
     pathSegments.removeWhere((e) => e.isEmpty);
     pathSegments.addAll(['rtc', 'v1']);
 
-    final clientInfo = await _clientInfo();
     final networkType = await getNetworkType();
 
-    // Populate ClientInfo with the same fields that v0 sends as query params
-    if (clientInfo != null) {
-      clientInfo.sdk = lk_models.ClientInfo_SDK.FLUTTER;
-      clientInfo.version = LiveKitClient.version;
-      clientInfo.protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0;
-      clientInfo.network = networkType;
-    }
+    // Populate ClientInfo with the same fields that v0 sends as query params.
+    // Other participants read client_protocol from it to pick RPC v1 or v2.
+    final clientInfo = (await _clientInfo() ?? lk_models.ClientInfo())
+      ..sdk = lk_models.ClientInfo_SDK.FLUTTER
+      ..version = LiveKitClient.version
+      ..protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0
+      ..clientProtocol = connectOptions.clientProtocolVersion.wireValue
+      ..network = networkType;
 
     final joinRequest = lk_rtc.JoinRequest(
       clientInfo: clientInfo,
