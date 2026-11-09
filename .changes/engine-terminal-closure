@@ -1,1 +1,1 @@
-patch type="fixed" "Announce engine closure before room disposal callbacks and when reconnection gives up, and reject data channel buffer waits started after closure"
+patch type="fixed" "Fix a room that rejoined after being disposed while a full reconnect was tearing down, and fail data stream writes started after the room was disposed"
