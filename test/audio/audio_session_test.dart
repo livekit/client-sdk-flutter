@@ -330,12 +330,16 @@ void main() {
 
       expect(speaker.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(speaker.appleAudioMode, AppleAudioMode.videoChat);
+      // defaultToSpeaker because native swaps the chat mode for `default` when
+      // the capture resolves to software voice processing, and `default` routes
+      // to the receiver on its own.
       expect(
         speaker.appleAudioCategoryOptions,
         {
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
+          AppleAudioCategoryOption.defaultToSpeaker,
         },
       );
 
@@ -346,6 +350,10 @@ void main() {
 
       expect(receiver.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(receiver.appleAudioMode, AppleAudioMode.voiceChat);
+      expect(
+        receiver.appleAudioCategoryOptions,
+        isNot(contains(AppleAudioCategoryOption.defaultToSpeaker)),
+      );
     });
 
     test('automatic Apple policy ignores manual media options', () {
@@ -361,6 +369,7 @@ void main() {
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
+          AppleAudioCategoryOption.defaultToSpeaker,
         },
       );
     });
@@ -589,6 +598,13 @@ void main() {
 
       expect(calls.single.method, 'setAndroidSpeakerphoneOn');
       expect(calls.single.arguments, {'enable': true, 'force': true});
+    });
+
+    test('passes the platform voice processing policy to platform method', () async {
+      await Native.setPlatformVoiceProcessingAllowed(false);
+
+      expect(calls.single.method, 'setPlatformVoiceProcessingAllowed');
+      expect(calls.single.arguments, {'allowed': false});
     });
 
     test('passes microphone mute mode to platform method', () async {

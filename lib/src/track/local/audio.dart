@@ -96,7 +96,16 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       try {
         // Match Swift: start the ADM before publishing so capture-time audio
         // processing options are applied before WebRTC opens the microphone.
-        await Native.startLocalRecording(currentOptions.processing.toMap());
+        // `bypassVoiceProcessing` already strips every processing constraint in
+        // `toMediaConstraintsMap`, so the ADM has to hear the same thing:
+        // otherwise it keeps Apple voice processing requested, and the session
+        // would stay on a chat mode whose call-tuned output gain has nothing
+        // left to compensate for it.
+        await Native.startLocalRecording(
+          Native.bypassVoiceProcessing
+              ? const track_options.AudioProcessingOptions.noProcessing().toMap()
+              : currentOptions.processing.toMap(),
+        );
       } on PlatformException catch (error) {
         // Missing microphone permission or an audio session that does not
         // permit recording are not audio processing failures, so they surface

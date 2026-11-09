@@ -461,6 +461,13 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         let options = LiveKitPlugin.audioProcessingOptions(from: args)
+        // Track-level requests reach the audio device module through the
+        // sender, so the session observer has to be told separately.
+        #if !os(macOS)
+        if let adm = webrtc?.peerConnectionFactory?.audioDeviceModule {
+            updateExpectedPlatformVoiceProcessing(from: args, adm: adm)
+        }
+        #endif
         let processingResult = audioTrack.setAudioProcessingOptions(options)
         result([
             "result": processingResult.isSuccess,
@@ -674,6 +681,12 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         let options = LiveKitPlugin.audioProcessingOptions(from: args)
+        // Before the engine transition: the session is configured from inside
+        // it, and the chat modes are only correct when Apple voice processing
+        // is what the capture actually resolves to.
+        #if !os(macOS)
+        updateExpectedPlatformVoiceProcessing(from: args, adm: adm)
+        #endif
         DispatchQueue.global(qos: .userInitiated).async {
             let admResult = adm.initAndStartRecording(audioProcessingOptions: options)
             DispatchQueue.main.async {
@@ -737,6 +750,33 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
     }
 
+    /// Whether the given capture options resolve to Apple's Voice Processing
+    /// I/O. AEC and NS are coupled through VPIO, so either one that is enabled
+    /// and not forced to software keeps the platform path. Mirrors the Swift
+    /// SDK's `AudioProcessingOptions.requestsPlatformEchoNoisePath`.
+    static func requestsPlatformEchoNoisePath(from args: [String: Any?]) -> Bool {
+        let echoCancellation = (args["echoCancellation"] as? Bool) ?? true
+        let noiseSuppression = (args["noiseSuppression"] as? Bool) ?? true
+        let echoCancellationMode = audioProcessingMode(from: args["echoCancellationMode"] as? String)
+        let noiseSuppressionMode = audioProcessingMode(from: args["noiseSuppressionMode"] as? String)
+        return (echoCancellation && echoCancellationMode != .software)
+            || (noiseSuppression && noiseSuppressionMode != .software)
+    }
+
+    /// Tells the session observer which voice processing implementation the
+    /// capture described by `args` resolves to. The session category and mode
+    /// are configured during the engine transition, before the audio device
+    /// module commits its own decision, so the expectation has to be pushed up
+    /// front.
+    #if !os(macOS)
+    private func updateExpectedPlatformVoiceProcessing(from args: [String: Any?],
+                                                       adm: RTCAudioDeviceModule)
+    {
+        let expected = LiveKitPlugin.requestsPlatformEchoNoisePath(from: args) && adm.isPlatformVoiceProcessingAllowed
+        audioEngineObserver?.setPlatformVoiceProcessingExpected(expected)
+    }
+    #endif
+
     static func audioProcessingResultCodeString(_ code: RTCAudioProcessingOptionsResultCode) -> String {
         switch code {
         case .applied: return "applied"
@@ -747,6 +787,46 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         case .applyFailed: return "applyFailed"
         @unknown default: return "unknown"
         }
+    }
+
+    public func handleGetPlatformVoiceProcessingAllowed(result: @escaping FlutterResult) {
+        guard let adm = webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "rejectedPlatformUnavailable",
+                                message: "audio device module is unavailable",
+                                details: nil))
+            return
+        }
+        result(adm.isPlatformVoiceProcessingAllowed)
+    }
+
+    public func handleSetPlatformVoiceProcessingAllowed(args: [String: Any?], result: @escaping FlutterResult) {
+        guard let allowed = args["allowed"] as? Bool else {
+            result(FlutterError(code: "setPlatformVoiceProcessingAllowed", message: "allowed is required", details: nil))
+            return
+        }
+        guard let adm = webrtcPlugin?.peerConnectionFactory?.audioDeviceModule else {
+            result(FlutterError(code: "rejectedPlatformUnavailable",
+                                message: "audio device module is unavailable",
+                                details: nil))
+            return
+        }
+
+        let admResult = adm.setPlatformVoiceProcessingAllowed(allowed)
+        guard admResult == 0 else {
+            result(LiveKitPlugin.flutterError(forAudioEngineResult: admResult,
+                                              fallbackCode: "setPlatformVoiceProcessingAllowed"))
+            return
+        }
+        #if !os(macOS)
+        // Disallowing tears down any requested VPIO path and makes every future
+        // capture resolve to software, so the session must drop the chat-mode
+        // expectation now. Re-allowing does not enable VPIO by itself — the next
+        // capture's options decide — so that case is left to the capture path.
+        if !allowed {
+            audioEngineObserver?.setPlatformVoiceProcessingExpected(false)
+        }
+        #endif
+        result(nil)
     }
 
     public func handleGetAudioProcessingState(result: @escaping FlutterResult) {
@@ -839,6 +919,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
             handleEnsureMicrophoneAccess(result: result)
         case "setAudioProcessingOptions":
             handleSetAudioProcessingOptions(args: args, result: result)
+        case "isPlatformVoiceProcessingAllowed":
+            handleGetPlatformVoiceProcessingAllowed(result: result)
+        case "setPlatformVoiceProcessingAllowed":
+            handleSetPlatformVoiceProcessingAllowed(args: args, result: result)
         case "getAudioProcessingState":
             handleGetAudioProcessingState(result: result)
         case "osVersionString":
@@ -1006,6 +1090,17 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // Last recording state seen, so an immediate re-apply (e.g. speaker toggle
     // while the engine is running) can resolve the category from current state.
     private var lastIsRecordingEnabled = false
+    // Whether the next capture is expected to run through Apple's Voice
+    // Processing I/O. Pushed before the engine transition starts, since the
+    // session is configured during that transition and the audio device module
+    // has not committed its decision yet. Only the chat modes get iOS's
+    // call-tuned output gain, which VPIO compensates for, so this selects
+    // between the chat and media session modes.
+    private var isPlatformVoiceProcessingExpected = true
+    // Sticky: true once recording engaged, cleared when the engine stops
+    // entirely. Keeps playAndRecord across mute toggles instead of flipping the
+    // category (and tearing down VPIO with it) on every toggle.
+    private var hasRecorded = false
     #endif
 
     init(channel: FlutterMethodChannel) {
@@ -1092,8 +1187,29 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private func recordEngineState(isPlayoutEnabled: Bool, isRecordingEnabled: Bool) {
         lock.lock()
         lastIsRecordingEnabled = isRecordingEnabled
+        if isRecordingEnabled {
+            hasRecorded = true
+        } else if !isPlayoutEnabled {
+            // The engine stopped, so the next one starts a fresh session.
+            hasRecorded = false
+        }
         sessionActive = isPlayoutEnabled || isRecordingEnabled
         lock.unlock()
+    }
+
+    /// Records which voice processing implementation the next capture resolves
+    /// to. Applied immediately when the session is already live, so a runtime
+    /// options change on a capturing track moves the session mode with it.
+    func setPlatformVoiceProcessingExpected(_ expected: Bool) {
+        lock.lock()
+        let changed = isPlatformVoiceProcessingExpected != expected
+        isPlatformVoiceProcessingExpected = expected
+        let shouldApplyNow = changed && sessionActive
+        lock.unlock()
+        guard shouldApplyNow else { return }
+        if let error = applyCachedConfiguration() {
+            print("[LiveKit] failed to reconfigure audio session for voice processing change: \(error)")
+        }
     }
 
     /// Resolves the configuration to apply for a given engine state. Must be
@@ -1106,6 +1222,12 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// category would leave playAndRecord-only mode/options (e.g. videoChat,
     /// allowBluetooth) that are invalid for the playback category. Mirrors the
     /// Swift SDK's `.playback` preset (playback + spokenAudio + mixWithOthers).
+    ///
+    /// playAndRecord stays selected until the engine stops (`hasRecorded`), so
+    /// muting the microphone no longer flips the category back: a mid-session
+    /// category change tears down Apple's Voice Processing I/O, and it also
+    /// moved playback between iOS's media and call volume registers on every
+    /// mute toggle.
     ///
     /// With no pushed config and automatic management on, the built-in
     /// recording preset stands in for the Dart policy, so the result is the
@@ -1120,15 +1242,37 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         else { return nil }
         // The default preset is always resolved by engine state, like the Dart
         // automatic-mode push it stands in for.
-        guard usesDefaultPreset || selectCategoryByEngineState, !isRecordingEnabled else {
+        guard usesDefaultPreset || selectCategoryByEngineState else {
             return (configuration, usesDefaultPreset)
         }
 
-        let playback = copyConfiguration(configuration)
-        playback.category = AVAudioSession.Category.playback.rawValue
-        playback.categoryOptions = [.mixWithOthers]
-        playback.mode = AVAudioSession.Mode.spokenAudio.rawValue
-        return (playback, usesDefaultPreset)
+        guard isRecordingEnabled || hasRecorded else {
+            let playback = copyConfiguration(configuration)
+            playback.category = AVAudioSession.Category.playback.rawValue
+            playback.categoryOptions = [.mixWithOthers]
+            playback.mode = AVAudioSession.Mode.spokenAudio.rawValue
+            return (playback, usesDefaultPreset)
+        }
+
+        // Recording. Apple documents that for an app using a chat mode (voice,
+        // video or game) "but don't use Audio Unit Voice I/O or AVAudioEngine
+        // with setVoiceProcessingEnabled(_:), the system reduces the processing
+        // it applies to audio signals. Specifically, it doesn't apply
+        // voice-specific processing, like echo cancellation and automatic gain
+        // correction, and disables dynamic processing on input and output,
+        // which results in a lower playback level."
+        // (AVAudioSession.Mode.voiceChat / .videoChat). So a capture resolving
+        // to WebRTC software processing must not keep a chat mode: there is no
+        // VPIO to supply the compensating loudness stage.
+        // Keep the category and options and drop only the chat mode. The
+        // speaker route then comes from defaultToSpeaker, which the chat modes
+        // were applying automatically and `default` does not.
+        guard !isPlatformVoiceProcessingExpected else {
+            return (configuration, usesDefaultPreset)
+        }
+        let media = copyConfiguration(configuration)
+        media.mode = AVAudioSession.Mode.default.rawValue
+        return (media, usesDefaultPreset)
     }
 
     /// Built-in playAndRecord preset used until Dart pushes a policy. Must be
@@ -1144,7 +1288,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         // (and the result escapes `lock`), so start from a copy.
         let configuration = copyConfiguration(RTCAudioSessionConfiguration.webRTC())
         configuration.category = AVAudioSession.Category.playAndRecord.rawValue
-        configuration.categoryOptions = [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay]
+        // defaultToSpeaker because the mode is replaced with `default` for a
+        // capture that does not use Apple voice processing, and `default`
+        // routes to the receiver without it.
+        configuration.categoryOptions = [.allowBluetooth, .allowBluetoothA2DP, .allowAirPlay, .defaultToSpeaker]
         // videoChat routes to the speaker, matching the Dart AudioManager's
         // default speaker preference. A non-default preference always arrives
         // as a pushed policy (its mode carries the preference), which bypasses
