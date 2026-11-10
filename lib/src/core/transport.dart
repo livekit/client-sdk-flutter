@@ -18,6 +18,7 @@ import 'dart:math' as math;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -231,9 +232,11 @@ class Transport extends Disposable {
   bool restartingIce = false;
   bool renegotiate = false;
 
-  /// Whether an answer is being applied right now, so a copy that arrives
-  /// mid-apply is recognised as a duplicate too.
-  bool _answerInFlight = false;
+  /// Held while an offer is built and while a remote description is applied, so the two
+  /// never interleave. Reading the signaling state is a platform call, and without the lock
+  /// an answer could finish applying between an offer request reading the state and acting
+  /// on it. [renegotiate] is only read and written while this is held.
+  final _negotiationLock = sync.Lock();
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
@@ -297,7 +300,7 @@ class Transport extends Disposable {
   Duration? get connectionSetupTimeForOffer => _connectStopwatch?.elapsed;
 
   late final negotiate = Utils.createDebounceFunc(
-    (void _) => _createAndSendOfferReportingErrors(),
+    (void _) => _reportingNegotiationErrors(createAndSendOffer),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: connectOptions.timeouts.debounce,
   );
@@ -305,39 +308,38 @@ class Transport extends Disposable {
   /// The debouncer and the offer deferred until the answer arrives have no caller that handles
   /// errors, so a failure here would surface as an unhandled error. Hand it to
   /// [onNegotiationError] instead. Direct [createAndSendOffer] callers still get the error.
-  Future<void> _createAndSendOfferReportingErrors() async {
+  Future<void> _reportingNegotiationErrors(Future<void> Function() sendOffer) async {
     try {
-      await createAndSendOffer();
+      await sendOffer();
     } catch (error) {
       logger.warning('[$objectId] negotiate() failed with error: $error');
       onNegotiationError?.call(error);
     }
   }
 
-  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) async {
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) =>
+      _negotiationLock.synchronized(() => _setRemoteDescription(sd));
+
+  Future<void> _setRemoteDescription(rtc.RTCSessionDescription sd) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
       return;
     }
 
-    if (sd.type == 'answer') {
-      // Offers are not numbered on this transport, so the signaling state is what says
-      // whether an answer is still wanted: in `stable` there is no local offer left to
-      // answer, and a copy arriving mid-apply is caught by the in-flight flag.
-      if (_answerInFlight || await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable) {
-        logger.warning('[$objectId] ignoring duplicate answer');
-        return;
-      }
-      _answerInFlight = true;
+    // Offers are not numbered on this transport, so the signaling state is what says
+    // whether an answer is still wanted: in `stable` there is no local offer left to
+    // answer. A copy that arrives while the first one is applied waits for the lock and
+    // then finds `stable` too. If that apply failed, the offer is still waiting and the
+    // copy is applied as a retry.
+    if (sd.type == 'answer' && await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable) {
+      logger.warning('[$objectId] ignoring duplicate answer');
+      return;
     }
 
     try {
       await pc.setRemoteDescription(sd);
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
-    } finally {
-      // released however the apply ends, so a genuine retry is still possible
-      if (sd.type == 'answer') _answerInFlight = false;
     }
 
     for (final candidate in _pendingCandidates) {
@@ -349,18 +351,24 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
+      // The lock is already held here, so this goes to the inner method. Taking the lock
+      // again through [createAndSendOffer] would wait on itself forever.
+      //
       // The signal listener that awaits this call has no reconnect handling, so a failed deferred
       // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
       // error propagates to the caller instead of being dropped.
       if (onNegotiationError == null) {
-        await createAndSendOffer();
+        await _createAndSendOffer(null);
       } else {
-        await _createAndSendOfferReportingErrors();
+        await _reportingNegotiationErrors(() => _createAndSendOffer(null));
       }
     }
   }
 
-  Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
+  Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
+      _negotiationLock.synchronized(() => _createAndSendOffer(options));
+
+  Future<void> _createAndSendOffer(RTCOfferOptions? options) async {
     if (isDisposed) {
       logger.warning('[$objectId] createAndSendOffer() already disposed');
       return;
@@ -380,9 +388,7 @@ class Transport extends Disposable {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
       if (!(options?.iceRestart ?? false)) {
-        // Nothing may be awaited between reading the state and setting the flag. The answer
-        // can finish applying in that gap, and setRemoteDescription checks the flag only once,
-        // so a flag set after that check is never picked up and this offer is never sent.
+        // The answer cannot be applied while this holds the lock, so it finds the flag.
         renegotiate = true;
         return;
       }
