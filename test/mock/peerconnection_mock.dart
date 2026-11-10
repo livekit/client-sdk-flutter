@@ -35,12 +35,17 @@ MockDataChannel? findMockDataChannelByLabel(String label, {bool requireListener 
 /// publisher↔subscriber loopback.
 List<MockDataChannel> get mockDataChannels => _dataChannels;
 
+/// Called with every reliable channel the SDK creates, so a test can watch the
+/// channel a full reconnect creates from the moment it exists.
+void Function(MockDataChannel dc)? onMockReliableChannelCreated;
+
 /// Reset the global mock-channel list. Tests that create a fresh `E2EContainer`
 /// after an earlier one finished must call this before re-connecting, otherwise
 /// the publisher↔subscriber pairing (which only fires when the list reaches
 /// length 2) will not happen on the new channels.
 void resetMockDataChannels() {
   _dataChannels.clear();
+  onMockReliableChannelCreated = null;
 }
 
 class MockPeerConnection extends RTCPeerConnection {
@@ -239,6 +244,7 @@ a=rtpmap:32 MPV/90000
     final dc = MockDataChannel(dataChannelDict.id, label);
     if (label == '_reliable') {
       _dataChannels.add(dc);
+      onMockReliableChannelCreated?.call(dc);
     }
     return dc;
   }

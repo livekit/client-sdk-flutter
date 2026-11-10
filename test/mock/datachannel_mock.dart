@@ -50,11 +50,15 @@ class MockDataChannel extends RTCDataChannel {
   // ignore: overridden_fields
   int? bufferedAmountLowThreshold = 0;
 
-  @override
-  int? get bufferedAmount => bufferedAmountLowThreshold;
+  /// Overrides the reported buffered amount, to simulate a channel that hasn't drained. Defaults to
+  /// the low threshold, i.e. never above it.
+  int? fakeBufferedAmount;
 
   @override
-  Future<int> getBufferedAmount() => Future.value(bufferedAmountLowThreshold);
+  int? get bufferedAmount => fakeBufferedAmount ?? bufferedAmountLowThreshold;
+
+  @override
+  Future<int> getBufferedAmount() => Future.value(bufferedAmount);
 
   @override
   int? get id => _id;
