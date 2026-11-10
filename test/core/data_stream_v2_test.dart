@@ -58,6 +58,15 @@ void main() {
       .where((p) => p.hasStreamHeader() || p.hasStreamChunk() || p.hasStreamTrailer())
       .toList();
 
+  /// Waits until [count] stream packets have reached the data channel and returns what is there
+  /// shortly after, so a packet too many still shows. A send resolves once the core has queued
+  /// its packets, and the outgoing pump sends them afterwards.
+  Future<List<lk_models.DataPacket>> sentStreamPackets(int count) async {
+    await _waitUntil(() => streamPackets().length >= count);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    return streamPackets();
+  }
+
   group('send side', () {
     test('a v2 recipient that can decompress gets one compressed inline packet', () async {
       await container.simulateRemoteParticipantJoin(
@@ -73,7 +82,7 @@ void main() {
         options: SendTextOptions(topic: 'chat', destinationIdentities: ['alice']),
       );
 
-      final packets = streamPackets();
+      final packets = await sentStreamPackets(1);
       expect(packets, hasLength(1), reason: 'inline send is a single packet');
       final header = packets.single.streamHeader;
       expect(header.hasTextHeader(), isTrue);
@@ -96,7 +105,7 @@ void main() {
         options: SendTextOptions(topic: 'chat', destinationIdentities: ['noCompression']),
       );
 
-      final packets = streamPackets();
+      final packets = await sentStreamPackets(1);
       expect(packets, hasLength(1), reason: 'inline is gated on clientProtocol alone');
       final header = packets.single.streamHeader;
       expect(header.compression, lk_models.DataStream_CompressionType.NONE);
@@ -113,7 +122,7 @@ void main() {
         options: SendTextOptions(topic: 'chat', destinationIdentities: ['legacy']),
       );
 
-      final packets = streamPackets();
+      final packets = await sentStreamPackets(3);
       expect(packets, hasLength(3));
       expect(packets[0].hasStreamHeader(), isTrue);
       expect(packets[0].streamHeader.compression, lk_models.DataStream_CompressionType.NONE);
@@ -132,7 +141,7 @@ void main() {
       // No destinationIdentities => every remote participant is a recipient, and one is pre-v2.
       await room.localParticipant!.sendText('hello world', options: SendTextOptions(topic: 'chat'));
 
-      final packets = streamPackets();
+      final packets = await sentStreamPackets(3);
       expect(packets, hasLength(3), reason: 'one pre-v2 recipient disables inline for everyone');
       expect(packets[0].streamHeader.hasInlineContent(), isFalse);
     });
@@ -147,7 +156,7 @@ void main() {
         options: SendTextOptions(topic: 'chat', destinationIdentities: ['alice'], compress: false),
       );
 
-      final header = streamPackets().single.streamHeader;
+      final header = (await sentStreamPackets(1)).single.streamHeader;
       expect(header.compression, lk_models.DataStream_CompressionType.NONE);
       expect(header.inlineContent, equals(utf8.encode(text)));
     });
@@ -159,15 +168,15 @@ void main() {
       final writer = await room.localParticipant!.streamText(
         StreamTextOptions(topic: 'chat', destinationIdentities: ['alice']),
       );
-      expect(streamPackets(), hasLength(1), reason: 'the header goes out when the stream opens');
+      expect(await sentStreamPackets(1), hasLength(1), reason: 'the header goes out when the stream opens');
       expect(streamPackets().single.streamHeader.compression, lk_models.DataStream_CompressionType.NONE);
 
       await writer.write('hello world');
-      expect(streamPackets(), hasLength(2));
+      expect(await sentStreamPackets(2), hasLength(2));
       expect(streamPackets()[1].streamChunk.content, equals(utf8.encode('hello world')));
 
       await writer.close();
-      expect(streamPackets(), hasLength(3));
+      expect(await sentStreamPackets(3), hasLength(3));
       expect(streamPackets()[2].hasStreamTrailer(), isTrue);
     });
 
@@ -179,7 +188,11 @@ void main() {
         StreamTextOptions(topic: 'chat', destinationIdentities: ['alice'], totalSize: 11),
       );
       expect(writer.info.size, 11, reason: 'the sender sees the size it declared');
-      expect(streamPackets().single.streamHeader.totalLength.toInt(), 11, reason: 'the recipient is told the size');
+      expect(
+        (await sentStreamPackets(1)).single.streamHeader.totalLength.toInt(),
+        11,
+        reason: 'the recipient is told the size',
+      );
       await writer.close();
     });
 
@@ -192,7 +205,7 @@ void main() {
         options: SendBytesOptions(topic: 'files', destinationIdentities: ['alice']),
       );
 
-      final header = streamPackets().single.streamHeader;
+      final header = (await sentStreamPackets(1)).single.streamHeader;
       expect(header.hasByteHeader(), isTrue);
       expect(header.compression, lk_models.DataStream_CompressionType.DEFLATE_RAW);
       expect(info.name, equals('unknown'));
@@ -232,7 +245,7 @@ void main() {
 
       test('sendFile infers the MIME type from the file name', () async {
         await room.localParticipant!.sendFile(await file('hello.png'), options: SendFileOptions(topic: 'files'));
-        expect(streamPackets().first.streamHeader.mimeType, equals('image/png'));
+        expect((await sentStreamPackets(1)).first.streamHeader.mimeType, equals('image/png'));
       });
 
       test('an explicit MIME type wins over inference', () async {
@@ -240,7 +253,7 @@ void main() {
           await file('hello.png'),
           options: SendFileOptions(topic: 'files', mimeType: 'application/x-custom'),
         );
-        expect(streamPackets().first.streamHeader.mimeType, equals('application/x-custom'));
+        expect((await sentStreamPackets(1)).first.streamHeader.mimeType, equals('application/x-custom'));
       });
 
       test('sendText attachments infer their MIME type', () async {
@@ -248,6 +261,7 @@ void main() {
           'see attached',
           options: SendTextOptions(topic: 'chat', attachments: [await file('notes.pdf')]),
         );
+        await _waitUntil(() => streamPackets().any((p) => p.hasStreamHeader() && p.streamHeader.hasByteHeader()));
         final byteHeaders = streamPackets()
             .where((p) => p.hasStreamHeader() && p.streamHeader.hasByteHeader())
             .map((p) => p.streamHeader);
@@ -328,7 +342,7 @@ void main() {
       );
 
       expect(
-        streamPackets().single.streamHeader.compression,
+        (await sentStreamPackets(1)).single.streamHeader.compression,
         lk_models.DataStream_CompressionType.DEFLATE_RAW,
         reason: 'the payload really was compressed on the way out',
       );
