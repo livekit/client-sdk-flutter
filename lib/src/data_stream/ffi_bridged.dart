@@ -123,6 +123,7 @@ DataStreamError toLKError(ffi.DataStreamException e) {
     ffi.PayloadTooLargeDataStreamException() => DataStreamErrorReason.LengthExceeded,
     ffi.IncompleteDataStreamException() => DataStreamErrorReason.Incomplete,
     ffi.EncryptionTypeMismatchDataStreamException() => DataStreamErrorReason.EncryptionTypeMismatch,
+    ffi.AlreadyClosedDataStreamException() => DataStreamErrorReason.AlreadyClosed,
     _ => DataStreamErrorReason.AbnormalEnd,
   };
   final message = switch (e) {
