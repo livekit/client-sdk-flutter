@@ -46,7 +46,7 @@ dependencies:
   synchronized: ^3.4.0
   protobuf: ^6.0.0
   device_info_plus: '>=12.3.0 <14.0.0'
-  sdp_transform: ^0.3.2
+  sdp_transform: ^0.4.0
   web: ^1.1.1
   mime_type: ^1.0.1
   path: ^1.9.1
