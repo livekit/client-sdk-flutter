@@ -85,11 +85,10 @@ class RegionUrlProvider {
             ),
           )
           .toList();
-      final regionSettings = lk_models.RegionSettings(
-        regions: regions,
-      );
       lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
-      return regionSettings;
+      return lk_models.RegionSettings(
+        regions: _trustedRegions(regions),
+      );
     } else {
       throw ConnectException(
         'Could not fetch region settings: ${regionSettingsResponse.body}, status: ${regionSettingsResponse.statusCode}',
@@ -102,8 +101,23 @@ class RegionUrlProvider {
   }
 
   void setServerReportedRegions(lk_models.RegionSettings regions) {
-    regionSettings = regions;
+    regionSettings = lk_models.RegionSettings(
+      regions: _trustedRegions(regions.regions),
+    );
     lastUpdateAt = DateTime.timestamp().millisecondsSinceEpoch;
+  }
+
+  /// Keeps only the regions this SDK may fail over to, reporting what it dropped.
+  ///
+  /// Both sources of a region list are network input, and every URL kept here is later connected
+  /// to with the participant token. See [isTrustedRegionUrl].
+  List<lk_models.RegionInfo> _trustedRegions(List<lk_models.RegionInfo> regions) {
+    final trusted = regions.where((region) => isTrustedRegionUrl(region.url)).toList();
+    final rejected = regions.length - trusted.length;
+    if (rejected > 0) {
+      logger.warning('ignoring $rejected of ${regions.length} regions: not an encrypted LiveKit Cloud URL');
+    }
+    return trusted;
   }
 
   String getCloudConfigUrl(Uri serverUrl) {
@@ -125,8 +139,30 @@ extension RegionSettingsExtension on lk_models.RegionSettings {
   );
 }
 
+/// Whether [uri] names a LiveKit Cloud project.
+///
+/// Matched on the suffix, not with `contains`: a host only belongs to LiveKit Cloud when it ends
+/// in one of these domains. `project.livekit.cloud.example.com` contains `.livekit.cloud` but is
+/// someone else's host, and treating it as Cloud would send it the region request — with the
+/// participant token attached.
 bool isCloudUrl(Uri uri) {
-  return uri.host.contains('.livekit.cloud') || uri.host.contains('.livekit.run');
+  final host = uri.host.toLowerCase();
+  return host.endsWith('.livekit.cloud') || host.endsWith('.livekit.run');
+}
+
+/// Whether [url] is a region URL the SDK may fail over to.
+///
+/// A region list arrives over the network — from `/settings/regions` and from the regions the
+/// server reports over signalling — and the SDK authenticates to whatever it names, sending the
+/// participant token as a bearer header. Each entry is therefore checked on its own merits rather
+/// than inheriting trust from the server URL the application supplied, and `ws`/`http` entries are
+/// refused so a region list cannot move that exchange onto cleartext.
+bool isTrustedRegionUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.host.isEmpty) return false;
+  final scheme = uri.scheme.toLowerCase();
+  if (scheme != 'wss' && scheme != 'https') return false;
+  return isCloudUrl(uri);
 }
 
 /// Whether a failed connection attempt may be retried against a different LiveKit Cloud region.
