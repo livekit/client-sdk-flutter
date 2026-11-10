@@ -379,15 +379,21 @@ class Transport extends Disposable {
     if (await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
-      final currentSD = await getRemoteDescription();
-      if ((options?.iceRestart ?? false) && currentSD != null) {
-        // TODO: handle when ICE restart is needed but we don't have a remote description
-        // the best thing to do is to recreate the peerconnection
-        await pc.setRemoteDescription(currentSD);
-      } else {
+      if (!(options?.iceRestart ?? false)) {
+        // Nothing may be awaited between reading the state and setting the flag. The answer
+        // can finish applying in that gap, and setRemoteDescription checks the flag only once,
+        // so a flag set after that check is never picked up and this offer is never sent.
         renegotiate = true;
         return;
       }
+      final currentSD = await getRemoteDescription();
+      if (currentSD == null) {
+        // TODO: handle when ICE restart is needed but we don't have a remote description
+        // the best thing to do is to recreate the peerconnection
+        renegotiate = true;
+        return;
+      }
+      await pc.setRemoteDescription(currentSD);
     }
 
     if (restartingIce && !lkPlatformIs(PlatformType.web)) {
