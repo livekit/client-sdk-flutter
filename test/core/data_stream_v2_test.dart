@@ -545,6 +545,36 @@ void main() {
     });
   });
 
+  group('after the room closed', () {
+    test('a stream packet still on its way in does not open a stream', () async {
+      final ds = room.dataStreams as NativeDataStreams;
+      var opened = 0;
+      room.registerTextStreamHandler('late', (reader, identity) async => opened++);
+
+      // Closes the engine and asks the server to leave. The data channel is still open, so a
+      // packet the peer sent before it learned of the leave is still delivered.
+      await container.engine.disconnect();
+      container.deliverInboundDataPacket(
+        lk_models.DataPacket(
+          kind: lk_models.DataPacket_Kind.RELIABLE,
+          participantIdentity: 'alice',
+          streamHeader: lk_models.DataStream_Header(
+            streamId: 'late-1',
+            topic: 'late',
+            mimeType: 'text/plain',
+            timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+            totalLength: Int64(5),
+            textHeader: lk_models.DataStream_TextHeader(),
+          ),
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(opened, 0, reason: 'a handler was given a stream nothing will ever finish or fail');
+      expect(await ds.debugOpenStreamCount(), 0);
+    });
+  });
+
   group('unread streams', () {
     lk_models.DataPacket header(String topic, String id) => lk_models.DataPacket(
       kind: lk_models.DataPacket_Kind.RELIABLE,

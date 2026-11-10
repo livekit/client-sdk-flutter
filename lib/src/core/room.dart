@@ -1507,6 +1507,10 @@ const _reservedRpcTopicPrefix = 'lk.rpc';
 extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
     _engineListener.on<EngineDataStreamPacketEvent>((event) async {
+      // Events are delivered asynchronously, so a packet the engine received before it closed can
+      // get here after the cleanup that failed the open streams. A stream opened for it then
+      // would have nothing left to finish or fail it.
+      if (engine.isClosed) return;
       dataStreams.handleIncomingPacket(event.packet, event.encryptionType);
     });
   }
