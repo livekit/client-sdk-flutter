@@ -179,7 +179,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     Reliability.lossy: false,
   };
 
-  // Completed whenever something a buffer wait depends on changes: a buffer status, the reconnect
+  // Completed whenever something a waiting send depends on changes: a buffer status, the reconnect
   // state or closure. A wait checks its condition again each time it wakes.
   final ReusableCompleter<void> _sendStateChanged = ReusableCompleter<void>();
 
@@ -454,6 +454,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
+  // Holds a reliable send until a reconnect in progress finishes. Fails if the engine closes
+  // instead, which is how a reconnect that gives up ends.
+  Future<void> _waitForReconnection() async {
+    if (_isReconnecting) await _waitUntil(() => !_isReconnecting);
+  }
+
   Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
     logger.fine('Resending reliable messages from sequence $lastMessageSeq');
 
@@ -491,67 +497,96 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     lk_models.DataPacket packet, {
     Reliability reliability = Reliability.lossy,
   }) async {
+    final isReliable = reliability == Reliability.reliable;
+    rtc.RTCDataChannel? channel;
+    lk_models.EncryptedPacket? encryptedPacket;
+
+    // A reliable packet sent during a full reconnect has no replay to wait for, so a reliable send
+    // waits the reconnect out, the way rust-sdks does. Every wait happens before the sequence
+    // number is taken, and the loop runs again if a reconnect started during them.
+    while (true) {
+      if (isReliable) {
+        await _waitForReconnection();
+      }
+
+      try {
+        if (_subscriberPrimary) {
+          // make sure publisher transport is connected
+          await ensurePublisherConnected();
+
+          // wait for data channel to open (if not already)
+          if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
+            logger.fine('Waiting for data channel ${reliability} to open...');
+            await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
+              filter: (event) => event.type == reliability,
+              duration: connectOptions.timeouts.connection,
+            );
+          }
+        }
+
+        // chose data channel
+        channel = _publisherDataChannel(reliability);
+
+        if (channel == null) {
+          throw UnexpectedStateException('Data channel for ${packet.kind.toSDKType()} is null');
+        }
+      } catch (_) {
+        // A full reconnect that starts during these waits resets the publisher connection and drops
+        // the channels. A reliable send waits it out and tries again, a lossy one is not worth
+        // sending late.
+        if (_isReconnecting) {
+          if (isReliable) continue;
+          logger.fine('Dropping lossy data packet during reconnection');
+          return;
+        }
+        rethrow;
+      }
+
+      encryptedPacket = null;
+      if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
+        final encryptablePacket = asEncryptablePacket(packet);
+        if (encryptablePacket != null) {
+          final encryptedData = await _e2eeManager?.encryptData(data: encryptablePacket.writeToBuffer());
+
+          if (encryptedData == null) {
+            logger.warning('Failed to encrypt data packet');
+            return;
+          }
+
+          encryptedPacket = lk_models.EncryptedPacket(
+            encryptionType: lk_models.Encryption_Type.GCM,
+            encryptedValue: encryptedData.data,
+            iv: encryptedData.iv,
+            keyIndex: encryptedData.keyIndex,
+          );
+        }
+      }
+
+      if (!isReliable || !_isReconnecting) break;
+    }
+
+    // Nothing below awaits before the send, so a reconnect cannot start in between.
+
     // Add sequence number for reliable packets
-    if (reliability == Reliability.reliable) {
+    if (isReliable) {
       packet.sequence = _reliableDataSequence++;
     }
 
     // construct the data channel message
-    var message = rtc.RTCDataChannelMessage.fromBinary(packet.writeToBuffer());
-
-    if (_subscriberPrimary) {
-      // make sure publisher transport is connected
-      await ensurePublisherConnected();
-
-      // wait for data channel to open (if not already)
-      if (_publisherDataChannelState(reliability) != rtc.RTCDataChannelState.RTCDataChannelOpen) {
-        logger.fine('Waiting for data channel ${reliability} to open...');
-        await events.waitFor<PublisherDataChannelStateUpdatedEvent>(
-          filter: (event) => event.type == reliability,
-          duration: connectOptions.timeouts.connection,
-        );
-      }
-    }
-
-    // chose data channel
-    final rtc.RTCDataChannel? channel = _publisherDataChannel(reliability);
-
-    if (channel == null) {
-      throw UnexpectedStateException('Data channel for ${packet.kind.toSDKType()} is null');
-    }
-
-    if (_e2eeManager != null && _e2eeManager!.isDataChannelEncryptionEnabled) {
-      final encryptablePacket = asEncryptablePacket(packet);
-      if (encryptablePacket != null) {
-        final encryptedData = await _e2eeManager?.encryptData(data: encryptablePacket.writeToBuffer());
-
-        if (encryptedData == null) {
-          logger.warning('Failed to encrypt data packet');
-          return;
-        }
-
-        final encryptedPacket = lk_models.EncryptedPacket(
-          encryptionType: lk_models.Encryption_Type.GCM,
-          encryptedValue: encryptedData.data,
-          iv: encryptedData.iv,
-          keyIndex: encryptedData.keyIndex,
-        );
-
-        final dataToSend = lk_models.DataPacket(
-          participantIdentity: packet.participantIdentity,
-          kind: packet.kind,
-          encryptedPacket: encryptedPacket,
-          destinationIdentities: packet.destinationIdentities,
-          sequence: packet.hasSequence() ? packet.sequence : null,
-          participantSid: packet.hasParticipantSid() ? packet.participantSid : null,
-        );
-
-        message = rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
-      }
-    }
+    final dataToSend = encryptedPacket == null
+        ? packet
+        : lk_models.DataPacket(
+            participantIdentity: packet.participantIdentity,
+            kind: packet.kind,
+            encryptedPacket: encryptedPacket,
+            destinationIdentities: packet.destinationIdentities,
+            sequence: packet.hasSequence() ? packet.sequence : null,
+            participantSid: packet.hasParticipantSid() ? packet.participantSid : null,
+          );
+    final message = rtc.RTCDataChannelMessage.fromBinary(dataToSend.writeToBuffer());
 
     // Buffer reliable packets for potential resending
-    if (reliability == Reliability.reliable) {
+    if (isReliable) {
       _reliableMessageBuffer.push(
         BufferedDataPacket(
           packet: packet,
@@ -561,21 +596,50 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
     }
 
-    // Don't send during reconnection, but keep message buffered for resending
+    // A lossy packet is not held through a reconnect, it would only arrive stale.
     if (_isReconnecting) {
-      logger.fine('Deferring data packet send during reconnection (will resend when resumed)');
+      logger.fine('Dropping lossy data packet during reconnection');
       return;
     }
 
     logger.fine('sendDataPacket(label:${channel.label}, sequence:${packet.sequence})');
-    await channel.send(message);
-
-    _setBufferStatus(reliability, await channel.getBufferedAmount() <= channel.bufferedAmountLowThreshold!);
-
-    // Align buffer with WebRTC buffer for reliable packets
-    if (reliability == Reliability.reliable) {
-      _reliableMessageBuffer.alignBufferedAmount(await channel.getBufferedAmount());
+    try {
+      await channel.send(message);
+    } catch (e) {
+      if (_isClosed) throw UnexpectedConnectionState('Engine closed before the data packet was sent: $e');
+      rethrow;
     }
+    await _recordBufferedAmount(channel, reliability);
+  }
+
+  /// Reads the channel's buffered amount after a send, to keep the cached buffer status honest and
+  /// trim the resend buffer. A channel the engine closed or replaced since the send has nothing to
+  /// report, and the packet it carried is already out, so the send does not fail over it.
+  Future<void> _recordBufferedAmount(rtc.RTCDataChannel channel, Reliability reliability) async {
+    bool dropped() => _isClosed || !identical(channel, _publisherDataChannel(reliability));
+    // Null once the channel is gone, which ends the bookkeeping quietly.
+    Future<int?> read() async {
+      try {
+        final amount = await channel.getBufferedAmount();
+        return dropped() ? null : amount;
+      } catch (e) {
+        if (dropped()) {
+          logger.fine('Skipped the buffer bookkeeping of a ${reliability.name} channel the engine dropped: $e');
+          return null;
+        }
+        rethrow;
+      }
+    }
+
+    final buffered = await read();
+    if (buffered == null) return;
+    _setBufferStatus(reliability, buffered <= channel.bufferedAmountLowThreshold!);
+    if (reliability != Reliability.reliable) return;
+    // The resend buffer is trimmed from a second reading taken after the status write, so a packet
+    // another send queued in the meantime is counted as still buffered.
+    final aligned = await read();
+    if (aligned == null) return;
+    _reliableMessageBuffer.alignBufferedAmount(aligned);
   }
 
   Future<void> _publisherEnsureConnected() async {
@@ -885,8 +949,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       // A new channel starts empty, whatever the one it replaces had buffered.
       _setBufferStatus(Reliability.lossy, true);
-      _lossyDCPub?.onBufferedAmountLow = (_) {
-        _setBufferStatus(Reliability.lossy, _lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
+      final lossy = _lossyDCPub;
+      lossy?.onBufferedAmountLow = (_) {
+        // A channel a reconnect has dropped says nothing about the current one.
+        if (!identical(lossy, _lossyDCPub)) return;
+        _setBufferStatus(Reliability.lossy, lossy.bufferedAmount! <= lossy.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -909,11 +976,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _setBufferStatus(Reliability.reliable, true);
-      _reliableDCPub?.onBufferedAmountLow = (_) {
-        _setBufferStatus(
-          Reliability.reliable,
-          _reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!,
-        );
+      final reliable = _reliableDCPub;
+      reliable?.onBufferedAmountLow = (_) {
+        if (!identical(reliable, _reliableDCPub)) return;
+        _setBufferStatus(Reliability.reliable, reliable.bufferedAmount! <= reliable.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -1391,6 +1457,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await signalClient.cleanUp();
       }
 
+      // Drop the channels before the transports go, so a send whose bookkeeping lands during the
+      // teardown sees them as replaced instead of asking a closed channel for its buffered amount.
+      _reliableDCSub = null;
+      _reliableDCPub = null;
+      _lossyDCSub = null;
+      _lossyDCPub = null;
+
       await publisher?.dispose();
       publisher = null;
 
@@ -1399,10 +1472,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await subscriber?.dispose();
       subscriber = null;
 
-      _reliableDCSub = null;
-      _reliableDCPub = null;
-      _lossyDCSub = null;
-      _lossyDCPub = null;
+      // The new session starts its reliable sequence over, and nothing sent on the old one is
+      // replayed into it.
+      _reliableDataSequence = 1;
+      _reliableMessageBuffer.clear();
 
       await _signalListener.cancelAll();
 
