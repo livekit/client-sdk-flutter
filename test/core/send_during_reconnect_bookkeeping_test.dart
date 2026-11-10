@@ -130,4 +130,27 @@ void main() {
       expect(result, isNull, reason: 'the send surfaced $result');
     });
   }
+
+  test('a low-buffer event from a channel the reconnect dropped is ignored', () async {
+    final old = mockDataChannels.where((dc) => dc.label == '_reliable').toList();
+    expect(old, isNotEmpty);
+
+    // Hold the full reconnect inside the publisher teardown, after the channel fields are cleared.
+    final paused = Completer<void>();
+    final resume = Completer<void>();
+    container.engine.publisher!.onDispose(() async {
+      paused.complete();
+      await resume.future;
+    });
+    container.engine.fullReconnectOnNext = true;
+    container.wsConnector.onDispose();
+    await paused.future.timeout(const Duration(seconds: 2));
+
+    // The old channel is still alive natively and can report a drain.
+    for (final dc in old) {
+      dc.fakeBufferedAmount = 0;
+      expect(() => dc.onBufferedAmountLow?.call(0), returnsNormally);
+    }
+    resume.complete();
+  });
 }

@@ -617,21 +617,29 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   /// report, and the packet it carried is already out, so the send does not fail over it.
   Future<void> _recordBufferedAmount(rtc.RTCDataChannel channel, Reliability reliability) async {
     bool dropped() => _isClosed || !identical(channel, _publisherDataChannel(reliability));
-    final int buffered;
-    try {
-      buffered = await channel.getBufferedAmount();
-    } catch (e) {
-      if (dropped()) {
-        logger.fine('Skipped the buffer bookkeeping of a ${reliability.name} channel the engine dropped: $e');
-        return;
+    // Null once the channel is gone, which ends the bookkeeping quietly.
+    Future<int?> read() async {
+      try {
+        final amount = await channel.getBufferedAmount();
+        return dropped() ? null : amount;
+      } catch (e) {
+        if (dropped()) {
+          logger.fine('Skipped the buffer bookkeeping of a ${reliability.name} channel the engine dropped: $e');
+          return null;
+        }
+        rethrow;
       }
-      rethrow;
     }
-    if (dropped()) return;
+
+    final buffered = await read();
+    if (buffered == null) return;
     _setBufferStatus(reliability, buffered <= channel.bufferedAmountLowThreshold!);
-    if (reliability == Reliability.reliable) {
-      _reliableMessageBuffer.alignBufferedAmount(buffered);
-    }
+    if (reliability != Reliability.reliable) return;
+    // The resend buffer is trimmed from a second reading taken after the status write, so a packet
+    // another send queued in the meantime is counted as still buffered.
+    final aligned = await read();
+    if (aligned == null) return;
+    _reliableMessageBuffer.alignBufferedAmount(aligned);
   }
 
   Future<void> _publisherEnsureConnected() async {
@@ -941,8 +949,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _lossyDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       // A new channel starts empty, whatever the one it replaces had buffered.
       _setBufferStatus(Reliability.lossy, true);
-      _lossyDCPub?.onBufferedAmountLow = (_) {
-        _setBufferStatus(Reliability.lossy, _lossyDCPub!.bufferedAmount! <= _lossyDCPub!.bufferedAmountLowThreshold!);
+      final lossy = _lossyDCPub;
+      lossy?.onBufferedAmountLow = (_) {
+        // A channel a reconnect has dropped says nothing about the current one.
+        if (!identical(lossy, _lossyDCPub)) return;
+        _setBufferStatus(Reliability.lossy, lossy.bufferedAmount! <= lossy.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
@@ -965,11 +976,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
       _reliableDCPub?.bufferedAmountLowThreshold = 2 * 1024 * 1024;
       _setBufferStatus(Reliability.reliable, true);
-      _reliableDCPub?.onBufferedAmountLow = (_) {
-        _setBufferStatus(
-          Reliability.reliable,
-          _reliableDCPub!.bufferedAmount! <= _reliableDCPub!.bufferedAmountLowThreshold!,
-        );
+      final reliable = _reliableDCPub;
+      reliable?.onBufferedAmountLow = (_) {
+        if (!identical(reliable, _reliableDCPub)) return;
+        _setBufferStatus(Reliability.reliable, reliable.bufferedAmount! <= reliable.bufferedAmountLowThreshold!);
       };
     } catch (err) {
       logger.severe('[$objectId] createDataChannel() did throw $err');
