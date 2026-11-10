@@ -207,6 +207,7 @@ class NativeDataStreams implements DataStreams {
           replyToStreamId: options?.replyToStreamId,
           attachedStreamIds: options?.attachedStreamIds ?? const [],
           generated: options?.generated,
+          totalLength: options?.totalSize,
         ),
       ),
     );

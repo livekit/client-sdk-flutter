@@ -171,6 +171,18 @@ void main() {
       expect(streamPackets()[2].hasStreamTrailer(), isTrue);
     });
 
+    test('streamText declares the total size it was given', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
+      container.capturedDataPackets.clear();
+
+      final writer = await room.localParticipant!.streamText(
+        StreamTextOptions(topic: 'chat', destinationIdentities: ['alice'], totalSize: 11),
+      );
+      expect(writer.info.size, 11, reason: 'the sender sees the size it declared');
+      expect(streamPackets().single.streamHeader.totalLength.toInt(), 11, reason: 'the recipient is told the size');
+      await writer.close();
+    });
+
     test('sendBytes produces a byte header and defaults name/mimeType', () async {
       await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2, capabilities: _v2WithCompression);
       container.capturedDataPackets.clear();
@@ -506,6 +518,56 @@ void main() {
 
       await room.dataStreams.reset();
       expect(await ds.debugOpenStreamCount(), 0, reason: 'reset discards the manager');
+    });
+  });
+
+  group('unread streams', () {
+    lk_models.DataPacket header(String topic, String id) => lk_models.DataPacket(
+      kind: lk_models.DataPacket_Kind.RELIABLE,
+      participantIdentity: 'alice',
+      streamHeader: lk_models.DataStream_Header(
+        streamId: id,
+        topic: topic,
+        mimeType: 'text/plain',
+        timestamp: Int64(DateTime.timestamp().millisecondsSinceEpoch),
+        totalLength: Int64(5),
+        textHeader: lk_models.DataStream_TextHeader(),
+      ),
+    );
+
+    Future<void> expectNoOpenStreams(NativeDataStreams ds, String reason) async {
+      final deadline = DateTime.now().add(const Duration(seconds: 2));
+      while (await ds.debugOpenStreamCount() != 0 && DateTime.now().isBefore(deadline)) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(await ds.debugOpenStreamCount(), 0, reason: reason);
+    }
+
+    test('a stream on a topic without a handler is closed in the core', () async {
+      final ds = room.dataStreams as NativeDataStreams;
+      room.dataStreams.handleIncomingPacket(header('nobody', 'unhandled-1'), EncryptionType.kNone);
+      await expectNoOpenStreams(ds, 'an ignored stream kept buffering in the core');
+    });
+
+    test('a reader its handler never listened to fails after a reset', () async {
+      final delivered = Completer<TextStreamReader>();
+      room.registerTextStreamHandler('unread', (reader, identity) async => delivered.complete(reader));
+      room.dataStreams.handleIncomingPacket(header('unread', 'unread-1'), EncryptionType.kNone);
+      final reader = await delivered.future.timeout(const Duration(seconds: 2));
+
+      await room.dataStreams.reset();
+
+      final outcome = Completer<Object?>();
+      reader.listen(
+        (_) {},
+        onError: (Object e) => outcome.complete(e),
+        onDone: () {
+          if (!outcome.isCompleted) outcome.complete(null);
+        },
+      );
+      final error = await outcome.future.timeout(const Duration(seconds: 2));
+      expect(error, isA<DataStreamError>(), reason: 'the reader completed as if the stream had ended');
+      expect((error! as DataStreamError).reason, DataStreamErrorReason.AbnormalEnd);
     });
   });
 
