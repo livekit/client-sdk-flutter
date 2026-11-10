@@ -26,6 +26,7 @@ import 'package:uuid/uuid.dart';
 
 import '../core/room.dart';
 import '../e2ee/options.dart';
+import '../exceptions.dart';
 import '../extensions.dart';
 import '../logger.dart';
 import '../participant/participant.dart';
@@ -105,6 +106,7 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<TextStreamInfo> sendText(String text, SendTextOptions? options) async {
+    _ensureOpen();
     // Attachments are still composed here: the core sends one stream, and each attachment is its
     // own byte stream referenced by `attachedStreamIds` in the text header.
     final attachments = options?.attachments ?? const <File>[];
@@ -144,6 +146,7 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<ByteStreamInfo> sendBytes(List<int> bytes, SendBytesOptions? options) async {
+    _ensureOpen();
     final info = await mappingFfiErrors(
       () => _outgoing.sendBytes(
         data: Uint8List.fromList(bytes),
@@ -171,6 +174,7 @@ class NativeDataStreams implements DataStreams {
   }
 
   Future<void> _sendFileWithId(String id, File file, SendFileOptions options) async {
+    _ensureOpen();
     await mappingFfiErrors(
       () => _outgoing.sendFile(
         // The core streams the file from disk rather than buffering it.
@@ -191,6 +195,7 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<TextStreamWriter> streamText(StreamTextOptions? options) async {
+    _ensureOpen();
     final writer = await mappingFfiErrors(
       () => _outgoing.streamText(
         options: ffi.StreamTextOptions(
@@ -208,7 +213,7 @@ class NativeDataStreams implements DataStreams {
       ),
     );
     return TextStreamWriter(
-      writableStream: _FfiTextStreamWriter(writer),
+      writableStream: _FfiTextStreamWriter(writer, _ensureOpen),
       info: writer.info().toLK(
         sendingParticipantIdentity: _localIdentity,
         encryptionType: _currentEncryptionType,
@@ -219,6 +224,7 @@ class NativeDataStreams implements DataStreams {
 
   @override
   Future<ByteStreamWriter> streamBytes(StreamBytesOptions? options) async {
+    _ensureOpen();
     final writer = await mappingFfiErrors(
       () => _outgoing.streamBytes(
         options: ffi.StreamByteOptions(
@@ -233,13 +239,22 @@ class NativeDataStreams implements DataStreams {
       ),
     );
     return ByteStreamWriter(
-      writableStream: _FfiByteStreamWriter(writer),
+      writableStream: _FfiByteStreamWriter(writer, _ensureOpen),
       info: writer.info().toLK(
         sendingParticipantIdentity: _localIdentity,
         encryptionType: _currentEncryptionType,
       ),
       onClose: () async => writer.dispose(),
     );
+  }
+
+  /// Fails a send the room can no longer deliver. The core reports a send as done once its
+  /// packets are queued for the pump, so without this a send on a closed room would look sent.
+  void _ensureOpen() {
+    final room = _room.target;
+    if (room == null || _disposed || room.engine.isClosed) {
+      throw UnexpectedConnectionState('Engine disconnected');
+    }
   }
 
   /// Drains outbound packets from the core and puts them on the wire, in order.
@@ -599,24 +614,32 @@ class _Registry implements ffi.RemoteParticipantRegistryDelegate {
 
 /// Bridges the core's text writer onto the [StreamWriter] the public writer wraps.
 class _FfiTextStreamWriter implements StreamWriter<String> {
-  _FfiTextStreamWriter(this._writer);
+  _FfiTextStreamWriter(this._writer, this._ensureOpen);
 
   final ffi.TextStreamWriter _writer;
+  final void Function() _ensureOpen;
 
   @override
-  Future<void> write(String chunk) => mappingFfiErrors(() => _writer.write(text: chunk));
+  Future<void> write(String chunk) async {
+    _ensureOpen();
+    await mappingFfiErrors(() => _writer.write(text: chunk));
+  }
 
   @override
   Future<void> close() => mappingFfiErrors(() => _writer.close());
 }
 
 class _FfiByteStreamWriter implements StreamWriter<Uint8List> {
-  _FfiByteStreamWriter(this._writer);
+  _FfiByteStreamWriter(this._writer, this._ensureOpen);
 
   final ffi.ByteStreamWriter _writer;
+  final void Function() _ensureOpen;
 
   @override
-  Future<void> write(Uint8List chunk) => mappingFfiErrors(() => _writer.write(data: chunk));
+  Future<void> write(Uint8List chunk) async {
+    _ensureOpen();
+    await mappingFfiErrors(() => _writer.write(data: chunk));
+  }
 
   @override
   Future<void> close() => mappingFfiErrors(() => _writer.close());

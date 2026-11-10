@@ -546,6 +546,28 @@ void main() {
   });
 
   group('after the room closed', () {
+    test('sends and writes fail instead of reporting a stream nobody received', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2);
+      final local = room.localParticipant!;
+      final writer = await local.streamBytes(StreamBytesOptions(topic: 'open'));
+      await writer.write(Uint8List.fromList([1, 2, 3]));
+
+      await container.engine.disconnect();
+      container.capturedDataPackets.clear();
+
+      final closed = throwsA(isA<UnexpectedConnectionState>());
+      await expectLater(local.sendText('late', options: SendTextOptions(topic: 'late')), closed);
+      await expectLater(local.sendBytes([1, 2, 3], options: SendBytesOptions(topic: 'late')), closed);
+      await expectLater(local.streamText(StreamTextOptions(topic: 'late')), closed);
+      await expectLater(local.streamBytes(StreamBytesOptions(topic: 'late')), closed);
+      await expectLater(writer.write(Uint8List.fromList([4, 5, 6])), closed);
+      // Closing is still allowed, so cleanup code does not have to care.
+      await writer.close();
+
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(streamPackets().where((p) => !p.hasStreamTrailer()), isEmpty);
+    });
+
     test('a stream packet still on its way in does not open a stream', () async {
       final ds = room.dataStreams as NativeDataStreams;
       var opened = 0;
