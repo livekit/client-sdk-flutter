@@ -1,0 +1,1 @@
+patch type="fixed" "A reconnect still running after disconnect() no longer disturbs a connect() made right after it, and a data stream write waiting for the send buffer fails on that disconnect instead of carrying over to the new connection"
