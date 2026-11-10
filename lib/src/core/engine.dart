@@ -532,8 +532,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         }
       } catch (_) {
         // A full reconnect that starts during these waits resets the publisher connection and drops
-        // the channels. A reliable send waits it out and tries again.
-        if (isReliable && _isReconnecting) continue;
+        // the channels. A reliable send waits it out and tries again, a lossy one is not worth
+        // sending late.
+        if (_isReconnecting) {
+          if (isReliable) continue;
+          logger.fine('Dropping lossy data packet during reconnection');
+          return;
+        }
         rethrow;
       }
 
@@ -1442,6 +1447,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await signalClient.cleanUp();
       }
 
+      // Drop the channels before the transports go, so a send whose bookkeeping lands during the
+      // teardown sees them as replaced instead of asking a closed channel for its buffered amount.
+      _reliableDCSub = null;
+      _reliableDCPub = null;
+      _lossyDCSub = null;
+      _lossyDCPub = null;
+
       await publisher?.dispose();
       publisher = null;
 
@@ -1449,11 +1461,6 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
       await subscriber?.dispose();
       subscriber = null;
-
-      _reliableDCSub = null;
-      _reliableDCPub = null;
-      _lossyDCSub = null;
-      _lossyDCPub = null;
 
       // The new session starts its reliable sequence over, and nothing sent on the old one is
       // replayed into it.

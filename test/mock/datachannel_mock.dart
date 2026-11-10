@@ -60,9 +60,17 @@ class MockDataChannel extends RTCDataChannel {
   /// When set, getBufferedAmount fails with it, as the native channel does once it is closed.
   Object? getBufferedAmountError;
 
+  /// When set, getBufferedAmount waits for it first, to hold a send's bookkeeping while something
+  /// else happens to the engine.
+  Future<void>? getBufferedAmountGate;
+
   @override
-  Future<int> getBufferedAmount() =>
-      getBufferedAmountError != null ? Future.error(getBufferedAmountError!) : Future.value(bufferedAmount);
+  Future<int> getBufferedAmount() async {
+    final gate = getBufferedAmountGate;
+    if (gate != null) await gate;
+    if (getBufferedAmountError != null) throw getBufferedAmountError!;
+    return bufferedAmount!;
+  }
 
   @override
   int? get id => _id;
