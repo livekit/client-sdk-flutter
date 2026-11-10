@@ -1,0 +1,1 @@
+patch type="fixed" "Building a publisher offer and applying an answer now take turns on each connection, so an offer requested while an answer is being applied is always sent, whatever order the platform delivers its replies in. A copy of an answer that arrives while the first one is still being applied is ignored too"
