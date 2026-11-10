@@ -537,7 +537,14 @@ class WebDataStreams implements DataStreams {
 
   @override
   Future<void> reset() async {
+    // A stream cut off by the disconnect is a failure for its reader, not a short completion.
     for (final controller in [..._textStreamControllers.values, ..._byteStreamControllers.values]) {
+      controller.error(
+        DataStreamError(
+          reason: DataStreamErrorReason.AbnormalEnd,
+          message: 'Room disconnected before the stream ended',
+        ),
+      );
       await controller.close();
     }
     _textStreamControllers.clear();
