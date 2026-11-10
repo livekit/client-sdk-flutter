@@ -323,6 +323,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     final connectStopwatch = Stopwatch()..start();
+    // disconnect() or Room.dispose() can land while this runs. They close the session, and what
+    // this method opened after that is theirs to find nothing of.
+    final session = _session;
 
     try {
       // wait for socket to connect rtc server
@@ -332,6 +335,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         connectOptions: this.connectOptions,
         roomOptions: this.roomOptions,
       );
+      if (session.isClosed) {
+        await signalClient.cleanUp();
+        throw UnexpectedConnectionState('Engine closed while connecting');
+      }
 
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
@@ -355,11 +362,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      if (session.isClosed) {
+        await cleanUp();
+        throw UnexpectedConnectionState('Engine closed while connecting');
+      }
       connectStopwatch.stop();
       logger.info('connection setup took ${connectStopwatch.elapsedMilliseconds} ms');
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
+
+      // A closed session has nothing left to announce to.
+      if (session.isClosed) rethrow;
 
       // during a reconnect this connect() runs inside restartConnection and
       // attemptReconnect owns disconnect emission, emitting here as well
@@ -1536,6 +1550,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _regionUrlProvider?.resetAttempts();
         rethrow;
       }
+      // A session closed while connecting has no region to fail over to.
+      if (session.isClosed) return;
       final nextRegionUrl = await _regionUrlProvider?.getNextBestRegionUrl();
       if (nextRegionUrl != null) {
         await restartConnection(regionUrl: nextRegionUrl);
