@@ -146,6 +146,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   /// native this is backed by the Rust core (data streams v2); on web by the original Dart
   /// implementation. Created eagerly below so there is exactly one for the room's lifetime, and it
   /// survives disconnect so handler registrations outlive a reconnect.
+  @internal
   late final DataStreams dataStreams;
 
   @internal
