@@ -110195,7 +110195,7 @@ j(a){var s=this
 return A.t(s).j(0)+"(participantSid: "+s.a+", trackSid: "+s.b+", allowed: "+s.c+")"},
 $iW:1}
 A.tG.prototype={
-j(a){return A.t(this).j(0)+"(token: "+this.a+")"},
+j(a){return A.t(this).j(0)+"(token: <redacted>)"},
 $iW:1}
 A.z4.prototype={
 j(a){var s=A.t(this).j(0),r=this.a.a
