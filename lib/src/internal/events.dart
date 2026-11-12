@@ -554,8 +554,9 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
     required this.token,
   });
 
+  // Every emitted event is logged, so the token itself stays out of this.
   @override
-  String toString() => '${runtimeType}(token: ${token})';
+  String toString() => '${runtimeType}(token: <redacted>)';
 }
 
 @internal
