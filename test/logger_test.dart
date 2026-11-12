@@ -66,6 +66,14 @@ void main() {
     expect(messagesFrom('app'), ['headline']);
   });
 
+  test('after setLoggingLevel the SDK keeps its level when the root level changes', () {
+    setLoggingLevel(LoggerLevel.kFINE);
+    Logger.root.level = Level.SEVERE;
+    logger.fine('still logged');
+
+    expect(messagesFrom('livekit'), ['still logged']);
+  });
+
   test('disableLogging silences the SDK and nothing else', () {
     final other = Logger('app');
     disableLogging();

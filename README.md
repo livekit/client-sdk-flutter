@@ -621,14 +621,21 @@ Logger.root.onRecord.listen((record) {
 });
 ```
 
-By default the SDK follows the level of `Logger.root`. To give the SDK its own level, without changing what the rest of your app logs:
+By default the SDK follows the level of `Logger.root`. To give the SDK a level of its own, without changing what the rest of your app logs:
 
 ```dart
 setLoggingLevel(LoggerLevel.kFINE); // more detail from the SDK only
-disableLogging(); // nothing from the SDK
 ```
 
-Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own.
+Or to silence it:
+
+```dart
+disableLogging();
+```
+
+After either call the SDK keeps its own level and no longer follows `Logger.root`.
+
+Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own. With it on, `onRecord` of a logger other than the root one delivers only that logger's records, so listen on `Logger.root.onRecord` as above to keep receiving everything.
 
 ### Diagnosing connection issues
 
