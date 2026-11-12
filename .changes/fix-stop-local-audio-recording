@@ -1,0 +1,1 @@
+patch type="fixed" "Stop the microphone when a local audio track is stopped or disposed before joining a room"
