@@ -27,15 +27,27 @@ enum LoggerLevel {
   kOFF,
 }
 
+/// The logger every part of the SDK writes to. Its records also reach
+/// `Logger.root.onRecord`, which is where an app usually listens.
 final logger = Logger('livekit');
 
-/// disable logging
+/// Stops the SDK from logging. Other loggers are not affected.
+///
+/// Turns on `hierarchicalLoggingEnabled`, see [setLoggingLevel].
 void disableLogging() {
+  hierarchicalLoggingEnabled = true;
   logger.level = Level.OFF;
 }
 
-/// set the logging level
+/// Sets how much the SDK logs, apart from the level of `Logger.root`. Other
+/// loggers are not affected.
+///
+/// Turns on `hierarchicalLoggingEnabled` of `package:logging`, a process-wide
+/// switch. Without it only the root logger has a level, and giving one to any
+/// other logger is an error. Loggers that have no level of their own keep
+/// following the root logger, so nothing else changes.
 void setLoggingLevel(LoggerLevel level) {
+  hierarchicalLoggingEnabled = true;
   switch (level) {
     case LoggerLevel.kALL:
       logger.level = Level.ALL;
