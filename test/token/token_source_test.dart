@@ -219,6 +219,46 @@ void main() {
       expect(config.agents!.first.agentName, 'demo-agent');
       expect(config.agents!.first.metadata, '{"foo":"bar"}');
     });
+
+    test('parses room configuration from the camelCase keys of the roomConfig claim', () {
+      final token = _generateToken(
+        roomConfig: {
+          'name': 'demo-room',
+          'emptyTimeout': 300,
+          'departureTimeout': 20,
+          'maxParticipants': 10,
+          'minPlayoutDelay': 100,
+          'maxPlayoutDelay': 500,
+          'syncStreams': true,
+          'agents': [
+            {
+              'agentName': 'demo-agent',
+              'metadata': '{"foo":"bar"}',
+              'deployment': 'staging',
+            },
+          ],
+        },
+      );
+
+      final response = TokenSourceResponse(
+        serverUrl: 'https://test.livekit.io',
+        participantToken: token,
+      );
+
+      final config = response.jwtPayload?.roomConfiguration;
+      expect(config, isNotNull);
+      expect(config!.name, 'demo-room');
+      expect(config.emptyTimeout, 300);
+      expect(config.departureTimeout, 20);
+      expect(config.maxParticipants, 10);
+      expect(config.minPlayoutDelay, 100);
+      expect(config.maxPlayoutDelay, 500);
+      expect(config.syncStreams, isTrue);
+      expect(config.agents, hasLength(1));
+      expect(config.agents!.first.agentName, 'demo-agent');
+      expect(config.agents!.first.metadata, '{"foo":"bar"}');
+      expect(config.agents!.first.deployment, 'staging');
+    });
   });
 
   group('TokenSourceResponse', () {
