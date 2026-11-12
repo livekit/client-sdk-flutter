@@ -1,0 +1,1 @@
+patch type="fixed" "The access token the server refreshes during a session is no longer written to the log. The internal event that carries it printed the token, and every emitted event is logged at FINEST level, so an app that enabled the most verbose logging or forwarded SDK logs wrote a usable token to its logs"
