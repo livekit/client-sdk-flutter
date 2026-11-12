@@ -1,0 +1,1 @@
+minor type="added" "`Room.restartIce()` resumes the session on purpose to restart ICE on both peer connections, so media stuck on a TURN relay over TCP/TLS can move back to UDP"
