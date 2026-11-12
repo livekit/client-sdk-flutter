@@ -1,0 +1,1 @@
+patch type="fixed" "A track published right after another one is no longer left unpublished. Its offer was dropped when the request arrived while the answer to the previous offer was being applied, for example a microphone enabled right after the camera"
