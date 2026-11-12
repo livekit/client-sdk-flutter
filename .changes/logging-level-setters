@@ -1,0 +1,1 @@
+patch type="fixed" "`setLoggingLevel` and `disableLogging` no longer throw `UnsupportedError` in an app that has not turned on `hierarchicalLoggingEnabled` itself. They now turn it on, so the SDK logger can have a level of its own. Loggers without their own level keep following `Logger.root`"
