@@ -639,8 +639,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineRestartedEvent>((event) async {
-      // re-publish all tracks
-      await localParticipant?.rePublishAllTracks();
+      // A local track failure must not prevent the room from completing reconnection.
+      try {
+        await localParticipant?.rePublishAllTracks();
+      } catch (error, stackTrace) {
+        logger.warning('Failed to re-publish tracks after reconnection', error, stackTrace);
+      }
 
       for (var participant in _remoteParticipants.toList()) {
         for (var pub in participant.trackPublications.values.toList()) {
