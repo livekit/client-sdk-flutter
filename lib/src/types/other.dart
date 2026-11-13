@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// ignore_for_file: constant_identifier_names
+// ignore_for_file: constant_identifier_names, deprecated_member_use
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../extensions.dart';
 import '../participant/participant.dart';
