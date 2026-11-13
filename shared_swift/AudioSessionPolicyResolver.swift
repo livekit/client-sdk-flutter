@@ -41,6 +41,19 @@ enum LKAudioSessionDecision: Equatable {
     case recordingMediaMode
 }
 
+/// Outcome of a runtime audio-processing request, mirroring
+/// `RTCAudioProcessingOptionsResultCode` without the WebRTC dependency.
+enum LKAudioProcessingRequestOutcome: Equatable, CaseIterable {
+    /// Applied immediately by the component handling the request: these options
+    /// govern the shared engine now.
+    case applied
+    /// Accepted and stored. Whichever sender is active reapplies them later, so
+    /// they do not govern the engine yet.
+    case stored
+    /// Refused. The previous processing stays in effect.
+    case rejected
+}
+
 /// What to do with a voice-processing expectation change: whether the session
 /// still needs reconfiguring for it, and whether that can happen right now.
 struct LKVoiceProcessingSessionUpdate: Equatable {
@@ -94,6 +107,18 @@ enum LKAudioSessionPolicyResolver {
         // too means the engine stopped and the next one starts fresh.
         if !isPlayoutEnabled { return false }
         return previous
+    }
+
+    /// Whether a runtime processing request should move the session's voice
+    /// processing expectation.
+    ///
+    /// Only once the request governs the shared engine. A rejected request
+    /// leaves the previous processing running (and the caller keeps its previous
+    /// options), and a stored one has not taken effect yet, so moving the
+    /// session mode for either would point playback at a processing path that
+    /// is not running.
+    static func commitsExpectation(for outcome: LKAudioProcessingRequestOutcome) -> Bool {
+        outcome == .applied
     }
 
     /// Resolves a voice-processing expectation change into session work.

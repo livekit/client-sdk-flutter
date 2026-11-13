@@ -500,6 +500,12 @@ class AudioManager {
   /// connecting. Changing it mid-capture tears down the live VPIO path and
   /// reconfigures the session underneath an active call.
   ///
+  /// Like [setMicrophoneMuteMode] this reaches the audio device module, which
+  /// exists once `LiveKitClient.initialize()` has run (connecting a room runs
+  /// it too). Calling either of these before that throws
+  /// `rejectedPlatformUnavailable`, so an app setting this at startup should
+  /// await `LiveKitClient.initialize()` first.
+  ///
   /// The trade-off is deliberate: WebRTC's software echo cancellation replaces
   /// Apple's, which is tuned per device and generally performs better on the
   /// built-in speaker and microphone. Prefer leaving platform voice processing

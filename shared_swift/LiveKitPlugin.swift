@@ -470,7 +470,9 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // whichever sender is active, so in both cases moving the session mode
         // now would point playback at a processing path that is not running.
         #if !os(macOS)
-        if processingResult.code == .applied, let adm = webrtc?.peerConnectionFactory?.audioDeviceModule {
+        if LKAudioSessionPolicyResolver.commitsExpectation(for: LiveKitPlugin.outcome(from: processingResult.code)),
+           let adm = webrtc?.peerConnectionFactory?.audioDeviceModule
+        {
             updateExpectedPlatformVoiceProcessing(from: args, adm: adm)
         }
         #endif
@@ -790,6 +792,17 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
     }
     #endif
+
+    /// Maps the WebRTC result code onto the platform-free outcome the policy
+    /// resolver reasons about. Anything that is not applied or stored refused
+    /// the request, so the previous processing is what keeps running.
+    static func outcome(from code: RTCAudioProcessingOptionsResultCode) -> LKAudioProcessingRequestOutcome {
+        switch code {
+        case .applied: return .applied
+        case .stored: return .stored
+        default: return .rejected
+        }
+    }
 
     static func audioProcessingResultCodeString(_ code: RTCAudioProcessingOptionsResultCode) -> String {
         switch code {

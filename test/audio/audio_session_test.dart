@@ -105,6 +105,29 @@ void main() {
       expect(map['highPassFilter'], isFalse);
     });
 
+    test('carries exactly the keys the native policy reads', () {
+      // `requestsPlatformEchoNoisePath` reads these four names natively to
+      // decide the audio session mode. Renaming one on either side of the
+      // channel would silently fall back to the defaults -- which resolve to
+      // the platform path, putting playback back on the call volume register.
+      final map = resolveCaptureProcessingOptions(const track_options.AudioCaptureOptions()).toMap();
+
+      expect(
+        map.keys.toSet(),
+        containsAll(<String>{
+          'echoCancellation',
+          'noiseSuppression',
+          'echoCancellationMode',
+          'noiseSuppressionMode',
+        }),
+      );
+      // The mode values are the strings the native mapping switches on.
+      expect(
+        {for (final mode in track_options.AudioProcessingMode.values) mode.constraintValue},
+        {'auto', 'platform', 'software'},
+      );
+    });
+
     test('bypassVoiceProcessing overrides explicit platform capture modes', () {
       Native.bypassVoiceProcessing = true;
       addTearDown(() => Native.bypassVoiceProcessing = false);
