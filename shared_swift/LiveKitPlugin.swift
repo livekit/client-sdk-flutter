@@ -461,14 +461,19 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         }
 
         let options = LiveKitPlugin.audioProcessingOptions(from: args)
+        let processingResult = audioTrack.setAudioProcessingOptions(options)
         // Track-level requests reach the audio device module through the
-        // sender, so the session observer has to be told separately.
+        // sender, so the session observer has to be told separately -- but only
+        // once the request actually governs the shared engine. A rejected
+        // request leaves the previous processing in place (and Dart keeps the
+        // previous track options), and a stored one is reapplied later by
+        // whichever sender is active, so in both cases moving the session mode
+        // now would point playback at a processing path that is not running.
         #if !os(macOS)
-        if let adm = webrtc?.peerConnectionFactory?.audioDeviceModule {
+        if processingResult.code == .applied, let adm = webrtc?.peerConnectionFactory?.audioDeviceModule {
             updateExpectedPlatformVoiceProcessing(from: args, adm: adm)
         }
         #endif
-        let processingResult = audioTrack.setAudioProcessingOptions(options)
         result([
             "result": processingResult.isSuccess,
             "code": LiveKitPlugin.audioProcessingResultCodeString(processingResult.code),
@@ -773,7 +778,16 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
                                                        adm: RTCAudioDeviceModule)
     {
         let expected = LiveKitPlugin.requestsPlatformEchoNoisePath(from: args) && adm.isPlatformVoiceProcessingAllowed
-        audioEngineObserver?.setPlatformVoiceProcessingExpected(expected)
+        // Best-effort on the capture path: the engine transition that follows
+        // applies the session from this expectation anyway, so a failure here
+        // does not need to abort the capture.
+        // Bound through a `let` rather than optional chaining: chaining a method
+        // that already returns `Error?` yields `Error??`, which `if let` would
+        // unwrap to a non-nil `Error?` on success.
+        guard let audioEngineObserver else { return }
+        if let error = audioEngineObserver.setPlatformVoiceProcessingExpected(expected) {
+            print("[LiveKit] audio session not reconfigured for the capture's voice processing yet: \(error)")
+        }
     }
     #endif
 
@@ -822,8 +836,17 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // capture resolve to software, so the session must drop the chat-mode
         // expectation now. Re-allowing does not enable VPIO by itself — the next
         // capture's options decide — so that case is left to the capture path.
-        if !allowed {
-            audioEngineObserver?.setPlatformVoiceProcessingExpected(false)
+        if !allowed, let observer = audioEngineObserver,
+           let error = observer.setPlatformVoiceProcessingExpected(false)
+        {
+            // The device module policy did change, so this is a partial result:
+            // reporting success would tell the app it had media loudness while
+            // playback is still on a chat mode with no VPIO to compensate it.
+            result(FlutterError(code: "audioSessionConfigureFailed",
+                                message: "Platform voice processing was disallowed, but the audio session "
+                                    + "could not be reconfigured for it: \(error.localizedDescription)",
+                                details: nil))
+            return
         }
         #endif
         result(nil)
@@ -1199,16 +1222,21 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// Records which voice processing implementation the next capture resolves
     /// to. Applied immediately when the session is already live, so a runtime
     /// options change on a capturing track moves the session mode with it.
-    func setPlatformVoiceProcessingExpected(_ expected: Bool) {
+    ///
+    /// Returns the session configuration error, if applying it failed. The
+    /// expectation is still recorded in that case: it describes the capture, not
+    /// the session, and the next engine lifecycle event reconciles the session
+    /// from it. Callers that promised the caller a loudness policy should
+    /// surface the error rather than report success.
+    @discardableResult
+    func setPlatformVoiceProcessingExpected(_ expected: Bool) -> Error? {
         lock.lock()
         let changed = isPlatformVoiceProcessingExpected != expected
         isPlatformVoiceProcessingExpected = expected
         let shouldApplyNow = changed && sessionActive
         lock.unlock()
-        guard shouldApplyNow else { return }
-        if let error = applyCachedConfiguration() {
-            print("[LiveKit] failed to reconfigure audio session for voice processing change: \(error)")
-        }
+        guard shouldApplyNow else { return nil }
+        return applyCachedConfiguration()
     }
 
     /// Resolves the configuration to apply for a given engine state. Must be
