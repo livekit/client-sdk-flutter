@@ -15,7 +15,7 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../extensions.dart';
 import '../participant/participant.dart';
