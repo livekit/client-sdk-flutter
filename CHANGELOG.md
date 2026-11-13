@@ -5,6 +5,7 @@
 * Added: Wire in the livekit_ffi Rust core behind a native-only facade, delivered as a bundled cdylib via Native Assets
 * Added: `DataReceivedEvent.participantIdentity` reports the sender even when `participant` is null, for example when data arrives before the sender's join is announced or after the sender has left
 * Changed: Require livekit_ffi 0.13.2, whose libwebrtc no longer bundles the compromised eMudhra cross-signed AAA Certificate Services root
+* Changed: Import package:flutter/widgets.dart instead of the deprecated package:flutter/material.dart wherever Material is not used, so the package analyzes cleanly on Flutter 3.50
 * Fixed: The signalling URL is no longer logged with the access token in it. On web the token is carried as a query parameter, because browsers cannot set headers on a WebSocket, and the whole URL was logged at FINE level — so an app that enabled FINE logging, or forwarded SDK logs, wrote a usable access token to its logs. The token is now masked in that log line, matching the JS SDK; the remaining query parameters are still logged
 * Fixed: Audio tracks now publish with RED (redundant audio data) enabled by default as documented. AudioPublishOptions.red was inverted, so the default red: true disabled RED and red: false enabled it. Apps that set red: false to get RED working should remove it
 * Fixed: Fix a room that rejoined after being disposed while a full reconnect was tearing down, and fail data stream writes started after the room was disposed
