@@ -1,0 +1,1 @@
+patch type="changed" "Import package:flutter/widgets.dart instead of the deprecated package:flutter/material.dart wherever Material is not used, so the package analyzes cleanly on Flutter 3.50"
