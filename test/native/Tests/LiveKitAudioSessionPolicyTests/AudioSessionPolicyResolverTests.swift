@@ -225,11 +225,12 @@ final class RequestsPlatformEchoNoisePathTests: XCTestCase {
         )
     }
 
-    func testEitherComponentOnTheAutomaticModeKeepsThePlatformPath() {
-        // AEC and NS are coupled through VPIO: one of them wanting the platform
-        // path brings the whole unit along.
-        XCTAssertTrue(requests(echoCancellationForcesSoftware: true))
-        XCTAssertTrue(requests(noiseSuppressionForcesSoftware: true))
+    func testOneComponentForcedToSoftwareGivesUpThePlatformPath() {
+        // AEC and NS are coupled through VPIO: the unit cannot run one effect
+        // while the other runs in software, so the audio device module keeps
+        // the whole path off.
+        XCTAssertFalse(requests(echoCancellationForcesSoftware: true))
+        XCTAssertFalse(requests(noiseSuppressionForcesSoftware: true))
     }
 
     func testDisabledComponentsDoNotRequestThePlatformPath() {
@@ -245,10 +246,42 @@ final class RequestsPlatformEchoNoisePathTests: XCTestCase {
         )
     }
 
-    func testADisabledComponentDoesNotMaskAnEnabledOne() {
-        XCTAssertTrue(requests(echoCancellationEnabled: false))
-        XCTAssertTrue(requests(noiseSuppressionEnabled: false))
+    func testOneDisabledComponentGivesUpThePlatformPath() {
+        // The shape of an app that runs its own noise suppression: echo
+        // cancellation stays on, noise suppression is turned off. The audio
+        // device module leaves VPIO off for it, so the session must not expect
+        // the platform path.
+        XCTAssertFalse(requests(noiseSuppressionEnabled: false))
+        XCTAssertFalse(requests(echoCancellationEnabled: false))
         XCTAssertFalse(requests(echoCancellationEnabled: false, noiseSuppressionForcesSoftware: true))
+    }
+
+    func testMatchesTheCoupledResolutionForEveryCombination() {
+        // Reference: the coupled path resolution in the audio device module.
+        // The platform path is used when a component wants it and no component
+        // is disabled or forced to software.
+        for echoEnabled in [false, true] {
+            for echoSoftware in [false, true] {
+                for noiseEnabled in [false, true] {
+                    for noiseSoftware in [false, true] {
+                        let wantsPlatform = (echoEnabled && !echoSoftware) || (noiseEnabled && !noiseSoftware)
+                        let requestsSoftware = (echoEnabled && echoSoftware) || (noiseEnabled && noiseSoftware)
+                        let hasDisabledComponent = !echoEnabled || !noiseEnabled
+                        let expected = wantsPlatform && !requestsSoftware && !hasDisabledComponent
+                        XCTAssertEqual(
+                            requests(
+                                echoCancellationEnabled: echoEnabled,
+                                echoCancellationForcesSoftware: echoSoftware,
+                                noiseSuppressionEnabled: noiseEnabled,
+                                noiseSuppressionForcesSoftware: noiseSoftware
+                            ),
+                            expected,
+                            "echo \(echoEnabled)/\(echoSoftware) noise \(noiseEnabled)/\(noiseSoftware)"
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

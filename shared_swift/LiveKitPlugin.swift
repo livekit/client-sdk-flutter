@@ -758,9 +758,9 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
     }
 
     /// Whether the given capture options resolve to Apple's Voice Processing
-    /// I/O. AEC and NS are coupled through VPIO, so either one that is enabled
-    /// and not forced to software keeps the platform path. Mirrors the Swift
-    /// SDK's `AudioProcessingOptions.requestsPlatformEchoNoisePath`.
+    /// I/O. AEC and NS are coupled through VPIO, so the platform path needs
+    /// both enabled and neither forced to software, matching how the audio
+    /// device module resolves the same options.
     static func requestsPlatformEchoNoisePath(from args: [String: Any?]) -> Bool {
         LKAudioSessionPolicyResolver.requestsPlatformEchoNoisePath(
             echoCancellationEnabled: (args["echoCancellation"] as? Bool) ?? true,

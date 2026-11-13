@@ -147,16 +147,22 @@ enum LKAudioSessionPolicyResolver {
 
     /// Whether capture options resolve to Apple's Voice Processing I/O.
     ///
-    /// AEC and NS are coupled through VPIO, so either one that is enabled and
-    /// not forced to software keeps the platform path. Mirrors the Swift SDK's
-    /// `AudioProcessingOptions.requestsPlatformEchoNoisePath`.
+    /// AEC and NS are coupled through VPIO, and the audio device module only
+    /// creates the unit when both can run on it. A component that is disabled
+    /// or forced to software keeps the whole path off, because the unit cannot
+    /// run one effect without the other. So the platform path needs both
+    /// components enabled and neither forced to software.
+    ///
+    /// This has to match the coupled resolution in the audio device module.
+    /// Expecting VPIO when the module leaves it off puts the session on a chat
+    /// mode with nothing to compensate its reduced playback level.
     static func requestsPlatformEchoNoisePath(
         echoCancellationEnabled: Bool,
         echoCancellationForcesSoftware: Bool,
         noiseSuppressionEnabled: Bool,
         noiseSuppressionForcesSoftware: Bool
     ) -> Bool {
-        (echoCancellationEnabled && !echoCancellationForcesSoftware)
-            || (noiseSuppressionEnabled && !noiseSuppressionForcesSoftware)
+        echoCancellationEnabled && !echoCancellationForcesSoftware
+            && noiseSuppressionEnabled && !noiseSuppressionForcesSoftware
     }
 }
