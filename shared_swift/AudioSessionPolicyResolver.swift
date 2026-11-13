@@ -41,6 +41,19 @@ enum LKAudioSessionDecision: Equatable {
     case recordingMediaMode
 }
 
+/// What to do with a voice-processing expectation change: whether the session
+/// still needs reconfiguring for it, and whether that can happen right now.
+struct LKVoiceProcessingSessionUpdate: Equatable {
+    /// The session does not yet reflect the expectation. Sticky until a
+    /// configuration actually succeeds, so a repeated request after a failed
+    /// one reapplies instead of reporting success against a stale session.
+    let isPending: Bool
+
+    /// Apply the configuration now. False in manual mode, where the app owns
+    /// the session, and while no session is live to configure.
+    let shouldApplyNow: Bool
+}
+
 /// Pure policy decisions shared by the audio-engine observer. Kept free of
 /// Flutter, WebRTC and AVFoundation so the state matrix can be tested directly.
 enum LKAudioSessionPolicyResolver {
@@ -81,6 +94,30 @@ enum LKAudioSessionPolicyResolver {
         // too means the engine stopped and the next one starts fresh.
         if !isPlayoutEnabled { return false }
         return previous
+    }
+
+    /// Resolves a voice-processing expectation change into session work.
+    ///
+    /// `isUpdatePending` carries the outcome of previous attempts: tracking
+    /// "does the session still need this?" rather than "did the expectation
+    /// just change?" is what makes a retry after a failed configuration retry.
+    /// Rolling the expectation back instead would be wrong, since the audio
+    /// device module policy may already have changed.
+    ///
+    /// Manual mode records the expectation but never touches the session: the
+    /// app owns it there, and reapplying LiveKit's cached configuration from a
+    /// capture start would overwrite what the app configured.
+    static func voiceProcessingSessionUpdate(
+        expectationChanged: Bool,
+        isUpdatePending: Bool,
+        isAutomaticManagementEnabled: Bool,
+        isSessionActive: Bool
+    ) -> LKVoiceProcessingSessionUpdate {
+        let isPending = isUpdatePending || expectationChanged
+        return LKVoiceProcessingSessionUpdate(
+            isPending: isPending,
+            shouldApplyNow: isPending && isAutomaticManagementEnabled && isSessionActive
+        )
     }
 
     /// Whether capture options resolve to Apple's Voice Processing I/O.

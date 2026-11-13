@@ -1120,6 +1120,11 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // call-tuned output gain, which VPIO compensates for, so this selects
     // between the chat and media session modes.
     private var isPlatformVoiceProcessingExpected = true
+    // True while the live session does not yet reflect the expectation above.
+    // Sticky until a configuration succeeds, so repeating a request after a
+    // failed one actually reapplies instead of reporting success against a
+    // session still in the old mode.
+    private var needsVoiceProcessingSessionUpdate = false
     // Sticky: true once recording engaged, cleared when the engine stops
     // entirely. Keeps playAndRecord across mute toggles instead of flipping the
     // category (and tearing down VPIO with it) on every toggle.
@@ -1188,13 +1193,19 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         let resolved = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
         let isActive = isSessionActivationEnabled
+        let appliedExpectation = isPlatformVoiceProcessingExpected
         lock.unlock()
 
         guard shouldManageSession, let resolved else { return nil }
         guard let error = LiveKitPlugin.applyAudioSessionConfiguration(resolved.configuration,
                                                                        forceSpeakerOutput: forceSpeakerOutput,
                                                                        isActive: isActive)
-        else { return nil }
+        else {
+            // The engine transition reconciled the session, so an expectation
+            // still waiting on a configuration is now satisfied.
+            settleVoiceProcessingSessionUpdate(for: appliedExpectation)
+            return nil
+        }
         // The built-in preset is best-effort: before it existed, engine starts
         // with nothing pushed proceeded against whatever session the app had,
         // and the ADM's own pre-enable checks still gate recording on an
@@ -1231,12 +1242,31 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     @discardableResult
     func setPlatformVoiceProcessingExpected(_ expected: Bool) -> Error? {
         lock.lock()
-        let changed = isPlatformVoiceProcessingExpected != expected
+        let update = LKAudioSessionPolicyResolver.voiceProcessingSessionUpdate(
+            expectationChanged: isPlatformVoiceProcessingExpected != expected,
+            isUpdatePending: needsVoiceProcessingSessionUpdate,
+            isAutomaticManagementEnabled: isAutomaticManagementEnabled,
+            isSessionActive: sessionActive
+        )
         isPlatformVoiceProcessingExpected = expected
-        let shouldApplyNow = changed && sessionActive
+        needsVoiceProcessingSessionUpdate = update.isPending
         lock.unlock()
-        guard shouldApplyNow else { return nil }
-        return applyCachedConfiguration()
+
+        guard update.shouldApplyNow else { return nil }
+        if let error = applyCachedConfiguration() { return error }
+        settleVoiceProcessingSessionUpdate(for: expected)
+        return nil
+    }
+
+    /// Marks the session as reflecting `expected`, unless a newer expectation
+    /// landed while the session was being configured — clearing the flag for
+    /// that one would strand it.
+    private func settleVoiceProcessingSessionUpdate(for expected: Bool) {
+        lock.lock()
+        if isPlatformVoiceProcessingExpected == expected {
+            needsVoiceProcessingSessionUpdate = false
+        }
+        lock.unlock()
     }
 
     /// Resolves the configuration to apply for a given engine state. Must be

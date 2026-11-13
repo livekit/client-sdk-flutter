@@ -130,6 +130,76 @@ final class StickyHasRecordedTests: XCTestCase {
     }
 }
 
+final class VoiceProcessingSessionUpdateTests: XCTestCase {
+    private func update(
+        expectationChanged: Bool = true,
+        isUpdatePending: Bool = false,
+        isAutomaticManagementEnabled: Bool = true,
+        isSessionActive: Bool = true
+    ) -> LKVoiceProcessingSessionUpdate {
+        LKAudioSessionPolicyResolver.voiceProcessingSessionUpdate(
+            expectationChanged: expectationChanged,
+            isUpdatePending: isUpdatePending,
+            isAutomaticManagementEnabled: isAutomaticManagementEnabled,
+            isSessionActive: isSessionActive
+        )
+    }
+
+    func testAChangedExpectationConfiguresTheLiveSession() {
+        XCTAssertEqual(update(), LKVoiceProcessingSessionUpdate(isPending: true, shouldApplyNow: true))
+    }
+
+    func testAnUnchangedExpectationWithNothingPendingDoesNothing() {
+        XCTAssertEqual(
+            update(expectationChanged: false),
+            LKVoiceProcessingSessionUpdate(isPending: false, shouldApplyNow: false)
+        )
+    }
+
+    func testManualModeRecordsTheExpectationWithoutTouchingTheSession() {
+        // The app owns the session in manual mode. Reapplying LiveKit's cached
+        // configuration from a capture start would overwrite what it set.
+        let result = update(isAutomaticManagementEnabled: false)
+        XCTAssertTrue(result.isPending)
+        XCTAssertFalse(result.shouldApplyNow)
+    }
+
+    func testManualModeKeepsTheUpdatePendingForWhenItGoesBackToAutomatic() {
+        let inManual = update(isAutomaticManagementEnabled: false)
+        XCTAssertTrue(inManual.isPending)
+
+        // Switching back to automatic: the expectation has not changed again,
+        // but the session still has not been configured for it.
+        let afterSwitch = update(expectationChanged: false, isUpdatePending: inManual.isPending)
+        XCTAssertTrue(afterSwitch.shouldApplyNow)
+    }
+
+    func testNoLiveSessionDefersTheUpdate() {
+        let result = update(isSessionActive: false)
+        XCTAssertTrue(result.isPending)
+        XCTAssertFalse(result.shouldApplyNow)
+    }
+
+    func testRepeatingARequestAfterAFailedConfigurationRetries() {
+        // First attempt changes the expectation and tries to configure.
+        let first = update()
+        XCTAssertTrue(first.shouldApplyNow)
+
+        // It failed, so the flag stays set. The retry passes the same value, so
+        // nothing "changed" -- it must still reapply, or the caller would be
+        // told the policy is in effect while playback is still on a chat mode.
+        let retry = update(expectationChanged: false, isUpdatePending: true)
+        XCTAssertTrue(retry.shouldApplyNow)
+        XCTAssertTrue(retry.isPending)
+    }
+
+    func testAnUnchangedExpectationAfterASuccessfulConfigurationIsANoOp() {
+        // Success clears the pending flag in the observer, so the next
+        // identical request resolves to nothing.
+        XCTAssertFalse(update(expectationChanged: false, isUpdatePending: false).shouldApplyNow)
+    }
+}
+
 final class RequestsPlatformEchoNoisePathTests: XCTestCase {
     private func requests(
         echoCancellationEnabled: Bool = true,
