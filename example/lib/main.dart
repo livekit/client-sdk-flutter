@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/theme.dart';
 import 'package:logging/logging.dart';
