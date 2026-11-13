@@ -38,7 +38,7 @@
  * SOFTWARE.
  */
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 import 'package:livekit_client/livekit_client.dart';
 import 'dart:async';
 

@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// ScreenSelectDialog extends Dialog, so this file needs Material. The
+// material_ui package that replaces package:flutter/material.dart needs
+// Flutter 3.44 or newer, which is above the minimum this package supports.
+// The import sorter moves a line level ignore away from the import, hence
+// the file level one.
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'dart:typed_data' show Uint8List;
 

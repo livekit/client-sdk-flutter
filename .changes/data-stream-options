@@ -1,0 +1,1 @@
+minor type="added" "ConnectOptions.dataStream with maxPayloadByteLength, bounding the payload a single incoming data stream may deliver"
