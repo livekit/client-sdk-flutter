@@ -429,22 +429,27 @@ class AudioCaptureOptions extends LocalTrackOptions implements AudioProcessingOp
         <String, dynamic>{'googDAEchoCancellation': false},
       ];
     } else {
-      /// in we platform it's not possible to provide optional and mandatory parameters.
-      /// deviceId is a mandatory parameter
-      if (!kIsWeb || (kIsWeb && deviceId == null)) {
+      final processing = <String, dynamic>{
+        'echoCancellation': echoCancellation,
+        'noiseSuppression': noiseSuppression,
+        'autoGainControl': autoGainControl,
+        'voiceIsolation': noiseSuppression,
+        'googDAEchoCancellation': echoCancellation,
+        'googEchoCancellation': echoCancellation,
+        'googEchoCancellation2': echoCancellation,
+        'googNoiseSuppression': noiseSuppression,
+        'googNoiseSuppression2': noiseSuppression,
+        'googAutoGainControl': autoGainControl,
+        'googHighpassFilter': highPassFilter,
+        'googTypingNoiseDetection': typingNoiseDetection,
+      };
+      if (kIsWeb) {
+        // Browsers refuse a legacy optional list next to a deviceId (#163), so on web
+        // these go in as plain constraints, which apply with or without one.
+        constraints.addAll(processing);
+      } else {
         constraints['optional'] = <Map<String, dynamic>>[
-          <String, dynamic>{'echoCancellation': echoCancellation},
-          <String, dynamic>{'noiseSuppression': noiseSuppression},
-          <String, dynamic>{'autoGainControl': autoGainControl},
-          <String, dynamic>{'voiceIsolation': noiseSuppression},
-          <String, dynamic>{'googDAEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation': echoCancellation},
-          <String, dynamic>{'googEchoCancellation2': echoCancellation},
-          <String, dynamic>{'googNoiseSuppression': noiseSuppression},
-          <String, dynamic>{'googNoiseSuppression2': noiseSuppression},
-          <String, dynamic>{'googAutoGainControl': autoGainControl},
-          <String, dynamic>{'googHighpassFilter': highPassFilter},
-          <String, dynamic>{'googTypingNoiseDetection': typingNoiseDetection},
+          for (final entry in processing.entries) <String, dynamic>{entry.key: entry.value},
         ];
       }
     }
