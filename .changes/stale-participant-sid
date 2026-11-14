@@ -1,1 +1,0 @@
-patch type="fixed" "Stop resolving a remote participant by its old sid after another session takes over its identity"

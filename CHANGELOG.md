@@ -1,5 +1,33 @@
 # CHANGELOG
 
+## 2.14.0
+
+* Added: Wire in the livekit_ffi Rust core behind a native-only facade, delivered as a bundled cdylib via Native Assets
+* Added: `DataReceivedEvent.participantIdentity` reports the sender even when `participant` is null, for example when data arrives before the sender's join is announced or after the sender has left
+* Changed: Require livekit_ffi 0.13.2, whose libwebrtc no longer bundles the compromised eMudhra cross-signed AAA Certificate Services root
+* Changed: Import package:flutter/widgets.dart instead of the deprecated package:flutter/material.dart wherever Material is not used, so the package analyzes cleanly on Flutter 3.50
+* Fixed: The signalling URL is no longer logged with the access token in it. On web the token is carried as a query parameter, because browsers cannot set headers on a WebSocket, and the whole URL was logged at FINE level — so an app that enabled FINE logging, or forwarded SDK logs, wrote a usable access token to its logs. The token is now masked in that log line, matching the JS SDK; the remaining query parameters are still logged
+* Fixed: Audio tracks now publish with RED (redundant audio data) enabled by default as documented. AudioPublishOptions.red was inverted, so the default red: true disabled RED and red: false enabled it. Apps that set red: false to get RED working should remove it
+* Fixed: Fix a room that rejoined after being disposed while a full reconnect was tearing down, and fail data stream writes started after the room was disposed
+* Fixed: RPC error `message` and `data` are now truncated by UTF-8 byte length rather than by UTF-16 code unit count, so the 15 KB cap actually bounds the packet and a truncated field no longer ends in half a surrogate pair
+* Fixed: Calling disconnect() while a full reconnect is in progress no longer reconnects the room and joins again with the old token
+* Fixed: Reliable data sent during a reconnect now goes out once the reconnect finishes, instead of being reported as sent and dropped. Such sends wait for the reconnect and fail with UnexpectedConnectionState if the room disconnects instead
+* Fixed: A duplicated server answer is now ignored instead of being applied a second time, which failed on the peer connection and re-ran the transport's post-answer work for a message that should have been dropped
+* Fixed: Apply kotlin-android through pluginManager on Android so Flutter no longer warns that livekit_client applies the Kotlin Gradle Plugin when built-in Kotlin is active
+* Fixed: iOS/macOS: audio device module and local track calls act on the calling Flutter engine's WebRTC instance when more than one engine initializes WebRTC
+* Fixed: In shared-key E2EE mode, newly published tracks and encrypted data packets now use the key index passed to `setSharedKey` instead of always starting at index 0, which made them unreadable to other participants when the key lived at another index
+* Fixed: Region URLs returned by region discovery are now validated before the SDK fails over to them. Only encrypted (`wss`/`https`) LiveKit Cloud URLs are accepted, and the check is applied to both sources of a region list: the `/settings/regions` response and the regions the server reports over signalling. `isCloudUrl` also now matches the Cloud domains on the host suffix rather than with `contains`, so a host such as `project.livekit.cloud.example.com` is no longer treated as LiveKit Cloud
+* Fixed: A track published right after another one is no longer left unpublished. Its offer was dropped when the request arrived while the answer to the previous offer was being applied, for example a microphone enabled right after the camera
+* Fixed: Stop resolving a remote participant by its old sid after another session takes over its identity
+* Fixed: Fix remote tracks going missing and duplicate participants when participant updates arrive back to back or out of order
+* Fixed: A data packet in flight when the room is disposed no longer fails with a PlatformException from the closed data channel. The send completes when the packet went out and fails with UnexpectedConnectionState when it did not
+* Fixed: Fix data stream writes that could hang after a full reconnect, carried on after the room disconnected, or leaked a listener while waiting for the send buffer to drain. Writes now also wait for a reconnect to finish
+* Fixed: A track processor now stays attached across mute and unmute with the default stop-on-mute capture options, and across restartTrack such as a camera switch, instead of being silently dropped. It is restarted on the new media track, and the sender carries its processed track when it has one
+* Fixed: Reconnect delays now carry proportional jitter, so clients disconnected by the same event no longer retry in lockstep. The first retry draws from a small random window instead of firing immediately, and later retries are scaled by a random factor between 0.5 and 1.5
+* Fixed: The last subscribed codecs are now re-applied to the local video senders after each publisher renegotiation, so simulcast layers that dynacast paused are no longer re-enabled by the SFU answer
+* Fixed: Data stream writes on a closed engine fail with UnexpectedConnectionState instead of a plain string error
+* Fixed: `LiveKitVideoGrant` now reads the camelCase keys of the `video` claim (`roomJoin`, `canPublish`, and so on), so `TokenSourceResponse.jwtPayload?.video` returns the grants of a real LiveKit token instead of null fields
+
 ## 2.13.2
 
 * Security: Bump flutter_webrtc to 1.6.3 and WebRTC-SDK to 150.7871.04. The bundled TURN/TLS roots no longer include AAA Certificate Services, which cross-signs the compromised eMudhra intermediate CAs (CVE-2026-111943)
