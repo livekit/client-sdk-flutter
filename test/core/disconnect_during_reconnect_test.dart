@@ -124,4 +124,32 @@ void main() {
 
     expect(identical(ws.handlers, droppedHandlers), isTrue, reason: 'the full reconnect opened a new signal socket');
   });
+
+  test('a full reconnect still tearing down does not disturb an immediate connect', () async {
+    final teardownStarted = Completer<void>();
+    final releaseTeardown = Completer<void>();
+    container.engine.publisher!.onDispose(() async {
+      if (!teardownStarted.isCompleted) teardownStarted.complete();
+      await releaseTeardown.future;
+    });
+
+    container.engine.fullReconnectOnNext = true;
+    ws.onDispose();
+    await teardownStarted.future;
+
+    await room.disconnect();
+    await container.connectRoom();
+    final publisher = container.engine.publisher;
+    final subscriber = container.engine.subscriber;
+    expect(room.connectionState, ConnectionState.connected);
+
+    releaseTeardown.complete();
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+
+    expect(identical(container.engine.publisher, publisher), isTrue, reason: 'publisher replaced or dropped');
+    expect(identical(container.engine.subscriber, subscriber), isTrue, reason: 'subscriber replaced or dropped');
+    expect(room.connectionState, ConnectionState.connected);
+    await container.simulateRemoteParticipantJoin('late');
+    expect(room.remoteParticipants.values.map((p) => p.identity), contains('late'));
+  });
 }

@@ -158,9 +158,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   Timer? _reconnectTimeout;
   DateTime? _reconnectStart;
 
-  bool _isClosed = false;
+  // Every connect() starts a new session and closes the one before it. A closed session never
+  // reopens, so work that captured one can tell it no longer owns the connection.
+  _Session _session = _Session();
 
-  bool get isClosed => _isClosed;
+  bool get isClosed => _session.isClosed;
 
   bool get isPendingReconnect => _reconnectStart != null && _reconnectTimeout != null;
 
@@ -279,7 +281,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     FastConnectOptions? fastConnectOptions,
     RegionUrlProvider? regionUrlProvider,
   }) async {
-    _isClosed = false;
+    // Work from the previous connection, such as a full reconnect still tearing down, may still
+    // be running. Closing its session stops it, and it leaves the reconnect state to this one.
+    _session.isClosed = true;
+    _session = _Session();
+    _attemptingReconnect = false;
+    _attemptIsFullReconnect = false;
     // disconnect() cancels the signal listeners when it stops a pending
     // reconnect, so a connect starts from a fresh set.
     await _signalListener.cancelAll();
@@ -294,8 +301,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     );
   }
 
-  // Shared by connect() and restartConnection(). Leaves _isClosed alone, so a
-  // disconnect() that lands while a full reconnect is connecting stays in effect.
+  // Shared by connect() and restartConnection(). Keeps the session, so a disconnect()
+  // that lands while a full reconnect is connecting stays in effect.
   Future<void> _connect(
     String url,
     String token, {
@@ -316,6 +323,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     final connectStopwatch = Stopwatch()..start();
+    // disconnect() or Room.dispose() can land while this runs. They close the session, and what
+    // this method opened after that is theirs to find nothing of.
+    final session = _session;
 
     try {
       // wait for socket to connect rtc server
@@ -325,6 +335,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         connectOptions: this.connectOptions,
         roomOptions: this.roomOptions,
       );
+      if (session.isClosed) {
+        await signalClient.cleanUp();
+        throw UnexpectedConnectionState('Engine closed while connecting');
+      }
 
       // wait for join response
       await events.waitFor<EngineJoinResponseEvent>(
@@ -348,11 +362,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           'Timed out waiting for PeerConnection to connect, please check your network for ice connectivity',
         ),
       );
+      if (session.isClosed) {
+        await cleanUp();
+        throw UnexpectedConnectionState('Engine closed while connecting');
+      }
       connectStopwatch.stop();
       logger.info('connection setup took ${connectStopwatch.elapsedMilliseconds} ms');
       events.emit(const EngineConnectedEvent());
     } catch (error) {
       logger.fine('Connect Error $error');
+
+      // A closed session has nothing left to announce to.
+      if (session.isClosed) rethrow;
 
       // during a reconnect this connect() runs inside restartConnection and
       // attemptReconnect owns disconnect emission, emitting here as well
@@ -443,10 +464,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _waitUntil(() => !_isReconnecting && (_dcBufferStatus[kind]! || isBufferStatusLow(kind) == true));
 
   // Resolves once [isReady] holds, checking it again each time [_sendStateChanged] fires. Fails
-  // as soon as the engine closes, even when [isReady] already holds.
+  // as soon as the session it started on closes, even when [isReady] already holds, so a wait
+  // never carries over to a later connect().
   Future<void> _waitUntil(bool Function() isReady) async {
+    final session = _session;
     while (true) {
-      if (_isClosed || isDisposed) {
+      if (session.isClosed || isDisposed) {
         throw UnexpectedConnectionState('Engine disconnected');
       }
       if (isReady()) return;
@@ -606,7 +629,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     try {
       await channel.send(message);
     } catch (e) {
-      if (_isClosed) throw UnexpectedConnectionState('Engine closed before the data packet was sent: $e');
+      if (isClosed) throw UnexpectedConnectionState('Engine closed before the data packet was sent: $e');
       rethrow;
     }
     await _recordBufferedAmount(channel, reliability);
@@ -616,7 +639,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   /// trim the resend buffer. A channel the engine closed or replaced since the send has nothing to
   /// report, and the packet it carried is already out, so the send does not fail over it.
   Future<void> _recordBufferedAmount(rtc.RTCDataChannel channel, Reliability reliability) async {
-    bool dropped() => _isClosed || !identical(channel, _publisherDataChannel(reliability));
+    bool dropped() => isClosed || !identical(channel, _publisherDataChannel(reliability));
     // Null once the channel is gone, which ends the bookkeeping quietly.
     Future<int?> read() async {
       try {
@@ -1187,7 +1210,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ClientDisconnectReason reason, {
     lk_models.ReconnectReason? reconnectReason,
   }) async {
-    if (_isClosed) {
+    if (isClosed) {
       logger.fine('handleReconnect: engine is closed, skip');
       return;
     }
@@ -1259,7 +1282,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ClientDisconnectReason reason, {
     lk_models.ReconnectReason? reconnectReason,
   }) async {
-    if (_isClosed) {
+    if (isClosed) {
       return;
     }
 
@@ -1282,6 +1305,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     fullReconnectOnNext = false;
     _attemptIsFullReconnect = fullReconnect;
 
+    // Once disconnect() closes this session the attempt neither succeeded nor failed. Once a
+    // connect() replaces it, the reconnect state belongs to the new connection.
+    final session = _session;
     var succeeded = false;
     try {
       _attemptingReconnect = true;
@@ -1306,11 +1332,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           reconnectReason: reconnectReason,
         );
       }
+      if (session.isClosed) return;
       _clearPendingReconnect();
       _attemptingReconnect = false;
       _isReconnecting = false;
       succeeded = true;
     } catch (e) {
+      if (session.isClosed) return;
       _reconnectAttempts = _reconnectAttempts + 1;
       logger.fine('attemptReconnect: ${fullReconnect ? 'full reconnect' : 'resume'} failed: $e');
       bool recoverable = true;
@@ -1344,15 +1372,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         );
       }
     } finally {
-      _attemptingReconnect = false;
-      _attemptIsFullReconnect = false;
+      if (identical(session, _session)) {
+        _attemptingReconnect = false;
+        _attemptIsFullReconnect = false;
 
-      // A full reconnect requested while this attempt was running that a
-      // successful attempt didn't act on — dispatch it now. The failure path
-      // already retries, so only the success path needs this.
-      if (succeeded && fullReconnectOnNext && !_isClosed) {
-        logger.fine('attemptReconnect: full reconnect requested mid-attempt, dispatching');
-        unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
+        // A full reconnect requested while this attempt was running that a
+        // successful attempt didn't act on — dispatch it now. The failure path
+        // already retries, so only the success path needs this.
+        if (succeeded && fullReconnectOnNext && !isClosed) {
+          logger.fine('attemptReconnect: full reconnect requested mid-attempt, dispatching');
+          unawaited(handleReconnect(ClientDisconnectReason.reconnectRetry));
+        }
       }
     }
   }
@@ -1361,7 +1391,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     ClientDisconnectReason reason, {
     lk_models.ReconnectReason? reconnectReason,
   }) async {
-    if (_isClosed) {
+    if (isClosed) {
       return;
     }
 
@@ -1430,15 +1460,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   @internal
   Future<void> restartConnection({String? regionUrl}) async {
-    if (_isClosed) {
+    if (isClosed) {
       return;
     }
+
+    // disconnect() can run during the teardown below, and a connect() after it owns the
+    // transports. Either one closes this session, so stop before touching them.
+    final session = _session;
 
     try {
       events.emit(const EngineFullRestartingEvent());
 
       if (signalClient.connectionState == ConnectionState.connected) {
         await signalClient.cleanUp();
+        if (session.isClosed) return;
       }
 
       // Drop the channels before the transports go, so a send whose bookkeeping lands during the
@@ -1449,11 +1484,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _lossyDCPub = null;
 
       await publisher?.dispose();
+      if (session.isClosed) return;
       publisher = null;
 
       _resetPublisherConnection();
 
       await subscriber?.dispose();
+      if (session.isClosed) return;
       subscriber = null;
 
       // The new session starts its reliable sequence over, and nothing sent on the old one is
@@ -1462,11 +1499,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _reliableMessageBuffer.clear();
 
       await _signalListener.cancelAll();
-
-      // disconnect() can run during the teardown above. It closes the engine
-      // for good, so do not connect again.
-      if (_isClosed) {
-        logger.fine('restartConnection: engine closed during teardown, not reconnecting');
+      if (session.isClosed) {
+        logger.fine('restartConnection: engine closed or reconnected during teardown, not reconnecting');
         return;
       }
 
@@ -1500,6 +1534,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         _regionUrlProvider?.resetAttempts();
         rethrow;
       }
+      // A session closed while connecting has no region to fail over to.
+      if (session.isClosed) return;
       final nextRegionUrl = await _regionUrlProvider?.getNextBestRegionUrl();
       if (nextRegionUrl != null) {
         await restartConnection(regionUrl: nextRegionUrl);
@@ -1647,7 +1683,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      if (event.reason == DisconnectReason.disconnected && !_isClosed) {
+      if (event.reason == DisconnectReason.disconnected && !isClosed) {
         await handleReconnect(
           ClientDisconnectReason.signal,
           reconnectReason: lk_models.ReconnectReason.RR_SIGNAL_DISCONNECTED,
@@ -1756,8 +1792,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // A full reconnect also disposes transports, but must keep the engine open.
   @internal
   void markClosed() {
-    if (_isClosed) return;
-    _isClosed = true;
+    if (isClosed) return;
+    _session.isClosed = true;
     _sendStateChanged.complete();
     events.emit(EngineClosingEvent());
   }
@@ -1957,4 +1993,8 @@ Future<String?> getConnectedAddress(rtc.RTCPeerConnection pc) async {
   }
   final selectedID = report.values['remoteCandidateId'] as String;
   return candidates[selectedID];
+}
+
+class _Session {
+  bool isClosed = false;
 }

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
@@ -151,5 +153,20 @@ void main() {
     finishFullReconnect();
     await write.timeout(const Duration(seconds: 2));
     expect(markerSent, isTrue, reason: 'the write never reached the new channel');
+  });
+
+  test('a wait does not carry over to the next connection', () async {
+    await fillReliableChannel();
+    final wait = container.engine.waitForBufferStatusLow(Reliability.reliable);
+    final outcome = wait.then<Object?>((_) => 'resolved', onError: (Object e) => e);
+
+    // A disconnect and a new connect between two checks of the wait. The new connection's
+    // channels start out empty, so a wait that followed it would resolve.
+    container.engine.markClosed();
+    final connecting = container.engine.connect('ws://www.example.com', 'token');
+    unawaited(container.answerJoin());
+
+    expect(await outcome.timeout(const Duration(seconds: 2)), isNot('resolved'));
+    await connecting;
   });
 }
