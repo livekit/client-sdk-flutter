@@ -35,6 +35,19 @@ import '../audio_management.dart';
 import '../options.dart' as track_options;
 import 'local.dart';
 
+/// The processing options the audio device module is started with for [options].
+///
+/// `bypassVoiceProcessing` already strips every processing constraint in
+/// [AudioCaptureOptions.toMediaConstraintsMap], so the audio device module has
+/// to hear the same thing. Otherwise it keeps Apple voice processing requested
+/// and the session stays on a chat mode, where Apple documents that an app not
+/// using Voice Processing I/O gets reduced processing and "a lower playback
+/// level" — leaving remote audio close to inaudible.
+@internal
+track_options.AudioProcessingOptions resolveCaptureProcessingOptions(
+  track_options.AudioCaptureOptions options,
+) => Native.bypassVoiceProcessing ? const track_options.AudioProcessingOptions.noProcessing() : options.processing;
+
 class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
@@ -96,7 +109,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
       try {
         // Match Swift: start the ADM before publishing so capture-time audio
         // processing options are applied before WebRTC opens the microphone.
-        await Native.startLocalRecording(currentOptions.processing.toMap());
+        await Native.startLocalRecording(resolveCaptureProcessingOptions(currentOptions).toMap());
       } on PlatformException catch (error) {
         // Missing microphone permission or an audio session that does not
         // permit recording are not audio processing failures, so they surface

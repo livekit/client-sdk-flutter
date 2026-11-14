@@ -174,6 +174,28 @@ class Native {
     return null;
   }
 
+  /// Reads the app-level policy for Apple's platform voice processing.
+  @internal
+  static Future<bool> isPlatformVoiceProcessingAllowed() async {
+    final response = await channel.invokeMethod<bool>(
+      'isPlatformVoiceProcessingAllowed',
+      <String, dynamic>{},
+    );
+    return response ?? true;
+  }
+
+  /// Sets the app-level policy for Apple's platform voice processing.
+  ///
+  /// Errors propagate: a caller that disallowed the platform path must not be
+  /// left believing software processing is in effect when it is not.
+  @internal
+  static Future<void> setPlatformVoiceProcessingAllowed(bool allowed) async {
+    await channel.invokeMethod<void>(
+      'setPlatformVoiceProcessingAllowed',
+      <String, dynamic>{'allowed': allowed},
+    );
+  }
+
   /// Configure and activate LiveKit's Android audio session (mode/focus/routing).
   @internal
   static Future<void> configureAndroidAudioSession(Map<String, dynamic> configuration) async {
