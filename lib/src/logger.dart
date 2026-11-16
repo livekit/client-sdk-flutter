@@ -46,10 +46,12 @@ void disableLogging() {
 /// to the whole isolate. Without it only the root logger has a level, and
 /// giving one to any other logger is an error. With it on:
 ///
-/// - a logger that has no level of its own still follows the root logger
+/// - a logger that has no level of its own follows its parent, which for a
+///   logger without a dot in its name is still the root logger
 /// - records still reach `Logger.root.onRecord`
 /// - `onRecord` of a logger other than the root one, listened to from then
-///   on, delivers that logger's records only, where it used to deliver all
+///   on, delivers the records of that logger and its children only, where it
+///   used to deliver all
 void setLoggingLevel(LoggerLevel level) {
   hierarchicalLoggingEnabled = true;
   switch (level) {
