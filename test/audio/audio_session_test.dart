@@ -25,6 +25,7 @@ import 'package:livekit_client/src/exceptions.dart';
 import 'package:livekit_client/src/support/native.dart';
 import 'package:livekit_client/src/support/native_audio.dart' as native_audio;
 import 'package:livekit_client/src/support/webrtc_initialize_options.dart';
+import 'package:livekit_client/src/track/local/audio.dart';
 import 'package:livekit_client/src/track/options.dart' as track_options;
 
 void main() {
@@ -56,6 +57,92 @@ void main() {
     forceSpeakerOutput: AudioManager.instance.isSpeakerOutputForced,
     automatic: automatic,
   ).androidConfiguration;
+
+  group('capture processing options', () {
+    // These values decide, natively, whether the audio session keeps a chat
+    // mode: `requestsPlatformEchoNoisePath` reads `echoCancellation` /
+    // `noiseSuppression` and their modes out of exactly this map. The native
+    // side of that contract is covered by test/native/.
+    test('default capture options request the platform path', () {
+      final map = resolveCaptureProcessingOptions(const track_options.AudioCaptureOptions()).toMap();
+
+      expect(map['echoCancellation'], isTrue);
+      expect(map['noiseSuppression'], isTrue);
+      expect(map['echoCancellationMode'], 'auto');
+      expect(map['noiseSuppressionMode'], 'auto');
+    });
+
+    test('software capture modes are forwarded to the audio device module', () {
+      final map = resolveCaptureProcessingOptions(
+        const track_options.AudioCaptureOptions(
+          echoCancellationMode: track_options.AudioProcessingMode.software,
+          noiseSuppressionMode: track_options.AudioProcessingMode.software,
+          autoGainControlMode: track_options.AudioProcessingMode.software,
+          highPassFilterMode: track_options.AudioProcessingMode.software,
+        ),
+      ).toMap();
+
+      expect(map['echoCancellationMode'], 'software');
+      expect(map['noiseSuppressionMode'], 'software');
+      expect(map['autoGainControlMode'], 'software');
+      expect(map['highPassFilterMode'], 'software');
+    });
+
+    test('bypassVoiceProcessing disables processing at the audio device module', () {
+      Native.bypassVoiceProcessing = true;
+      addTearDown(() => Native.bypassVoiceProcessing = false);
+
+      // Capture options that would otherwise request the platform path.
+      final map = resolveCaptureProcessingOptions(const track_options.AudioCaptureOptions()).toMap();
+
+      // Everything disabled, so natively nothing requests Apple voice
+      // processing and the session moves off the chat mode. Leaving these true
+      // kept VPIO requested while the constraints said otherwise, and remote
+      // audio became close to inaudible.
+      expect(map['echoCancellation'], isFalse);
+      expect(map['noiseSuppression'], isFalse);
+      expect(map['autoGainControl'], isFalse);
+      expect(map['highPassFilter'], isFalse);
+    });
+
+    test('carries exactly the keys the native policy reads', () {
+      // `requestsPlatformEchoNoisePath` reads these four names natively to
+      // decide the audio session mode. Renaming one on either side of the
+      // channel would silently fall back to the defaults -- which resolve to
+      // the platform path, putting playback back on the call volume register.
+      final map = resolveCaptureProcessingOptions(const track_options.AudioCaptureOptions()).toMap();
+
+      expect(
+        map.keys.toSet(),
+        containsAll(<String>{
+          'echoCancellation',
+          'noiseSuppression',
+          'echoCancellationMode',
+          'noiseSuppressionMode',
+        }),
+      );
+      // The mode values are the strings the native mapping switches on.
+      expect(
+        {for (final mode in track_options.AudioProcessingMode.values) mode.constraintValue},
+        {'auto', 'platform', 'software'},
+      );
+    });
+
+    test('bypassVoiceProcessing overrides explicit platform capture modes', () {
+      Native.bypassVoiceProcessing = true;
+      addTearDown(() => Native.bypassVoiceProcessing = false);
+
+      final map = resolveCaptureProcessingOptions(
+        const track_options.AudioCaptureOptions(
+          echoCancellationMode: track_options.AudioProcessingMode.platform,
+          noiseSuppressionMode: track_options.AudioProcessingMode.platform,
+        ),
+      ).toMap();
+
+      expect(map['echoCancellation'], isFalse);
+      expect(map['noiseSuppression'], isFalse);
+    });
+  });
 
   group('AudioSessionManagementMode', () {
     test('supports automatic, manual, and external call system management', () {
@@ -330,12 +417,16 @@ void main() {
 
       expect(speaker.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(speaker.appleAudioMode, AppleAudioMode.videoChat);
+      // defaultToSpeaker because native swaps the chat mode for `default` when
+      // the capture resolves to software voice processing, and `default` routes
+      // to the receiver on its own.
       expect(
         speaker.appleAudioCategoryOptions,
         {
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
+          AppleAudioCategoryOption.defaultToSpeaker,
         },
       );
 
@@ -346,6 +437,10 @@ void main() {
 
       expect(receiver.appleAudioCategory, AppleAudioCategory.playAndRecord);
       expect(receiver.appleAudioMode, AppleAudioMode.voiceChat);
+      expect(
+        receiver.appleAudioCategoryOptions,
+        isNot(contains(AppleAudioCategoryOption.defaultToSpeaker)),
+      );
     });
 
     test('automatic Apple policy ignores manual media options', () {
@@ -361,6 +456,7 @@ void main() {
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
+          AppleAudioCategoryOption.defaultToSpeaker,
         },
       );
     });
@@ -589,6 +685,13 @@ void main() {
 
       expect(calls.single.method, 'setAndroidSpeakerphoneOn');
       expect(calls.single.arguments, {'enable': true, 'force': true});
+    });
+
+    test('passes the platform voice processing policy to platform method', () async {
+      await Native.setPlatformVoiceProcessingAllowed(false);
+
+      expect(calls.single.method, 'setPlatformVoiceProcessingAllowed');
+      expect(calls.single.arguments, {'allowed': false});
     });
 
     test('passes microphone mute mode to platform method', () async {

@@ -609,6 +609,34 @@ These controls are accessible on the `RemoteTrackPublication` object.
 
 For more info, see [Subscribing to tracks](https://docs.livekit.io/home/client/tracks/subscribe/).
 
+### Logging
+
+The SDK logs through [`package:logging`](https://pub.dev/packages/logging), on a logger named `livekit`. Listen on the root logger to receive its records:
+
+```dart
+import 'package:logging/logging.dart';
+
+Logger.root.onRecord.listen((record) {
+  print('${record.level.name} ${record.loggerName}: ${record.message}');
+});
+```
+
+By default the SDK follows the level of `Logger.root`. To give the SDK a level of its own, without changing what the rest of your app logs:
+
+```dart
+setLoggingLevel(LoggerLevel.kFINE); // more detail from the SDK only
+```
+
+Or to silence it:
+
+```dart
+disableLogging();
+```
+
+After either call the SDK keeps its own level and no longer follows `Logger.root`.
+
+Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own. With it on, `onRecord` of a logger other than the root one delivers only the records of that logger and its children, so listen on `Logger.root.onRecord` as above to keep receiving everything.
+
 ### Diagnosing connection issues
 
 `ConnectionCheck` runs a set of connection diagnostics against a LiveKit server — the same checks that power [livekit.io/connection-test](https://livekit.io/connection-test). Run it proactively at app start, or reactively when `room.connect()` fails, to determine why a connection cannot be established (firewall, VPN, blocked TURN, etc.).

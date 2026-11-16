@@ -39,6 +39,11 @@ class ResolvedAudioSessionPolicy {
           AppleAudioCategoryOption.allowBluetooth,
           AppleAudioCategoryOption.allowBluetoothA2DP,
           AppleAudioCategoryOption.allowAirPlay,
+          // The chat modes imply a speaker route, but native replaces the mode
+          // with `default` when the capture does not use Apple voice
+          // processing, and `default` routes to the receiver without this. A
+          // connected headset still wins over it.
+          if (preferSpeakerOutput) AppleAudioCategoryOption.defaultToSpeaker,
         },
         appleAudioMode: preferSpeakerOutput ? AppleAudioMode.videoChat : AppleAudioMode.voiceChat,
       );

@@ -1,0 +1,1 @@
+patch type="fixed" "Audio tracks now publish with RED (redundant audio data) enabled by default as documented. AudioPublishOptions.red was inverted, so the default red: true disabled RED and red: false enabled it. Apps that set red: false to get RED working should remove it"

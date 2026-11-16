@@ -19,6 +19,9 @@ enum DataStreamErrorReason {
 
   // Encryption type mismatch.
   EncryptionTypeMismatch,
+
+  // The stream was already closed by this side.
+  AlreadyClosed,
 }
 
 class DataStreamError implements Exception {

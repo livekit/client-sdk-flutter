@@ -49,8 +49,43 @@ class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
   }
 }
 
+/// A peer connection whose remote description takes a while to read, the way
+/// a platform call does when the native side is busy.
+class _SlowRemoteDescriptionPeerConnection extends MockPeerConnection {
+  @override
+  Future<rtc.RTCSessionDescription?> getRemoteDescription() async {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    return super.getRemoteDescription();
+  }
+}
+
 void main() {
   group('Transport.negotiate', () {
+    test('sends an offer that was requested while the answer to the previous one is applied', () async {
+      final pc = _SlowRemoteDescriptionPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = offers.add;
+
+      // The first track is offered and waits for its answer.
+      await transport.createAndSendOffer();
+      expect(offers, hasLength(1));
+
+      // A second track asks for an offer while the first one is still pending,
+      // and the answer lands before that request has finished deciding to wait.
+      final second = transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0', 'answer'));
+      await second;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(offers, hasLength(2), reason: 'the second track was never offered');
+      expect(transport.renegotiate, isFalse);
+    });
+
     test('reports a failed offer to onNegotiationError instead of leaking an unhandled error', () async {
       final uncaught = <Object>[];
       final reported = Completer<Object>();

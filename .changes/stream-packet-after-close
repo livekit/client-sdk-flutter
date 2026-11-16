@@ -1,0 +1,1 @@
+patch type="fixed" "A data stream packet that arrives after the room closed no longer opens a stream that nothing finishes or fails"
