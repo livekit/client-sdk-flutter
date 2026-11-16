@@ -635,7 +635,7 @@ disableLogging();
 
 After either call the SDK keeps its own level and no longer follows `Logger.root`.
 
-Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own. With it on, `onRecord` of a logger other than the root one delivers only that logger's records, so listen on `Logger.root.onRecord` as above to keep receiving everything.
+Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own. With it on, `onRecord` of a logger other than the root one delivers only the records of that logger and its children, so listen on `Logger.root.onRecord` as above to keep receiving everything.
 
 ### Diagnosing connection issues
 
