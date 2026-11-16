@@ -28,6 +28,7 @@
 * Fixed: The last subscribed codecs are now re-applied to the local video senders after each publisher renegotiation, so simulcast layers that dynacast paused are no longer re-enabled by the SFU answer
 * Fixed: Data stream writes on a closed engine fail with UnexpectedConnectionState instead of a plain string error
 * Fixed: `LiveKitVideoGrant` now reads the camelCase keys of the `video` claim (`roomJoin`, `canPublish`, and so on), so `TokenSourceResponse.jwtPayload?.video` returns the grants of a real LiveKit token instead of null fields
+* Fixed: `setLoggingLevel` and `disableLogging` no longer throw `UnsupportedError` in an app that has not turned on `hierarchicalLoggingEnabled` itself. They now turn it on, so the SDK logger can have a level of its own. Loggers without their own level keep following `Logger.root`
 
 ## 2.13.2
 
