@@ -133,6 +133,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late EventsListener<SignalEvent> _signalListener;
 
   RegionUrlProvider? _regionUrlProvider;
+
+  /// True while [connect] is running. A failed attempt tears the engine down
+  /// and reports a disconnect before [connect] retries another region, and
+  /// that cleanup must not throw away state the retry still needs.
+  bool _connectInProgress = false;
+
+  /// Lets tests install a provider with known regions, so a failover can be
+  /// exercised without reaching a real LiveKit Cloud endpoint.
+  @visibleForTesting
+  set regionUrlProviderForTesting(RegionUrlProvider? provider) {
+    _regionUrlProvider = provider;
+  }
+
   String? _regionUrl;
 
   // Agents
@@ -368,6 +381,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    _connectInProgress = true;
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -381,32 +395,43 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
-        String? nextUrl;
         try {
-          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
-        } catch (error) {
-          if (error is ConnectException && (error.statusCode == 401)) {
+          String? nextUrl;
+          try {
+            nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+          } catch (error) {
+            if (error is ConnectException && (error.statusCode == 401)) {
+              rethrow;
+            }
+          }
+          if (nextUrl != null) {
+            logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
+            await engine.connect(
+              nextUrl,
+              token,
+              connectOptions: connectOptions,
+              roomOptions: effectiveRoomOptions,
+              fastConnectOptions: fastConnectOptions,
+              regionUrlProvider: _regionUrlProvider,
+            );
+            didConnect = true;
+          } else {
             rethrow;
           }
-        }
-        if (nextUrl != null) {
-          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
-          await engine.connect(
-            nextUrl,
-            token,
-            connectOptions: connectOptions,
-            roomOptions: effectiveRoomOptions,
-            fastConnectOptions: fastConnectOptions,
-            regionUrlProvider: _regionUrlProvider,
-          );
-          didConnect = true;
-        } else {
+        } catch (error) {
+          // The cleanup for the failed attempt left the pre-connect audio
+          // buffer recording for a retry, and no retry connected. Stop it
+          // with the error, the way withPreConnectAudio ends a failed
+          // operation, so the native recorder is stopped as well.
+          await preConnectAudioBuffer.stopRecording(withError: error);
+          await preConnectAudioBuffer.reset();
           rethrow;
         }
       } else {
         rethrow;
       }
     } finally {
+      _connectInProgress = false;
       if (!didConnect) {
         await NativeAudioManagement.stop();
       }
@@ -676,7 +701,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // pending one when it starts.
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
-        await _cleanUp(disposeLocalParticipant: false);
+        // A failed first attempt lands here before connect() retries another
+        // region. The pre-connect audio buffer has to survive that, or the
+        // retry connects without ever publishing the microphone. A disconnect
+        // the app asked for is not a retry: it resets the buffer as always, so
+        // nothing is published if that connect still completes.
+        await _cleanUp(
+          disposeLocalParticipant: false,
+          preservePreConnectAudio: _connectInProgress && event.reason != DisconnectReason.clientInitiated,
+        );
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -1133,7 +1166,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
+  Future<void> _cleanUp({bool disposeLocalParticipant = true, bool preservePreConnectAudio = false}) async {
     logger.fine('[${objectId}] cleanUp()');
 
     // Fail any open data streams so their handlers return rather than awaiting a reader that will
@@ -1161,7 +1194,9 @@ extension RoomPrivateMethods on Room {
 
     _activeSpeakers.clear();
 
-    await preConnectAudioBuffer.reset();
+    if (!preservePreConnectAudio) {
+      await preConnectAudioBuffer.reset();
+    }
 
     // clean up engine
     await engine.cleanUp();
