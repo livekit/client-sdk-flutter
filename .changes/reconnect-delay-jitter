@@ -1,0 +1,1 @@
+patch type="fixed" "Reconnect delays now carry proportional jitter, so clients disconnected by the same event no longer retry in lockstep. The first retry draws from a small random window instead of firing immediately, and later retries are scaled by a random factor between 0.5 and 1.5"

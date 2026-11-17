@@ -22,6 +22,7 @@ export 'src/connection_check/events.dart';
 export 'src/constants.dart';
 export 'src/core/room.dart';
 export 'src/core/room_preconnect.dart';
+export 'src/data_stream/errors.dart';
 export 'src/data_stream/stream_reader.dart';
 export 'src/data_stream/stream_writer.dart';
 export 'src/e2ee/e2ee_manager.dart';
@@ -58,7 +59,7 @@ export 'src/publication/track_publication.dart';
 export 'src/support/platform.dart';
 export 'src/audio/audio_processing_state.dart';
 export 'src/track/audio_visualizer.dart';
-export 'src/track/local/audio.dart';
+export 'src/track/local/audio.dart' hide resolveCaptureProcessingOptions;
 export 'src/track/local/local.dart';
 export 'src/track/local/video.dart';
 export 'src/track/options.dart';
@@ -69,6 +70,7 @@ export 'src/track/remote/remote.dart';
 export 'src/track/remote/video.dart';
 export 'src/track/track.dart';
 export 'src/json/agent_attributes.dart';
+export 'src/types/client_capability.dart';
 export 'src/types/data_stream.dart';
 export 'src/types/audio_encoding.dart';
 export 'src/types/other.dart';
@@ -90,6 +92,7 @@ export 'src/token_source/custom.dart';
 export 'src/token_source/caching.dart';
 export 'src/token_source/development.dart';
 export 'src/token_source/jwt.dart';
+export 'src/ffi/ffi.dart';
 
 /// Misspelled alias for [kRpcVersion]. Kept for backwards compatibility with code
 /// that referenced the original typo.

@@ -459,6 +459,75 @@ class AudioManager {
     }
   }
 
+  /// Whether Apple's platform voice processing is allowed. Always true off
+  /// iOS/macOS, where the policy does not apply.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<bool> isPlatformVoiceProcessingAllowed() async {
+    if (!lkPlatformIsApple()) return true;
+    return Native.isPlatformVoiceProcessingAllowed();
+  }
+
+  /// Sets whether Apple's platform voice processing (Voice Processing I/O) may
+  /// be used. Defaults to true. A no-op off iOS/macOS.
+  ///
+  /// When set to false, voice processing resolves to WebRTC's software
+  /// implementation: [AudioProcessingMode.automatic] falls back to software and
+  /// [AudioProcessingMode.platform] is rejected. Any VPIO path currently
+  /// requested is torn down.
+  ///
+  /// Use this when the app must guarantee Voice Processing I/O is never used —
+  /// most often to keep remote playback at media loudness on iOS. Apple
+  /// documents that a session using a chat mode (`voiceChat`/`videoChat`/
+  /// `gameChat`) without Voice Processing I/O gets reduced processing and "a
+  /// lower playback level", so LiveKit only keeps a chat mode while VPIO is
+  /// supplying the compensating loudness stage. Disallowing VPIO moves capture
+  /// to the `default` mode, which stays on the device's media volume instead of
+  /// its separate call volume.
+  ///
+  /// This is a process-wide policy, not a per-capture preference: on iOS the
+  /// audio device module and the audio session are shared by every track, so
+  /// two local tracks cannot resolve to different voice processing
+  /// implementations. [AudioCaptureOptions]' `*Mode` fields remain the
+  /// per-capture expression of the same intent, but today the audio device
+  /// module resolves a capture-time [AudioProcessingMode.software] request back
+  /// to the platform path, so only this policy reliably keeps Voice Processing
+  /// I/O out of the way. Verify either with [getAudioProcessingState], which
+  /// reports requested versus effective implementation.
+  ///
+  /// Set this before capture starts — ideally once at startup, before
+  /// connecting. Changing it mid-capture tears down the live VPIO path and
+  /// reconfigures the session underneath an active call.
+  ///
+  /// Like [setMicrophoneMuteMode] this reaches the audio device module, which
+  /// exists once `LiveKitClient.initialize()` has run (connecting a room runs
+  /// it too). Calling either of these before that throws
+  /// `rejectedPlatformUnavailable`, so an app setting this at startup should
+  /// await `LiveKitClient.initialize()` first.
+  ///
+  /// The trade-off is deliberate: WebRTC's software echo cancellation replaces
+  /// Apple's, which is tuned per device and generally performs better on the
+  /// built-in speaker and microphone. Prefer leaving platform voice processing
+  /// allowed unless media playback loudness during capture matters more.
+  ///
+  /// Throws if the native side rejects the change, so callers never assume
+  /// software processing is in effect when it is not. Like
+  /// [setMicrophoneMuteMode] this can rebuild the audio engine, so it throws a
+  /// [TrackCreateException] when microphone permission is missing and an
+  /// [AudioSessionException] when the audio session does not permit recording.
+  ///
+  /// Experimental: this API may change in a future release.
+  @experimental
+  Future<void> setPlatformVoiceProcessingAllowed(bool allowed) async {
+    if (!lkPlatformIsApple()) return;
+    try {
+      await Native.setPlatformVoiceProcessingAllowed(allowed);
+    } on PlatformException catch (error) {
+      throw audioEngineExceptionFrom(error) ?? error;
+    }
+  }
+
   /// Diagnostic snapshot of the resolved audio processing state.
   ///
   /// The audio processing module is owned by the native peer connection factory

@@ -17,13 +17,13 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../audio/audio_manager.dart';
 import '../core/signal_client.dart';
+import '../data_stream/data_streams.dart';
 import '../data_stream/errors.dart';
-import '../data_stream/stream_reader.dart';
 import '../e2ee/e2ee_manager.dart';
-import '../e2ee/options.dart';
 import '../events.dart';
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -75,8 +75,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   RoomOptions get roomOptions => engine.roomOptions;
 
   final ParticipantCollection<RemoteParticipant> _remoteParticipants = ParticipantCollection();
-  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants =>
-      UnmodifiableMapView(_remoteParticipants.byIdentity);
+
+  // Remote participant creation and updates await between reading and
+  // writing participant state, so overlapping signal events must not
+  // interleave.
+  final _participantUpdateLock = sync.Lock();
+
+  UnmodifiableMapView<String, RemoteParticipant> get remoteParticipants => _remoteParticipants.byIdentity;
 
   /// the current participant
   LocalParticipant? get localParticipant => _localParticipant;
@@ -128,6 +133,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late EventsListener<SignalEvent> _signalListener;
 
   RegionUrlProvider? _regionUrlProvider;
+
+  /// True while [connect] is running. A failed attempt tears the engine down
+  /// and reports a disconnect before [connect] retries another region, and
+  /// that cleanup must not throw away state the retry still needs.
+  bool _connectInProgress = false;
+
+  /// Lets tests install a provider with known regions, so a failover can be
+  /// exercised without reaching a real LiveKit Cloud endpoint.
+  @visibleForTesting
+  set regionUrlProviderForTesting(RegionUrlProvider? provider) {
+    _regionUrlProvider = provider;
+  }
+
   String? _regionUrl;
 
   // Agents
@@ -137,13 +155,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   late final RpcClientManager _rpcClientManager;
   late final RpcServerManager _rpcServerManager;
 
-  final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _byteStreamControllers = {};
-
-  final Map<String, DataStreamController<lk_models.DataStream_Chunk>> _textStreamControllers = {};
-
-  final Map<String, ByteStreamHandler> _byteStreamHandlers = {};
-
-  final Map<String, TextStreamHandler> _textStreamHandlers = {};
+  /// Owns the data-stream subsystem: the topic registry, the send path and inbound routing. On
+  /// native this is backed by the Rust core (data streams v2); on web by the original Dart
+  /// implementation. Created eagerly below so there is exactly one for the room's lifetime, and it
+  /// survives disconnect so handler registrations outlive a reconnect.
+  @internal
+  late final DataStreams dataStreams;
 
   @internal
   late final PreConnectAudioBuffer preConnectAudioBuffer;
@@ -160,13 +177,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // getter would surprise SDK consumers — filter them out here.
   @internal
   Map<String, TextStreamHandler> get textStreamHandlers => Map.fromEntries(
-    _textStreamHandlers.entries.where(
+    dataStreams.textStreamHandlers.entries.where(
       (e) => e.key != kRpcRequestTopic && e.key != kRpcResponseTopic,
     ),
   );
 
   @internal
-  Map<String, ByteStreamHandler> get byteStreamHandlers => _byteStreamHandlers;
+  Map<String, ByteStreamHandler> get byteStreamHandlers => dataStreams.byteStreamHandlers;
 
   Room({
     @Deprecated('deprecated, please use connectOptions in room.connect()')
@@ -180,6 +197,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
              roomOptions: roomOptions,
            ) {
     //
+    dataStreams = createDataStreams(this);
+
     _engineListener = this.engine.createListener();
     _setUpEngineListeners();
 
@@ -220,6 +239,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       await _cleanUp();
       // reject any in-flight RPC calls
       _rpcClientManager.dispose();
+      await dataStreams.dispose();
       // dispose preConnectAudioBuffer
       await preConnectAudioBuffer.dispose();
       // dispose events
@@ -233,6 +253,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // dispose the engine
       await this.engine.dispose();
     });
+  }
+
+  @override
+  Future<bool> dispose() {
+    // Room cleanup tears down transports before Engine.dispose() is reached.
+    engine.markClosed();
+    return super.dispose();
   }
 
   /// prepareConnection should be called as soon as the page is loaded, in order
@@ -354,6 +381,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    _connectInProgress = true;
     try {
       await engine.connect(
         _regionUrl ?? url,
@@ -367,32 +395,43 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
-        String? nextUrl;
         try {
-          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
-        } catch (error) {
-          if (error is ConnectException && (error.statusCode == 401)) {
+          String? nextUrl;
+          try {
+            nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+          } catch (error) {
+            if (error is ConnectException && (error.statusCode == 401)) {
+              rethrow;
+            }
+          }
+          if (nextUrl != null) {
+            logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
+            await engine.connect(
+              nextUrl,
+              token,
+              connectOptions: connectOptions,
+              roomOptions: effectiveRoomOptions,
+              fastConnectOptions: fastConnectOptions,
+              regionUrlProvider: _regionUrlProvider,
+            );
+            didConnect = true;
+          } else {
             rethrow;
           }
-        }
-        if (nextUrl != null) {
-          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
-          await engine.connect(
-            nextUrl,
-            token,
-            connectOptions: connectOptions,
-            roomOptions: effectiveRoomOptions,
-            fastConnectOptions: fastConnectOptions,
-            regionUrlProvider: _regionUrlProvider,
-          );
-          didConnect = true;
-        } else {
+        } catch (error) {
+          // The cleanup for the failed attempt left the pre-connect audio
+          // buffer recording for a retry, and no retry connected. Stop it
+          // with the error, the way withPreConnectAudio ends a failed
+          // operation, so the native recorder is stopped as well.
+          await preConnectAudioBuffer.stopRecording(withError: error);
+          await preConnectAudioBuffer.reset();
           rethrow;
         }
       } else {
         rethrow;
       }
     } finally {
+      _connectInProgress = false;
       if (!didConnect) {
         await NativeAudioManagement.stop();
       }
@@ -449,7 +488,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       );
 
       // find participant
-      final participant = _remoteParticipants.bySid[event.participantSid];
+      final participant = _remoteParticipants.findBySid(event.participantSid);
       if (participant == null) {
         return;
       }
@@ -574,12 +613,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         }
       }
 
-      for (final info in event.response.otherParticipants) {
-        logger.fine(
-          'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
-          'tracks:${info.tracks.map((e) => e.sid)}',
-        );
-        await _getOrCreateRemoteParticipant(info);
+      final joinedParticipants = await _participantUpdateLock.synchronized(() async {
+        final participants = <RemoteParticipant>[];
+        for (final info in event.response.otherParticipants) {
+          logger.fine(
+            'Creating RemoteParticipant: sid = ${info.sid}(identity:${info.identity}) '
+            'tracks:${info.tracks.map((e) => e.sid)}',
+          );
+          participants.add((await _getOrCreateRemoteParticipant(info)).participant);
+        }
+        return participants;
+      });
+      for (final participant in joinedParticipants) {
+        await _flushPendingTracks(participant: participant);
       }
 
       if (e2eeManager != null && event.response.sifTrailer.isNotEmpty) {
@@ -655,7 +701,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       // pending one when it starts.
       if ((!engine.fullReconnectOnNext && !engine.isFullReconnectInProgress) ||
           event.reason == DisconnectReason.clientInitiated) {
-        await _cleanUp(disposeLocalParticipant: false);
+        // A failed first attempt lands here before connect() retries another
+        // region. The pre-connect audio buffer has to survive that, or the
+        // retry connects without ever publishing the microphone. A disconnect
+        // the app asked for is not a retry: it resets the buffer as always, so
+        // nothing is published if that connect still completes.
+        await _cleanUp(
+          disposeLocalParticipant: false,
+          preservePreConnectAudio: _connectInProgress && event.reason != DisconnectReason.clientInitiated,
+        );
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
@@ -667,6 +721,15 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         ),
       ),
     )
+    ..on<EngineSubscribedCodecRefreshRequestedEvent>((event) async {
+      if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
+        return;
+      }
+      final publications = localParticipant?.videoTrackPublications.toList() ?? [];
+      for (final publication in publications) {
+        await publication.track?.refreshSubscribedCodecs();
+      }
+    })
     ..on<EngineActiveSpeakersUpdateEvent>((event) => _onEngineActiveSpeakersUpdateEvent(event.speakers))
     ..on<EngineDataPacketReceivedEvent>(_onDataMessageEvent)
     ..on<EngineTranscriptionReceivedEvent>(_onTranscriptionEvent)
@@ -723,7 +786,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
         trackSid = streamId;
       }
 
-      final participant = _remoteParticipants.bySid[participantSid];
+      final participant = _remoteParticipants.findBySid(participantSid);
       try {
         if (trackSid == null || trackSid.isEmpty) {
           throw TrackSubscriptionExceptionEvent(
@@ -810,22 +873,33 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     );
 
     _remoteParticipants.set(result.participant);
-    await _flushPendingTracks(participant: result.participant);
     return result;
   }
 
   Future<void> _onParticipantUpdateEvent(List<lk_models.ParticipantInfo> updates) async {
+    // The local participant is not ready yet, waiting for the
+    // `RoomConnectedEvent` to create the local participant.
+    if (_localParticipant == null) {
+      await events.waitFor<RoomConnectedEvent>(
+        duration: const Duration(seconds: 10),
+      );
+    }
+
+    final updatedParticipants = await _participantUpdateLock.synchronized(() => _applyParticipantUpdates(updates));
+
+    // A pending track can wait for a later update to publish it, so flush
+    // only after the lock is released.
+    for (final participant in updatedParticipants) {
+      await _flushPendingTracks(participant: participant);
+    }
+  }
+
+  /// Returns the remote participants that were created or updated.
+  Future<List<RemoteParticipant>> _applyParticipantUpdates(List<lk_models.ParticipantInfo> updates) async {
+    final updatedParticipants = <RemoteParticipant>[];
     // trigger change notifier only if list of participants membership is changed
     var hasChanged = false;
     for (final info in updates) {
-      // The local participant is not ready yet, waiting for the
-      // `RoomConnectedEvent` to create the local participant.
-      if (_localParticipant == null) {
-        await events.waitFor<RoomConnectedEvent>(
-          duration: const Duration(seconds: 10),
-        );
-      }
-
       if (localParticipant?.identity == info.identity) {
         await localParticipant?.updateFromInfo(info);
         continue;
@@ -855,12 +929,12 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           }
         }
         _remoteParticipants.set(result.participant);
-        await _flushPendingTracks(participant: result.participant);
+        updatedParticipants.add(result.participant);
       } else {
         final wasUpdated = await result.participant.updateFromInfo(info);
         if (wasUpdated) {
           _remoteParticipants.set(result.participant);
-          await _flushPendingTracks(participant: result.participant);
+          updatedParticipants.add(result.participant);
         }
       }
     }
@@ -868,6 +942,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     if (hasChanged) {
       notifyListeners();
     }
+    return updatedParticipants;
   }
 
   void _onSignalSpeakersChangedEvent(List<lk_models.SpeakerInfo> speakers) {
@@ -876,7 +951,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     };
 
     for (final speaker in speakers) {
-      Participant? p = _remoteParticipants.bySid[speaker.sid];
+      Participant? p = _remoteParticipants.findBySid(speaker.sid);
       if (speaker.sid == localParticipant?.sid) p = localParticipant;
       if (p == null) continue;
 
@@ -899,7 +974,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     isConnected: connectionState == ConnectionState.connected,
     participantSid: participant?.sid,
     subscriber: (pending) async {
-      final target = participant ?? _remoteParticipants.bySid[pending.participantSid];
+      final target = participant ?? _remoteParticipants.findBySid(pending.participantSid);
       if (target == null) return false;
       try {
         await target.addSubscribedMediaTrack(
@@ -929,7 +1004,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     // localParticipant & remote participants
     final allParticipants = <String, Participant>{
       ?localParticipant?.sid: ?localParticipant,
-      ..._remoteParticipants.bySid,
+      for (final participant in _remoteParticipants) participant.sid: participant,
     };
 
     for (final speaker in speakers) {
@@ -960,7 +1035,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       if (entry.participantSid == localParticipant?.sid) {
         participant = localParticipant;
       } else {
-        participant = _remoteParticipants.bySid[entry.participantSid];
+        participant = _remoteParticipants.findBySid(entry.participantSid);
       }
 
       if (participant != null) {
@@ -973,7 +1048,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   void _onSignalStreamStateUpdateEvent(List<lk_rtc.StreamStateInfo> updates) async {
     for (final update in updates) {
       // try to find RemoteParticipant
-      final participant = _remoteParticipants.bySid[update.participantSid];
+      final participant = _remoteParticipants.findBySid(update.participantSid);
       if (participant == null) {
         logger.warning('Participant not found for sid ${update.participantSid}');
         continue;
@@ -1037,6 +1112,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
     final event = DataReceivedEvent(
       participant: senderParticipant,
+      participantIdentity: dataPacketEvent.identity,
       data: dataPacketEvent.packet.payload,
       topic: dataPacketEvent.packet.topic,
     );
@@ -1090,8 +1166,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
 
 extension RoomPrivateMethods on Room {
   // resets internal state to a re-usable state
-  Future<void> _cleanUp({bool disposeLocalParticipant = true}) async {
+  Future<void> _cleanUp({bool disposeLocalParticipant = true, bool preservePreConnectAudio = false}) async {
     logger.fine('[${objectId}] cleanUp()');
+
+    // Fail any open data streams so their handlers return rather than awaiting a reader that will
+    // never finish. Handler registrations deliberately survive, so streams arriving after a
+    // reconnect are still routed.
+    await dataStreams.reset();
 
     // clean up RemoteParticipants
     final participants = _remoteParticipants.toList();
@@ -1113,7 +1194,9 @@ extension RoomPrivateMethods on Room {
 
     _activeSpeakers.clear();
 
-    await preConnectAudioBuffer.reset();
+    if (!preservePreConnectAudio) {
+      await preConnectAudioBuffer.reset();
+    }
 
     // clean up engine
     await engine.cleanUp();
@@ -1425,8 +1508,8 @@ extension RoomRPCMethods on Room {
 
     // Register v2 data-stream-based request/response handlers. These topics
     // are reserved by the SDK, so bypass the public registration guard.
-    _textStreamHandlers[kRpcRequestTopic] = _rpcServerManager.handleIncomingV2RequestStream;
-    _textStreamHandlers[kRpcResponseTopic] = _rpcClientManager.handleIncomingV2ResponseStream;
+    dataStreams.registerTextStreamHandler(kRpcRequestTopic, _rpcServerManager.handleIncomingV2RequestStream);
+    dataStreams.registerTextStreamHandler(kRpcResponseTopic, _rpcClientManager.handleIncomingV2ResponseStream);
   }
 
   /// Register a handler for incoming RPC requests.
@@ -1459,48 +1542,45 @@ const _reservedRpcTopicPrefix = 'lk.rpc';
 
 extension DataStreamRoomMethods on Room {
   void _setupDataStreamListeners() {
-    _engineListener
-      ..on<EngineDataStreamHeaderEvent>((event) async {
-        await handleStreamHeader(event.header, event.identity, event.encryptionType);
-      })
-      ..on<EngineDataStreamChunkEvent>((event) async {
-        handleStreamChunk(event.chunk, event.encryptionType);
-      })
-      ..on<EngineDataStreamTrailerEvent>((event) async {
-        await handleStreamTrailer(event.trailer, event.encryptionType);
-      });
+    _engineListener.on<EngineDataStreamPacketEvent>((event) async {
+      // Events are delivered asynchronously, so a packet the engine received before it closed can
+      // get here after the cleanup that failed the open streams. A stream opened for it then
+      // would have nothing left to finish or fail it.
+      if (engine.isClosed) return;
+      dataStreams.handleIncomingPacket(event.packet, event.encryptionType);
+    });
   }
 
   void registerTextStreamHandler(String topic, TextStreamHandler callback) {
     _ensureNotReservedRpcTopic(topic);
-    if (_textStreamHandlers.containsKey(topic)) {
+    if (dataStreams.textStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A text stream handler for topic "${topic}" has already been set.',
         reason: DataStreamErrorReason.HandlerAlreadyRegistered,
       );
     }
-    _textStreamHandlers[topic] = callback;
+    dataStreams.registerTextStreamHandler(topic, callback);
   }
 
   void unregisterTextStreamHandler(String topic) {
     if (_isReservedRpcTopic(topic)) return;
-    _textStreamHandlers.remove(topic);
+    dataStreams.unregisterTextStreamHandler(topic);
   }
 
   void registerByteStreamHandler(String topic, ByteStreamHandler callback) {
     _ensureNotReservedRpcTopic(topic);
-    if (_byteStreamHandlers.containsKey(topic)) {
+    if (dataStreams.byteStreamHandlers.containsKey(topic)) {
       throw DataStreamError(
         message: 'A byte stream handler for topic "${topic}" has already been set.',
         reason: DataStreamErrorReason.HandlerAlreadyRegistered,
       );
     }
-    _byteStreamHandlers[topic] = callback;
+    dataStreams.registerByteStreamHandler(topic, callback);
   }
 
   void unregisterByteStreamHandler(String topic) {
     if (_isReservedRpcTopic(topic)) return;
-    _byteStreamHandlers.remove(topic);
+    dataStreams.unregisterByteStreamHandler(topic);
   }
 
   void _ensureNotReservedRpcTopic(String topic) {
@@ -1515,208 +1595,6 @@ extension DataStreamRoomMethods on Room {
   bool _isReservedRpcTopic(String topic) => topic.startsWith(_reservedRpcTopicPrefix);
 
   @internal
-  Future<void> handleStreamHeader(
-    lk_models.DataStream_Header streamHeader,
-    String participantIdentity,
-    EncryptionType encryptionType,
-  ) async {
-    if (streamHeader.hasByteHeader()) {
-      final streamHandlerCallback = _byteStreamHandlers[streamHeader.topic];
-
-      if (streamHandlerCallback == null) {
-        logger.info('ignoring incoming byte stream due to no handler for topic ${streamHeader.topic}');
-        return;
-      }
-
-      final info = ByteStreamInfo(
-        id: streamHeader.streamId,
-        name: streamHeader.byteHeader.name,
-        mimeType: streamHeader.mimeType,
-        size: streamHeader.hasTotalLength() ? streamHeader.totalLength.toInt() : 0,
-        topic: streamHeader.topic,
-        timestamp: streamHeader.timestamp.toInt(),
-        attributes: streamHeader.attributes,
-        encryptionType: encryptionType,
-        sendingParticipantIdentity: participantIdentity,
-      );
-
-      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
-        info: info,
-        streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.timestamp().millisecondsSinceEpoch,
-      );
-
-      if (_byteStreamControllers.containsKey(streamHeader.streamId)) {
-        throw DataStreamError(
-          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
-        );
-      }
-
-      _byteStreamControllers[streamHeader.streamId] = streamController;
-
-      streamHandlerCallback(
-        ByteStreamReader(info, streamController, streamHeader.totalLength.toInt()),
-        participantIdentity,
-      );
-    } else if (streamHeader.hasTextHeader()) {
-      final streamHandlerCallback = _textStreamHandlers[streamHeader.topic];
-
-      if (streamHandlerCallback == null) {
-        logger.warning('ignoring incoming text stream due to no handler for topic ${streamHeader.topic}');
-        return;
-      }
-
-      final info = TextStreamInfo(
-        id: streamHeader.streamId,
-        mimeType: streamHeader.mimeType,
-        size: streamHeader.hasTotalLength() ? streamHeader.totalLength.toInt() : 0,
-        topic: streamHeader.topic,
-        timestamp: streamHeader.timestamp.toInt(),
-        attributes: streamHeader.attributes,
-        replyToStreamId: streamHeader.textHeader.hasReplyToStreamId() ? streamHeader.textHeader.replyToStreamId : null,
-        attachedStreamIds: streamHeader.textHeader.attachedStreamIds.toList(),
-        version: streamHeader.textHeader.hasVersion() ? streamHeader.textHeader.version : null,
-        generated: streamHeader.textHeader.hasGenerated() ? streamHeader.textHeader.generated : false,
-        operationType: streamHeader.textHeader.hasOperationType()
-            ? TextStreamOperationType.fromPBType(streamHeader.textHeader.operationType)
-            : null,
-        encryptionType: encryptionType,
-        sendingParticipantIdentity: participantIdentity,
-      );
-
-      final streamController = DataStreamController<lk_models.DataStream_Chunk>(
-        info: info,
-        streamController: StreamController<lk_models.DataStream_Chunk>(),
-        startTime: DateTime.timestamp().millisecondsSinceEpoch,
-      );
-
-      if (_textStreamControllers.containsKey(streamHeader.streamId)) {
-        throw DataStreamError(
-          message: 'A data stream read is already in progress for a stream with id ${streamHeader.streamId}.',
-          reason: DataStreamErrorReason.AlreadyOpened,
-        );
-      }
-
-      _textStreamControllers[streamHeader.streamId] = streamController;
-
-      streamHandlerCallback(
-        TextStreamReader(info, streamController, streamHeader.totalLength.toInt()),
-        participantIdentity,
-      );
-    }
-  }
-
-  @internal
-  void handleStreamChunk(lk_models.DataStream_Chunk chunk, EncryptionType encryptionType) {
-    final fileBuffer = _byteStreamControllers[chunk.streamId];
-
-    if (fileBuffer != null) {
-      if (fileBuffer.info.encryptionType != encryptionType) {
-        fileBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _byteStreamControllers.remove(chunk.streamId);
-      } else if (chunk.content.isNotEmpty) {
-        fileBuffer.write(chunk);
-      }
-    }
-    final textBuffer = _textStreamControllers[chunk.streamId];
-    if (textBuffer != null) {
-      if (textBuffer.info.encryptionType != encryptionType) {
-        textBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${chunk.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        logger.warning('encryption type mismatch for text stream ${chunk.streamId}');
-        _textStreamControllers.remove(chunk.streamId);
-      } else if (chunk.content.isNotEmpty) {
-        textBuffer.write(chunk);
-      }
-    }
-  }
-
-  @internal
-  Future<void> handleStreamTrailer(lk_models.DataStream_Trailer trailer, EncryptionType encryptionType) async {
-    final textBuffer = _textStreamControllers[trailer.streamId];
-    if (textBuffer != null) {
-      if (textBuffer.info.encryptionType != encryptionType) {
-        textBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${textBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _textStreamControllers.remove(trailer.streamId);
-        return;
-      } else {
-        textBuffer.info.attributes = {
-          ...textBuffer.info.attributes,
-          ...trailer.attributes,
-        };
-        await textBuffer.close();
-        _textStreamControllers.remove(trailer.streamId);
-      }
-    }
-
-    final fileBuffer = _byteStreamControllers[trailer.streamId];
-    if (fileBuffer != null) {
-      if (fileBuffer.info.encryptionType != encryptionType) {
-        fileBuffer.error(
-          DataStreamError(
-            message:
-                'Encryption type mismatch for stream ${trailer.streamId}. Expected ${encryptionType}, got ${fileBuffer.info.encryptionType}',
-            reason: DataStreamErrorReason.EncryptionTypeMismatch,
-          ),
-        );
-
-        _byteStreamControllers.remove(trailer.streamId);
-        return;
-      } else {
-        fileBuffer.info.attributes = {...fileBuffer.info.attributes, ...trailer.attributes};
-        await fileBuffer.close();
-        _byteStreamControllers.remove(trailer.streamId);
-      }
-    }
-  }
-
-  @internal
-  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) async {
-    // Terminate any in flight data stream receives from the given participant
-    final textStreamsBeingSentByDisconnectingParticipant = _textStreamControllers.values
-        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
-        .toList();
-
-    final byteStreamsBeingSentByDisconnectingParticipant = _byteStreamControllers.values
-        .where((controller) => controller.info.sendingParticipantIdentity == participantIdentity)
-        .toList();
-    if (textStreamsBeingSentByDisconnectingParticipant.isNotEmpty ||
-        byteStreamsBeingSentByDisconnectingParticipant.isNotEmpty) {
-      final abnormalEndError = DataStreamError(
-        message: 'Participant ${participantIdentity} unexpectedly disconnected in the middle of sending data',
-        reason: DataStreamErrorReason.AbnormalEnd,
-      );
-      for (var controller in byteStreamsBeingSentByDisconnectingParticipant) {
-        controller.error(abnormalEndError);
-        await controller.close();
-        _byteStreamControllers.remove(controller.info.id);
-      }
-      for (var controller in textStreamsBeingSentByDisconnectingParticipant) {
-        controller.error(abnormalEndError);
-        await controller.close();
-        _textStreamControllers.remove(controller.info.id);
-      }
-    }
-  }
+  Future<void> validateParticipantHasNoActiveDataStreams(String participantIdentity) =>
+      dataStreams.closeStreamsFrom(participantIdentity);
 }

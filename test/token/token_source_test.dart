@@ -166,11 +166,12 @@ void main() {
         attributes: {'role': 'host'},
         video: {
           'room': 'demo-room',
-          'room_join': true,
-          'room_create': true,
-          'can_publish': true,
-          'can_publish_data': true,
-          'can_publish_sources': ['camera', 'screen'],
+          'roomJoin': true,
+          'roomCreate': true,
+          'canPublish': true,
+          'canSubscribe': false,
+          'canPublishData': true,
+          'canPublishSources': ['camera', 'screen'],
           'hidden': false,
           'recorder': true,
         },
@@ -205,6 +206,7 @@ void main() {
       expect(grant.roomJoin, isTrue);
       expect(grant.roomCreate, isTrue);
       expect(grant.canPublish, isTrue);
+      expect(grant.canSubscribe, isFalse);
       expect(grant.canPublishData, isTrue);
       expect(grant.canPublishSources, ['camera', 'screen']);
       expect(grant.hidden, isFalse);
@@ -509,7 +511,7 @@ String _generateToken({
         video ??
         {
           'room': 'test-room',
-          'room_join': true,
+          'roomJoin': true,
         },
   };
 

@@ -133,17 +133,21 @@ class TrackSource extends $pb.ProtobufEnum {
 
 class DataTrackExtensionID extends $pb.ProtobufEnum {
   static const DataTrackExtensionID DTEI_INVALID = DataTrackExtensionID._(0, _omitEnumNames ? '' : 'DTEI_INVALID');
+  static const DataTrackExtensionID DTEI_E2EE = DataTrackExtensionID._(1, _omitEnumNames ? '' : 'DTEI_E2EE');
+  static const DataTrackExtensionID DTEI_USER_TIMESTAMP =
+      DataTrackExtensionID._(2, _omitEnumNames ? '' : 'DTEI_USER_TIMESTAMP');
   static const DataTrackExtensionID DTEI_PARTICIPANT_SID =
-      DataTrackExtensionID._(1, _omitEnumNames ? '' : 'DTEI_PARTICIPANT_SID');
+      DataTrackExtensionID._(255, _omitEnumNames ? '' : 'DTEI_PARTICIPANT_SID');
 
   static const $core.List<DataTrackExtensionID> values = <DataTrackExtensionID>[
     DTEI_INVALID,
+    DTEI_E2EE,
+    DTEI_USER_TIMESTAMP,
     DTEI_PARTICIPANT_SID,
   ];
 
-  static final $core.List<DataTrackExtensionID?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 1);
-  static DataTrackExtensionID? valueOf($core.int value) =>
-      value < 0 || value >= _byValue.length ? null : _byValue[value];
+  static final $core.Map<$core.int, DataTrackExtensionID> _byValue = $pb.ProtobufEnum.initByValue(values);
+  static DataTrackExtensionID? valueOf($core.int value) => _byValue[value];
 
   const DataTrackExtensionID._(super.value, super.name);
 }
@@ -703,6 +707,7 @@ class ClientInfo_SDK extends $pb.ProtobufEnum {
   static const ClientInfo_SDK NODE = ClientInfo_SDK._(12, _omitEnumNames ? '' : 'NODE');
   static const ClientInfo_SDK UNREAL = ClientInfo_SDK._(13, _omitEnumNames ? '' : 'UNREAL');
   static const ClientInfo_SDK ESP32 = ClientInfo_SDK._(14, _omitEnumNames ? '' : 'ESP32');
+  static const ClientInfo_SDK DOTNET = ClientInfo_SDK._(15, _omitEnumNames ? '' : 'DOTNET');
 
   static const $core.List<ClientInfo_SDK> values = <ClientInfo_SDK>[
     UNKNOWN,
@@ -720,9 +725,10 @@ class ClientInfo_SDK extends $pb.ProtobufEnum {
     NODE,
     UNREAL,
     ESP32,
+    DOTNET,
   ];
 
-  static final $core.List<ClientInfo_SDK?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 14);
+  static final $core.List<ClientInfo_SDK?> _byValue = $pb.ProtobufEnum.$_initByValueList(values, 15);
   static ClientInfo_SDK? valueOf($core.int value) => value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const ClientInfo_SDK._(super.value, super.name);

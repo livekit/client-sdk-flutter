@@ -132,35 +132,18 @@ class LiveKitJwtPayload {
 /// LiveKit-specific video grants embedded within a JWT.
 @JsonSerializable()
 class LiveKitVideoGrant {
+  // Field names match the camelCase keys of the `video` claim that LiveKit
+  // server SDKs write, so they need no `@JsonKey` renames.
   final String? room;
-
-  @JsonKey(name: 'room_create')
   final bool? roomCreate;
-
-  @JsonKey(name: 'room_join')
   final bool? roomJoin;
-
-  @JsonKey(name: 'room_list')
   final bool? roomList;
-
-  @JsonKey(name: 'room_record')
   final bool? roomRecord;
-
-  @JsonKey(name: 'room_admin')
   final bool? roomAdmin;
-
-  @JsonKey(name: 'can_publish')
   final bool? canPublish;
-
-  @JsonKey(name: 'can_subscribe')
   final bool? canSubscribe;
-
-  @JsonKey(name: 'can_publish_data')
   final bool? canPublishData;
-
-  @JsonKey(name: 'can_publish_sources')
   final List<String>? canPublishSources;
-
   final bool? hidden;
   final bool? recorder;
 

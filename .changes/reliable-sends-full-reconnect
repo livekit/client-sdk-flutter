@@ -1,0 +1,1 @@
+patch type="fixed" "Reliable data sent during a reconnect now goes out once the reconnect finishes, instead of being reported as sent and dropped. Such sends wait for the reconnect and fail with UnexpectedConnectionState if the room disconnects instead"
