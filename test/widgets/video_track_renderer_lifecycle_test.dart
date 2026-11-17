@@ -61,12 +61,16 @@ class _Renderer extends rtc.RTCVideoRenderer {
 class _PlatformController extends rtc.RTCVideoPlatformViewController {
   _PlatformController() : super(1);
   rtc.MediaStream? _stream;
+  bool retired = false;
 
   @override
   rtc.MediaStream? get srcObject => _stream;
 
   @override
-  set srcObject(rtc.MediaStream? value) => _stream = value;
+  set srcObject(rtc.MediaStream? value) {
+    if (retired) throw StateError('Controller is retired');
+    _stream = value;
+  }
 }
 
 class _Listener extends EventsListener<TrackEvent> {
@@ -257,22 +261,29 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
   });
 
-  testWidgets('platform view attaches the replacement track when readiness is delayed', (tester) async {
+  testWidgets('platform view ignores readiness from a retired view after track replacement', (tester) async {
     if (kIsWeb) return; // RTCVideoPlatFormView is only supported on iOS and macOS.
     videoTrackRendererPlatformViewOverride = (mode) => mode == VideoRenderMode.platformView;
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     final a = _Track(_Stream());
     final b = _Track(_Stream());
+    final oldController = _PlatformController();
     final controller = _PlatformController();
 
     await tester.pumpWidget(view(a, renderMode: VideoRenderMode.platformView));
     final ready = tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!;
     await tester.pumpWidget(view(b, renderMode: VideoRenderMode.platformView));
-    ready(controller);
+    oldController.retired = true;
+    ready(oldController);
+    final newReady = tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!;
+    newReady(controller);
+    ready(oldController);
     await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
     await tester.pumpAndSettle();
 
     expect(controller.srcObject, same(b.stream));
+    expect(oldController.srcObject, isNull);
+    expect(tester.takeException(), isNull);
     expect(a.created, isEmpty);
     expect(b.created.single.isDisposed, isFalse);
     await tester.pumpWidget(const SizedBox());
@@ -302,16 +313,21 @@ void main() {
     expect(a.created.single.disposeCount, 0);
 
     await tester.pumpWidget(view(b, cached: cachedB, renderMode: VideoRenderMode.platformView));
+    expect(controller.srcObject, isNull);
+    controller.retired = true;
+    final replacementController = _PlatformController();
+    tester.widget<rtc.RTCVideoPlatFormView>(find.byType(rtc.RTCVideoPlatFormView)).onViewReady!(replacementController);
     await tester.runAsync(() async => await Future<void>.delayed(Duration.zero));
     await tester.pumpAndSettle();
-    expect(controller.srcObject, same(b.stream));
+    expect(replacementController.srcObject, same(b.stream));
+    expect(tester.takeException(), isNull);
     expect(a.created.single.disposeCount, 1);
     expect(b.created.single.isDisposed, isFalse);
     a.updateStream(_Stream());
     await tester.pump();
-    expect(controller.srcObject, same(b.stream));
+    expect(replacementController.srcObject, same(b.stream));
     await tester.pumpWidget(const SizedBox());
-    expect(controller.srcObject, isNull);
+    expect(replacementController.srcObject, isNull);
     expect(cachedA.disposeCount, 0);
     expect(cachedB.disposeCount, 0);
     debugDefaultTargetPlatformOverride = null;

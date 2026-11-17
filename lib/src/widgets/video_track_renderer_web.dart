@@ -14,8 +14,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-
+import 'package:flutter/widgets.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
@@ -83,6 +82,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
   bool _ownsRenderer = false;
   bool _disposed = false;
   bool _trackMuted = false;
+  String? _originalVisibility;
   int _generation = 0;
   Future<void>? _initializing;
   Future<rtc.RTCVideoRenderer?>? _rendererFuture;
@@ -139,6 +139,11 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     _initializing = null;
     renderer?.onResize = null;
     if (renderer == null) return;
+    final originalVisibility = _originalVisibility;
+    _originalVisibility = null;
+    if (originalVisibility != null) {
+      renderer.findHtmlView()?.style.visibility = originalVisibility;
+    }
     if (initializing == null) {
       try {
         renderer.srcObject = null;
@@ -191,7 +196,10 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     // srcObject makes Safari reconfigure video compositing for all tiles.
     // CSS visibility hides only this element while preserving its layout,
     // decoder, and the other participants' video surfaces.
-    renderer.findHtmlView()?.style.visibility = visible ? 'visible' : 'hidden';
+    final element = renderer.findHtmlView();
+    if (element == null) return;
+    _originalVisibility ??= element.style.visibility;
+    element.style.visibility = visible ? 'visible' : 'hidden';
   }
 
   Future<void> _attach(int generation, rtc.RTCVideoRenderer renderer) async {
@@ -203,6 +211,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     }
 
     final track = widget.track;
+    _trackMuted = track.muted;
     renderer.srcObject = track.mediaStream;
     _setVideoElementVisible(renderer, !_trackMuted);
 
@@ -249,7 +258,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     if (cachedChanged || trackChanged) {
       _generation++;
       _rendererReadyForWeb = false;
-      if (trackChanged) _trackMuted = false;
+      if (trackChanged) _trackMuted = widget.track.muted;
     }
 
     if (cachedChanged) {
@@ -291,8 +300,17 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
         : Builder(
             key: _viewRegistration.key,
             builder: (context) {
+              final generation = _generation;
+              final track = widget.track;
+              final renderer = _renderer!;
               WidgetsBindingCompatible.instance?.addPostFrameCallback((_) {
-                widget.track.onVideoViewBuild?.call();
+                if (!_disposed &&
+                    generation == _generation &&
+                    identical(track, widget.track) &&
+                    identical(renderer, _renderer)) {
+                  _setVideoElementVisible(renderer, !_trackMuted);
+                  track.onVideoViewBuild?.call();
+                }
               });
               return rtc.RTCVideoView(
                 _renderer!,

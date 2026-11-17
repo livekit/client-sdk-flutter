@@ -16,8 +16,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
-import 'package:flutter/material.dart';
-
+import 'package:flutter/widgets.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
@@ -228,8 +227,9 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
     final cachedChanged = !_shouldUsePlatformView && !identical(oldWidget.cachedRenderer, widget.cachedRenderer);
     final trackChanged = !identical(oldWidget.track, widget.track);
     if (modeChanged || cachedChanged || trackChanged) _generation++;
-    if (modeChanged) _platformViewGeneration++;
-    if (modeChanged || cachedChanged) {
+    final platformViewRetired = modeChanged || (trackChanged && _shouldUsePlatformView);
+    if (platformViewRetired) _platformViewGeneration++;
+    if (platformViewRetired || cachedChanged) {
       final listener = _listener;
       _listener = null;
       unawaited(listener?.dispose());
@@ -244,8 +244,6 @@ class _NativeVideoTrackRendererState extends State<_NativeVideoTrackRenderer> {
     }
     if (modeChanged || cachedChanged || (trackChanged && !_shouldUsePlatformView)) {
       _scheduleRenderer();
-    } else if (trackChanged && _renderer != null) {
-      unawaited(_attach(_generation, _renderer!));
     }
   }
 
