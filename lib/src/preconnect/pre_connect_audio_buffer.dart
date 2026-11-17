@@ -98,6 +98,14 @@ class PreConnectAudioBuffer {
   /// future completes with an error.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
 
+  /// Puts the buffer into its recording state without touching the
+  /// microphone, so tests can check what the Room does with a live buffer
+  /// where no audio device exists.
+  @visibleForTesting
+  void markRecordingForTesting() {
+    _isRecording = true;
+  }
+
   /// Starts capturing audio into an in-memory buffer.
   ///
   /// [timeout] controls how long to wait for an agent to become active. When the
@@ -109,14 +117,6 @@ class PreConnectAudioBuffer {
   /// Requires microphone permission. On iOS/macOS it is requested here while
   /// the app is in the foreground. Throws a [TrackCreateException] when it is
   /// denied or cannot be requested (app not in the foreground).
-  /// Puts the buffer into its recording state without touching the
-  /// microphone, so tests can check what the Room does with a live buffer
-  /// where no audio device exists.
-  @visibleForTesting
-  void markRecordingForTesting() {
-    _isRecording = true;
-  }
-
   Future<void> startRecording({
     Duration timeout = const Duration(seconds: 20),
   }) async {
