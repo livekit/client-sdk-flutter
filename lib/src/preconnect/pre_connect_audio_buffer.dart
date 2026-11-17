@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:uuid/uuid.dart';
 
 import '../audio/audio_frame_capture.dart';
@@ -96,6 +97,14 @@ class PreConnectAudioBuffer {
   /// If the configured timeout elapses before an agent becomes active, this
   /// future completes with an error.
   Future<void> get agentReadyFuture => _agentReadyManager.future;
+
+  /// Puts the buffer into its recording state without touching the
+  /// microphone, so tests can check what the Room does with a live buffer
+  /// where no audio device exists.
+  @visibleForTesting
+  void markRecordingForTesting() {
+    _isRecording = true;
+  }
 
   /// Starts capturing audio into an in-memory buffer.
   ///

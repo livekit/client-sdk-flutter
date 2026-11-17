@@ -13,11 +13,18 @@
 // limitations under the License.
 
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 
 import '../options.dart';
 import 'http_client/io.dart' if (dart.library.js_interop) 'http_client/web.dart' as impl;
 
-http.Client createSdkHttpClient(NetworkOptions networkOptions) => impl.createSdkHttpClient(networkOptions);
+/// Replaces the HTTP client the SDK builds, so tests can answer the requests
+/// the SDK makes on its own, such as the validate call after a failed connect.
+@visibleForTesting
+http.Client Function(NetworkOptions networkOptions)? sdkHttpClientFactoryForTesting;
+
+http.Client createSdkHttpClient(NetworkOptions networkOptions) =>
+    sdkHttpClientFactoryForTesting?.call(networkOptions) ?? impl.createSdkHttpClient(networkOptions);
 
 Future<http.Response> sdkHttpGet(
   Uri uri, {
