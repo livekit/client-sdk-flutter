@@ -614,6 +614,21 @@ class _Registry implements ffi.RemoteParticipantRegistryDelegate {
   Participant? _participant(String identity) => _room.target?.remoteParticipants[identity];
 }
 
+/// Closes a writer. Once the room is closed its trailer can no longer be sent, and because closing
+/// is cleanup, that failure is not reported.
+Future<void> _closeWriter(Future<void> Function() close, void Function() ensureOpen) async {
+  try {
+    await mappingFfiErrors(close);
+  } on DataStreamError {
+    try {
+      ensureOpen();
+    } on UnexpectedConnectionState {
+      return;
+    }
+    rethrow;
+  }
+}
+
 /// Bridges the core's text writer onto the [StreamWriter] the public writer wraps.
 class _FfiTextStreamWriter implements StreamWriter<String> {
   _FfiTextStreamWriter(this._writer, this._ensureOpen);
@@ -628,7 +643,7 @@ class _FfiTextStreamWriter implements StreamWriter<String> {
   }
 
   @override
-  Future<void> close() => mappingFfiErrors(() => _writer.close());
+  Future<void> close() => _closeWriter(_writer.close, _ensureOpen);
 }
 
 class _FfiByteStreamWriter implements StreamWriter<Uint8List> {
@@ -644,5 +659,5 @@ class _FfiByteStreamWriter implements StreamWriter<Uint8List> {
   }
 
   @override
-  Future<void> close() => mappingFfiErrors(() => _writer.close());
+  Future<void> close() => _closeWriter(_writer.close, _ensureOpen);
 }
