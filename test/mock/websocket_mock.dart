@@ -36,6 +36,10 @@ class MockWebSocketConnector {
   /// through.
   bool connectErrorOnce = false;
 
+  /// When set, a connect waits for it before it answers. Models a socket
+  /// handshake that is still in flight.
+  Future<void>? connectGate;
+
   /// Every message the SDK sent over any socket this connector opened.
   final List<List<int>> sentData = [];
 
@@ -54,6 +58,8 @@ class MockWebSocketConnector {
     this.uri = uri;
     this.headers = headers;
     this.networkOptions = networkOptions;
+
+    await connectGate;
 
     final error = connectError;
     if (error != null) {

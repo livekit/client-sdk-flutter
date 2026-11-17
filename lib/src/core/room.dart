@@ -381,6 +381,10 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
+    // Set once a failed attempt is handed to the failover path. Its cleanup
+    // leaves the pre-connect audio buffer alone, so when no retry succeeds the
+    // buffer has to be reset here instead.
+    var failoverStarted = false;
     _connectInProgress = true;
     try {
       await engine.connect(
@@ -395,6 +399,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
+        failoverStarted = true;
         String? nextUrl;
         try {
           nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
@@ -423,6 +428,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } finally {
       _connectInProgress = false;
       if (!didConnect) {
+        if (failoverStarted) {
+          await preConnectAudioBuffer.reset();
+        }
         await NativeAudioManagement.stop();
       }
     }
@@ -693,8 +701,13 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           event.reason == DisconnectReason.clientInitiated) {
         // A failed first attempt lands here before connect() retries another
         // region. The pre-connect audio buffer has to survive that, or the
-        // retry connects without ever publishing the microphone.
-        await _cleanUp(disposeLocalParticipant: false, preservePreConnectAudio: _connectInProgress);
+        // retry connects without ever publishing the microphone. A disconnect
+        // the app asked for is not a retry: it resets the buffer as always, so
+        // nothing is published if that connect still completes.
+        await _cleanUp(
+          disposeLocalParticipant: false,
+          preservePreConnectAudio: _connectInProgress && event.reason != DisconnectReason.clientInitiated,
+        );
         events.emit(RoomDisconnectedEvent(reason: event.reason));
         notifyListeners();
       }
