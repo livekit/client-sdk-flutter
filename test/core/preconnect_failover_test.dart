@@ -127,10 +127,13 @@ void main() {
     final room = container.room;
     room.regionUrlProviderForTesting = providerWith([]);
     room.preConnectAudioBuffer.markRecordingForTesting();
+    // Stopped with the connect error, which is what also stops the native
+    // recorder, rather than with a plain reset.
+    final agentReady = expectLater(room.preConnectAudioBuffer.agentReadyFuture, throwsA(isA<ConnectException>()));
 
     container.wsConnector.connectError = WebSocketException('down');
     await expectLater(room.connect(cloudUri, token), throwsA(isA<ConnectException>()));
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await agentReady;
 
     expect(room.preConnectAudioBuffer.isRecording, isFalse);
   });
@@ -139,10 +142,11 @@ void main() {
     final room = container.room;
     room.regionUrlProviderForTesting = providerWith(['other']);
     room.preConnectAudioBuffer.markRecordingForTesting();
+    final agentReady = expectLater(room.preConnectAudioBuffer.agentReadyFuture, throwsA(isA<ConnectException>()));
 
     container.wsConnector.connectError = WebSocketException('down');
     await expectLater(room.connect(cloudUri, token), throwsA(isA<ConnectException>()));
-    await Future<void>.delayed(const Duration(milliseconds: 200));
+    await agentReady;
 
     expect(room.preConnectAudioBuffer.isRecording, isFalse);
   });

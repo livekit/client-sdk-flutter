@@ -381,10 +381,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     await NativeAudioManagement.start();
 
     var didConnect = false;
-    // Set once a failed attempt is handed to the failover path. Its cleanup
-    // leaves the pre-connect audio buffer alone, so when no retry succeeds the
-    // buffer has to be reset here instead.
-    var failoverStarted = false;
     _connectInProgress = true;
     try {
       await engine.connect(
@@ -399,27 +395,36 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } catch (e) {
       logger.warning('could not connect to $url $e');
       if (_regionUrlProvider != null && canFailOverToAnotherRegion(e)) {
-        failoverStarted = true;
-        String? nextUrl;
         try {
-          nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
-        } catch (error) {
-          if (error is ConnectException && (error.statusCode == 401)) {
+          String? nextUrl;
+          try {
+            nextUrl = await _regionUrlProvider!.getNextBestRegionUrl();
+          } catch (error) {
+            if (error is ConnectException && (error.statusCode == 401)) {
+              rethrow;
+            }
+          }
+          if (nextUrl != null) {
+            logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
+            await engine.connect(
+              nextUrl,
+              token,
+              connectOptions: connectOptions,
+              roomOptions: effectiveRoomOptions,
+              fastConnectOptions: fastConnectOptions,
+              regionUrlProvider: _regionUrlProvider,
+            );
+            didConnect = true;
+          } else {
             rethrow;
           }
-        }
-        if (nextUrl != null) {
-          logger.fine('Initial connection failed with ConnectionError: $e. Retrying with another region: ${nextUrl}');
-          await engine.connect(
-            nextUrl,
-            token,
-            connectOptions: connectOptions,
-            roomOptions: effectiveRoomOptions,
-            fastConnectOptions: fastConnectOptions,
-            regionUrlProvider: _regionUrlProvider,
-          );
-          didConnect = true;
-        } else {
+        } catch (error) {
+          // The cleanup for the failed attempt left the pre-connect audio
+          // buffer recording for a retry, and no retry connected. Stop it
+          // with the error, the way withPreConnectAudio ends a failed
+          // operation, so the native recorder is stopped as well.
+          await preConnectAudioBuffer.stopRecording(withError: error);
+          await preConnectAudioBuffer.reset();
           rethrow;
         }
       } else {
@@ -428,9 +433,6 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     } finally {
       _connectInProgress = false;
       if (!didConnect) {
-        if (failoverStarted) {
-          await preConnectAudioBuffer.reset();
-        }
         await NativeAudioManagement.stop();
       }
     }
