@@ -34,6 +34,9 @@ class _Renderer extends rtc.RTCVideoRenderer {
   final video = web.HTMLVideoElement();
   rtc.MediaStream? _stream;
 
+  // The analyzer resolves the native renderer; the browser renderer defines this method.
+  web.HTMLVideoElement? findHtmlView() => video;
+
   @override
   rtc.MediaStream? get srcObject => _stream;
 
@@ -43,8 +46,9 @@ class _Renderer extends rtc.RTCVideoRenderer {
 
 RemoteVideoTrack _track() => RemoteVideoTrack(TrackSource.camera, _Stream(), _MediaTrack());
 
-Widget _view(RemoteVideoTrack track, _Renderer renderer) => MaterialApp(
-  home: SizedBox(
+Widget _view(RemoteVideoTrack track, _Renderer renderer) => WidgetsApp(
+  color: Color(0xff000000),
+  builder: (context, child) => SizedBox(
     width: 100,
     height: 100,
     child: VideoTrackRenderer(track, cachedRenderer: renderer),

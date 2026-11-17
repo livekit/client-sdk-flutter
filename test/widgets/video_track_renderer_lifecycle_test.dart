@@ -118,8 +118,9 @@ void main() {
     rtc.RTCVideoRenderer? cached,
     bool autoDispose = true,
     VideoRenderMode renderMode = VideoRenderMode.auto,
-  }) => MaterialApp(
-    home: SizedBox(
+  }) => WidgetsApp(
+    color: Color(0xff000000),
+    builder: (context, child) => SizedBox(
       width: 100,
       height: 100,
       child: VideoTrackRenderer(
