@@ -582,6 +582,24 @@ void main() {
       expect(streamPackets().where((p) => !p.hasStreamTrailer()), isEmpty);
     });
 
+    test('writes cut off by disposing the room fail with a LiveKitException', () async {
+      await container.simulateRemoteParticipantJoin('alice', clientProtocol: 2);
+      final writer = await room.localParticipant!.streamBytes(StreamBytesOptions(topic: 'cut-off'));
+
+      // Not awaited: the room is disposed while these are still in the core, which fails them with
+      // a DataStreamError. Apps catch the SDK's errors as LiveKitException, so it has to be one.
+      final errors = <Object>[];
+      final writes = [
+        for (var i = 0; i < 50; i++)
+          writer.write(Uint8List(30 * 1024)).then((_) {}, onError: (Object e) => errors.add(e)),
+      ];
+      await room.dispose();
+      await Future.wait(writes);
+
+      expect(errors, isNotEmpty, reason: 'no write was cut off, so there is nothing to check');
+      expect(errors, everyElement(isA<LiveKitException>()));
+    });
+
     test('a stream packet still on its way in does not open a stream', () async {
       final ds = room.dataStreams as NativeDataStreams;
       var opened = 0;
