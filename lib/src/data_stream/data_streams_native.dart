@@ -248,8 +248,8 @@ class NativeDataStreams implements DataStreams {
     );
   }
 
-  /// Fails a send the room can no longer deliver. The core reports a send as done once its
-  /// packets are queued for the pump, so without this a send on a closed room would look sent.
+  /// Fails a send the room can no longer deliver before it reaches the core, so the caller gets
+  /// the same error as on any other use of a closed room.
   void _ensureOpen() {
     final room = _room.target;
     if (room == null || _disposed || room.engine.isClosed) {
@@ -264,15 +264,20 @@ class NativeDataStreams implements DataStreams {
   /// without a separate send chain and paces the wire as `WritableStream` did on main.
   ///
   /// The pump owns the queue's lifetime and is the only thing that may dispose it — freeing it
-  /// while a `nextPackets` is in flight is a use-after-free. [dispose] wakes us by closing the
+  /// while a `nextBatch` is in flight is a use-after-free. [dispose] wakes us by closing the
   /// queue rather than releasing it.
   Future<void> _pumpOutgoing() async {
     try {
       while (true) {
-        final batch = await _outgoingPackets.nextPackets();
+        final batch = await _outgoingPackets.nextBatch();
         if (batch == null) break; // closed or shutting down
-        for (final encoded in batch) {
-          await _send(encoded);
+        try {
+          await _send(batch.packets());
+          batch.complete();
+        } catch (e) {
+          batch.fail(reason: '$e');
+        } finally {
+          batch.dispose();
         }
       }
     } catch (e) {
@@ -282,10 +287,10 @@ class NativeDataStreams implements DataStreams {
     }
   }
 
-  Future<void> _send(Uint8List encoded) async {
+  Future<void> _send(List<Uint8List> packets) async {
     final room = _room.target;
-    if (room == null || _disposed) return;
-    try {
+    if (room == null || _disposed) throw StateError('data streams were disposed');
+    for (final encoded in packets) {
       await room.engine.waitForBufferStatusLow(Reliability.reliable);
       // Back through the engine rather than the data channel directly, so E2EE wrapping,
       // reliable sequencing and resume-resend all still apply.
@@ -293,9 +298,6 @@ class NativeDataStreams implements DataStreams {
         lk_models.DataPacket.fromBuffer(encoded),
         reliability: Reliability.reliable,
       );
-    } catch (e) {
-      // The core acknowledges sends unconditionally, so there is nobody to propagate this to.
-      logger.warning('[DataStreams] failed to send outbound packet: $e');
     }
   }
 
