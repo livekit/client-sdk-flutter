@@ -27,12 +27,18 @@ import 'video_track_renderer_native.dart'
 export 'video_track_renderer_common.dart' show VideoRenderMode, VideoViewFit, VideoViewFitExt, VideoViewMirrorMode;
 
 /// Widget that renders a [VideoTrack].
-class VideoTrackRenderer extends StatelessWidget {
+class VideoTrackRenderer extends StatefulWidget {
   final VideoTrack track;
   final VideoViewFit fit;
   final VideoViewMirrorMode mirrorMode;
   final VideoRenderMode renderMode;
+
+  /// An existing renderer borrowed by this widget. The caller remains responsible
+  /// for disposing it; the widget detaches it but never disposes it.
   final rtc.RTCVideoRenderer? cachedRenderer;
+
+  /// Whether to dispose a renderer created by this widget when it is released.
+  /// Defaults to true. This has no effect on [cachedRenderer].
   final bool autoDisposeRenderer;
 
   /// wrap the video view in a Center widget (if [fit] is [VideoViewFit.contain])
@@ -63,15 +69,20 @@ class VideoTrackRenderer extends StatelessWidget {
   });
 
   @override
+  State<VideoTrackRenderer> createState() => _VideoTrackRendererState();
+}
+
+class _VideoTrackRendererState extends State<VideoTrackRenderer> {
+  @override
   Widget build(BuildContext context) => implementation.buildVideoTrackRenderer(
-    track: track,
-    fit: fit,
-    mirrorMode: mirrorMode,
-    renderMode: renderMode,
-    cachedRenderer: cachedRenderer,
-    autoDisposeRenderer: autoDisposeRenderer,
-    autoCenter: autoCenter,
-    adaptiveStreamPixelDensity: adaptiveStreamPixelDensity,
-    placeholderBuilder: placeholderBuilder,
+    track: widget.track,
+    fit: widget.fit,
+    mirrorMode: widget.mirrorMode,
+    renderMode: widget.renderMode,
+    cachedRenderer: widget.cachedRenderer,
+    autoDisposeRenderer: widget.autoDisposeRenderer,
+    autoCenter: widget.autoCenter,
+    adaptiveStreamPixelDensity: widget.adaptiveStreamPixelDensity,
+    placeholderBuilder: widget.placeholderBuilder,
   );
 }

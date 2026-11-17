@@ -15,6 +15,9 @@
 @TestOn('browser')
 library;
 
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -38,6 +41,9 @@ class _Renderer extends rtc.RTCVideoRenderer {
   web.HTMLVideoElement? findHtmlView() => video;
 
   @override
+  bool get renderVideo => _stream != null;
+
+  @override
   rtc.MediaStream? get srcObject => _stream;
 
   @override
@@ -56,6 +62,69 @@ Widget _view(RemoteVideoTrack track, _Renderer renderer) => WidgetsApp(
 );
 
 void main() {
+  testWidgets(
+    'muting hides a retained Flutter video frame without unmounting it',
+    (tester) async {
+      final renderer = _Renderer();
+      await renderer.initialize();
+      final track = _track();
+      final boundaryKey = GlobalKey();
+
+      await tester.pumpWidget(
+        WidgetsApp(
+          color: const Color(0xff000000),
+          builder: (context, child) => RepaintBoundary(
+            key: boundaryKey,
+            child: ColoredBox(
+              color: const Color(0xffffffff),
+              child: VideoTrackRenderer(track, cachedRenderer: renderer, fit: VideoViewFit.cover),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Seed the default flutter_webrtc backend's retained frame, as if a video
+      // frame had already been captured before the track was muted.
+      final recorder = ui.PictureRecorder();
+      Canvas(recorder).drawColor(const Color(0xffff0000), BlendMode.src);
+      final picture = recorder.endRecording();
+      final frame = await tester.runAsync(() => picture.toImage(100, 100));
+      picture.dispose();
+      final videoState = tester.state(find.byType(rtc.RTCVideoView)) as dynamic;
+      videoState.capturedFrame = frame;
+      renderer.notifyListeners();
+      await tester.pump();
+
+      Future<List<int>> pixel() async {
+        final boundary = boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final image = await boundary.toImage();
+        final bytes = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+        image.dispose();
+        return bytes!.buffer.asUint8List().sublist(0, 4);
+      }
+
+      expect(await tester.runAsync(pixel), [255, 0, 0, 255]);
+      track.updateMuted(true);
+      await tester.pumpAndSettle();
+      expect(await tester.runAsync(pixel), [255, 255, 255, 255]);
+      expect(tester.state(find.byType(rtc.RTCVideoView)), same(videoState));
+      expect(renderer.srcObject, same(track.mediaStream));
+
+      track.updateMuted(false);
+      await tester.pumpAndSettle();
+      expect(await tester.runAsync(pixel), [255, 0, 0, 255]);
+      expect(tester.state(find.byType(rtc.RTCVideoView)), same(videoState));
+      expect(renderer.srcObject, same(track.mediaStream));
+
+      await tester.pumpWidget(const SizedBox());
+      await tester.pump(const Duration(milliseconds: 100));
+      await renderer.dispose();
+    },
+    // The HTML-element backend does not paint retained frames into Flutter.
+    skip: const bool.fromEnvironment('WEBRTC_USE_HTML_ELEMENT_VIEW'),
+  );
+
   testWidgets('initially muted track stays attached but hidden until unmuted', (tester) async {
     final renderer = _Renderer();
     await renderer.initialize();
@@ -72,6 +141,7 @@ void main() {
     expect(renderer.srcObject, same(track.mediaStream));
 
     await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 100));
     await renderer.dispose();
   });
 
@@ -97,6 +167,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     expect(second.video.style.visibility, '');
     expect(second.srcObject, isNull);
+    await tester.pump(const Duration(milliseconds: 100));
     await first.dispose();
     await second.dispose();
   });

@@ -191,7 +191,7 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
   }
 
   void _setTrackMuted(rtc.RTCVideoRenderer renderer, bool muted) {
-    _trackMuted = muted;
+    setState(() => _trackMuted = muted);
     _setVideoElementVisible(renderer, !muted);
   }
 
@@ -320,12 +320,15 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
                   track.onVideoViewBuild?.call();
                 }
               });
-              return rtc.RTCVideoView(
-                _renderer!,
-                mirror: shouldMirror(widget.track, widget.mirrorMode),
-                filterQuality: FilterQuality.medium,
-                objectFit: widget.fit.toRTCType(),
-                placeholderBuilder: widget.placeholderBuilder,
+              return Opacity(
+                opacity: _trackMuted ? 0 : 1,
+                child: rtc.RTCVideoView(
+                  _renderer!,
+                  mirror: shouldMirror(widget.track, widget.mirrorMode),
+                  filterQuality: FilterQuality.medium,
+                  objectFit: widget.fit.toRTCType(),
+                  placeholderBuilder: widget.placeholderBuilder,
+                ),
               );
             },
           );

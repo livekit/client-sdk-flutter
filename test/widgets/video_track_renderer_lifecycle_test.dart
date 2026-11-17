@@ -133,6 +133,11 @@ void main() {
     ),
   );
 
+  test('VideoTrackRenderer remains assignable to StatefulWidget', () {
+    final StatefulWidget widget = VideoTrackRenderer(_Track(_Stream()));
+    expect(widget, isA<VideoTrackRenderer>());
+  });
+
   testWidgets('dispose during initialize never attaches and disposes the owned renderer once', (tester) async {
     final track = _Track(_Stream());
     await tester.pumpWidget(view(track));
