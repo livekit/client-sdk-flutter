@@ -15,7 +15,8 @@
 @TestOn('browser')
 library;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:mockito/mockito.dart';
@@ -32,9 +33,6 @@ class _MediaTrack extends Mock implements rtc.MediaStreamTrack {}
 class _Renderer extends rtc.RTCVideoRenderer {
   final video = web.HTMLVideoElement();
   rtc.MediaStream? _stream;
-
-  @override
-  web.HTMLVideoElement? findHtmlView() => video;
 
   @override
   rtc.MediaStream? get srcObject => _stream;

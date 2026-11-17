@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
+
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import '../events.dart';
@@ -142,6 +143,9 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     final originalVisibility = _originalVisibility;
     _originalVisibility = null;
     if (originalVisibility != null) {
+      // The analyzer resolves the native renderer, but this file runs only on web.
+      // flutter_webrtc/lib/src/web/rtc_video_renderer.dart
+      // ignore: undefined_method
       renderer.findHtmlView()?.style.visibility = originalVisibility;
     }
     if (initializing == null) {
@@ -196,6 +200,10 @@ class _WebVideoTrackRendererState extends State<_WebVideoTrackRenderer> {
     // srcObject makes Safari reconfigure video compositing for all tiles.
     // CSS visibility hides only this element while preserving its layout,
     // decoder, and the other participants' video surfaces.
+    //
+    // The analyzer resolves the native renderer, but this file runs only on web.
+    // flutter_webrtc/lib/src/web/rtc_video_renderer.dart
+    // ignore: undefined_method
     final element = renderer.findHtmlView();
     if (element == null) return;
     _originalVisibility ??= element.style.visibility;

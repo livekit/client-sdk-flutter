@@ -15,7 +15,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show debugDefaultTargetPlatformOverride, kIsWeb;
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
