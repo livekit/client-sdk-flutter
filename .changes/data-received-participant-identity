@@ -1,0 +1,1 @@
+patch type="added" "`DataReceivedEvent.participantIdentity` reports the sender even when `participant` is null, for example when data arrives before the sender's join is announced or after the sender has left"

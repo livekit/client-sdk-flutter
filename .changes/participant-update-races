@@ -1,0 +1,1 @@
+patch type="fixed" "Fix remote tracks going missing and duplicate participants when participant updates arrive back to back or out of order"

@@ -1,0 +1,1 @@
+patch type="fixed" "In shared-key E2EE mode, newly published tracks and encrypted data packets now use the key index passed to `setSharedKey` instead of always starting at index 0, which made them unreadable to other participants when the key lived at another index"

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.13.2
+
+* Security: Bump flutter_webrtc to 1.6.3 and WebRTC-SDK to 150.7871.04. The bundled TURN/TLS roots no longer include AAA Certificate Services, which cross-signs the compromised eMudhra intermediate CAs (CVE-2026-111943)
+
 ## 2.13.1
 
 * Changed: Bump flutter_webrtc to 1.6.2+hotfix.4, which fixes a crash on iOS and macOS when a video renderer is disposed while frames are still arriving

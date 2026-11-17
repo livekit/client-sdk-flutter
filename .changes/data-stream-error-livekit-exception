@@ -1,0 +1,1 @@
+patch type="fixed" "`DataStreamError` is now a `LiveKitException`, so `on LiveKitException` also catches data stream failures, such as a write cut off by disposing the room"

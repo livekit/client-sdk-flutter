@@ -16,8 +16,12 @@ import 'package:livekit_client/src/options.dart';
 import 'package:livekit_client/src/support/websocket.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
+  MockWebSocket([this.onSend]);
+
+  final void Function(List<int> data)? onSend;
+
   @override
-  void send(List<int> data) {}
+  void send(List<int> data) => onSend?.call(data);
 }
 
 class MockWebSocketConnector {
@@ -26,6 +30,18 @@ class MockWebSocketConnector {
   Map<String, String>? headers;
   NetworkOptions? networkOptions;
   Object? connectError;
+
+  /// When true, [connectError] is thrown once and then cleared, so the next
+  /// connect succeeds. Models a first attempt that fails and a retry that gets
+  /// through.
+  bool connectErrorOnce = false;
+
+  /// When set, a connect waits for it before it answers. Models a socket
+  /// handshake that is still in flight.
+  Future<void>? connectGate;
+
+  /// Every message the SDK sent over any socket this connector opened.
+  final List<List<int>> sentData = [];
 
   WebSocketOnData get onData => handlers!.onData!;
 
@@ -43,12 +59,17 @@ class MockWebSocketConnector {
     this.headers = headers;
     this.networkOptions = networkOptions;
 
+    await connectGate;
+
     final error = connectError;
     if (error != null) {
+      if (connectErrorOnce) {
+        connectError = null;
+      }
       throw error;
     }
 
     handlers = options;
-    return MockWebSocket();
+    return MockWebSocket(sentData.add);
   }
 }

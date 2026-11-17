@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart'; // ignore: deprecated_member_use
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_example/pages/connection_check.dart';
@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../exts.dart';
+import '../utils.dart';
 
 enum _ConnectOption { autoSubscribe, e2ee, tokenServer }
 
@@ -508,6 +509,13 @@ class _ConnectIntro extends StatelessWidget {
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(color: LKColors.textSecondary),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            rustCoreVersionLabel(),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(color: LKColors.textSecondary),
           ),
         ],
       );

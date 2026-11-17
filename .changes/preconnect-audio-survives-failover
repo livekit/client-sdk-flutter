@@ -1,0 +1,1 @@
+patch type="fixed" "Keep the pre-connect audio buffer recording through a region failover on connect, so the microphone is still published when the first attempt is rejected (for example by a region-pinned LiveKit Cloud project)"

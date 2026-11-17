@@ -230,6 +230,10 @@ class Transport extends Disposable {
 
   bool restartingIce = false;
   bool renegotiate = false;
+
+  /// Whether an answer is being applied right now, so a copy that arrives
+  /// mid-apply is recognised as a duplicate too.
+  bool _answerInFlight = false;
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
@@ -316,10 +320,24 @@ class Transport extends Disposable {
       return;
     }
 
+    if (sd.type == 'answer') {
+      // Offers are not numbered on this transport, so the signaling state is what says
+      // whether an answer is still wanted: in `stable` there is no local offer left to
+      // answer, and a copy arriving mid-apply is caught by the in-flight flag.
+      if (_answerInFlight || await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable) {
+        logger.warning('[$objectId] ignoring duplicate answer');
+        return;
+      }
+      _answerInFlight = true;
+    }
+
     try {
       await pc.setRemoteDescription(sd);
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
+    } finally {
+      // released however the apply ends, so a genuine retry is still possible
+      if (sd.type == 'answer') _answerInFlight = false;
     }
 
     for (final candidate in _pendingCandidates) {
@@ -361,15 +379,21 @@ class Transport extends Disposable {
     if (await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
-      final currentSD = await getRemoteDescription();
-      if ((options?.iceRestart ?? false) && currentSD != null) {
-        // TODO: handle when ICE restart is needed but we don't have a remote description
-        // the best thing to do is to recreate the peerconnection
-        await pc.setRemoteDescription(currentSD);
-      } else {
+      if (!(options?.iceRestart ?? false)) {
+        // Nothing may be awaited between reading the state and setting the flag. The answer
+        // can finish applying in that gap, and setRemoteDescription checks the flag only once,
+        // so a flag set after that check is never picked up and this offer is never sent.
         renegotiate = true;
         return;
       }
+      final currentSD = await getRemoteDescription();
+      if (currentSD == null) {
+        // TODO: handle when ICE restart is needed but we don't have a remote description
+        // the best thing to do is to recreate the peerconnection
+        renegotiate = true;
+        return;
+      }
+      await pc.setRemoteDescription(currentSD);
     }
 
     if (restartingIce && !lkPlatformIs(PlatformType.web)) {
