@@ -103,7 +103,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   /// module, shared by every local audio track (pre-join mic, room mic,
   /// pre-connect buffer).
   static final NativeRecordingHolders _nativeRecordingHolders = NativeRecordingHolders();
-@override
+  @override
   Future<void> startCapture() async {
     await super.startCapture();
     if (_nativeRecordingHeld || !lkPlatformSupportsExplicitAudioRecordingStart()) {
