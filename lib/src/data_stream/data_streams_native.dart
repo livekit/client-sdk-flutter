@@ -272,12 +272,12 @@ class NativeDataStreams implements DataStreams {
         final batch = await _outgoingPackets.nextBatch();
         if (batch == null) break; // closed or shutting down
         try {
-          await _send(batch.packets());
-          batch.complete();
+          await _send(batch.packets);
+          batch.outcome.complete();
         } catch (e) {
-          batch.fail(reason: '$e');
+          batch.outcome.fail(reason: '$e');
         } finally {
-          batch.dispose();
+          batch.outcome.dispose();
         }
       }
     } catch (e) {
