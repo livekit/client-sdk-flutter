@@ -885,6 +885,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     publisher?.onNegotiationError = _onPublisherNegotiationError;
     // subscribed video arrives on the publisher's recvonly sections in single PC mode
     publisher?.negotiateReceivedVideoDependencyDescriptor = _singlePCMode;
+    publisher?.negotiateOpusNack = _singlePCMode;
 
     // In single PC mode, server opens data channels on publisher.
     // In dual PC subscriber-primary mode, server opens data channels on subscriber.
