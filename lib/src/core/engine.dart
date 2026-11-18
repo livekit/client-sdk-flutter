@@ -885,6 +885,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     publisher?.onNegotiationError = _onPublisherNegotiationError;
     // subscribed video arrives on the publisher's recvonly sections in single PC mode
     publisher?.negotiateReceivedVideoDependencyDescriptor = _singlePCMode;
+    publisher?.negotiateOpusNack = _singlePCMode;
 
     // In single PC mode, server opens data channels on publisher.
     // In dual PC subscriber-primary mode, server opens data channels on subscriber.
@@ -1721,10 +1722,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       await subscriber!.setRemoteDescription(event.sd);
 
       try {
-        final answer = await subscriber!.pc.createAnswer();
+        final answer = await subscriber!.createAndSetAnswer(event.sd);
         logger.fine('Created answer');
         logger.finer('sdp: ${answer.sdp}');
-        await subscriber!.pc.setLocalDescription(answer);
         signalClient.sendAnswer(answer, offerId: event.offerId);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
