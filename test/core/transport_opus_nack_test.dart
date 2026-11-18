@@ -16,7 +16,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
 
-import 'package:livekit_client/src/core/transport.dart' show Transport, ensureOpusNack;
+import 'package:livekit_client/src/core/transport.dart' show Transport, ensureOpusNack, mungeOpusNackForAnswer;
 import 'package:livekit_client/src/exceptions.dart' show NegotiationError;
 import 'package:livekit_client/src/options.dart' show ConnectOptions;
 import '../mock/peerconnection_mock.dart';
@@ -41,6 +41,7 @@ const _offer =
 
 class _AudioPeerConnection extends MockPeerConnection {
   String offer = _offer;
+  String answer = _offer;
   bool rejectNack = false;
   bool rejectAll = false;
   int rejectedNackOffers = 0;
@@ -48,6 +49,11 @@ class _AudioPeerConnection extends MockPeerConnection {
   @override
   Future<rtc.RTCSessionDescription> createOffer([Map<String, dynamic>? constraints]) async {
     return rtc.RTCSessionDescription(offer, 'offer');
+  }
+
+  @override
+  Future<rtc.RTCSessionDescription> createAnswer([Map<String, dynamic>? constraints]) async {
+    return rtc.RTCSessionDescription(answer, 'answer');
   }
 
   @override
@@ -191,6 +197,78 @@ void main() {
       expect(first['rtcpFb'], [
         {'payload': '*', 'type': 'nack', 'subtype': null},
       ]);
+    });
+  });
+
+  group('Opus NACK subscriber answers', () {
+    final offeredNack = _offer.replaceFirst('a=mid:0\r\n', 'a=mid:0\r\na=rtcp-fb:109 nack\r\n');
+
+    test('accepts NACK only on the offered MID and returns the applied answer', () async {
+      final (transport, pc, _) = await _makeTransport(singlePC: false);
+      final offer = rtc.RTCSessionDescription(offeredNack, 'offer');
+      await transport.setRemoteDescription(offer);
+      final answer = await transport.createAndSetAnswer(offer);
+      final sections = sdp_transform.parse(answer.sdp!)['media'] as List;
+      expect(
+        sections[0]['rtcpFb'],
+        equals([
+          {'payload': 109, 'type': 'nack', 'subtype': null},
+        ]),
+      );
+      expect(sections[1]['rtcpFb'] ?? [], isEmpty);
+      expect(sections[2]['rtcpFb'] ?? [], isEmpty);
+      expect((await pc.getLocalDescription())!.sdp, answer.sdp);
+    });
+
+    test('does not add NACK when the offer lacks it or only offers NACK PLI', () async {
+      for (final feedback in ['', 'a=rtcp-fb:109 nack pli\r\n']) {
+        final (transport, pc, _) = await _makeTransport(singlePC: false);
+        final offer = rtc.RTCSessionDescription(_offer.replaceFirst('a=mid:0\r\n', 'a=mid:0\r\n$feedback'), 'offer');
+        await transport.setRemoteDescription(offer);
+        final answer = await transport.createAndSetAnswer(offer);
+        expect(answer.sdp, pc.answer);
+        _expectNack(answer.sdp!, audioSections: 3, enabled: false);
+      }
+    });
+
+    test('rejected NACK falls back and returns the original applied answer', () async {
+      final (transport, pc, _) = await _makeTransport(singlePC: false);
+      pc.rejectNack = true;
+      final offer = rtc.RTCSessionDescription(offeredNack, 'offer');
+      await transport.setRemoteDescription(offer);
+      final answer = await transport.createAndSetAnswer(offer);
+      expect(pc.rejectedNackOffers, 1);
+      expect(answer.sdp, pc.answer);
+      expect((await pc.getLocalDescription())!.sdp, answer.sdp);
+    });
+
+    test('propagates failure if the original answer is rejected too', () async {
+      final (transport, pc, _) = await _makeTransport(singlePC: false);
+      pc.rejectAll = true;
+      final offer = rtc.RTCSessionDescription(offeredNack, 'offer');
+      await transport.setRemoteDescription(offer);
+      await expectLater(transport.createAndSetAnswer(offer), throwsStateError);
+      expect(await pc.getLocalDescription(), isNull);
+    });
+
+    test('matches reordered MIDs and resolves the answer payload independently', () {
+      final answer =
+          'v=0\r\no=- 1 1 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n'
+          'm=audio 9 UDP/TLS/RTP/SAVPF 108\r\na=mid:1\r\na=rtpmap:108 opus/48000/2\r\n'
+          'm=audio 9 UDP/TLS/RTP/SAVPF 110\r\na=mid:0\r\na=rtpmap:110 opus/48000/2\r\n';
+      for (final payload in ['109', '*']) {
+        final offer = offeredNack.replaceFirst('a=rtcp-fb:109 nack', 'a=rtcp-fb:$payload nack');
+        final munged = mungeOpusNackForAnswer(answer, offer);
+        final sections = sdp_transform.parse(munged)['media'] as List;
+        expect(sections[0]['rtcpFb'] ?? [], isEmpty);
+        expect(
+          sections[1]['rtcpFb'],
+          equals([
+            {'payload': 110, 'type': 'nack', 'subtype': null},
+          ]),
+        );
+        expect(mungeOpusNackForAnswer(munged, offer), munged);
+      }
     });
   });
 

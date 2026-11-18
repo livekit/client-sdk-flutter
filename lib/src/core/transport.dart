@@ -233,6 +233,40 @@ void ensureOpusNack(Map<String, dynamic> media) {
   media['rtcpFb'] = feedback;
 }
 
+/// Accepts Opus NACK only on answer sections whose MID offered it.
+@internal
+String mungeOpusNackForAnswer(String answer, String offer) {
+  final offeredMedia = sdp_transform.parse(offer)['media'] as List? ?? const [];
+  final nackMids = <String>{};
+  for (final media in offeredMedia) {
+    if (media['type'] != 'audio' || media['mid'] == null) continue;
+    final opus = (media['rtp'] as List? ?? const [])
+        .where((rtp) => (rtp['codec'] as String?)?.toLowerCase() == 'opus')
+        .map((rtp) => rtp['payload'])
+        .toSet();
+    final feedback = media['rtcpFb'] as List? ?? const [];
+    if (opus.isNotEmpty &&
+        feedback.any(
+          (fb) =>
+              (fb['payload'] == '*' || opus.contains(fb['payload'])) &&
+              fb['type'] == 'nack' &&
+              (fb['subtype'] == null || fb['subtype'] == ''),
+        )) {
+      nackMids.add(media['mid'].toString());
+    }
+  }
+  if (nackMids.isEmpty) return answer;
+  final document = sdp_transform.parse(answer);
+  var changed = false;
+  for (final media in document['media'] as List? ?? const []) {
+    if (media['mid'] == null || !nackMids.contains(media['mid'].toString())) continue;
+    final before = (media['rtcpFb'] as List? ?? const []).length;
+    ensureOpusNack(media);
+    changed = changed || (media['rtcpFb'] as List? ?? const []).length != before;
+  }
+  return changed ? sdp_transform.write(document, null) : answer;
+}
+
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
 
 /// [offerId] numbers the offer, starting at 1, so its answer can be told apart
@@ -687,6 +721,14 @@ class Transport extends Disposable {
       if (value > maxId) maxId = value;
     }
     return maxId + 1 == 15 ? 16 : maxId + 1;
+  }
+
+  /// Creates and applies an answer accepting the server's offered Opus NACK.
+  Future<rtc.RTCSessionDescription> createAndSetAnswer(rtc.RTCSessionDescription offer) async {
+    final answer = await pc.createAnswer();
+    final munged = mungeOpusNackForAnswer(answer.sdp ?? '', offer.sdp ?? '');
+    await setMungedSDP(sd: answer, munged: munged == answer.sdp ? null : munged);
+    return answer;
   }
 
   Future<void> setMungedSDP({required rtc.RTCSessionDescription sd, String? munged, bool? remote}) async {
