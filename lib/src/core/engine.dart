@@ -188,6 +188,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     _sendStateChanged.complete();
   }
 
+  // Owned by the engine and completed on acceptance, rejection, timeout, or teardown.
+  final _pendingTrackPublishes = <String, Completer<lk_models.TrackInfo>>{};
+
   List<lk_models.Codec>? _enabledPublishCodecs;
 
   List<lk_models.Codec>? get enabledPublishCodecs => _enabledPublishCodecs;
@@ -373,6 +376,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   // resets internal state to a re-usable state
   Future<void> cleanUp() async {
     logger.fine('[$objectId] cleanUp()');
+    _failPendingTrackPublishes();
+    _enabledPublishCodecs = null;
 
     await publisher?.dispose();
     publisher = null;
@@ -397,17 +402,33 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
   @internal
   Future<lk_models.TrackInfo> addTrack(lk_rtc.AddTrackRequest req) async {
-    // send request to add track
-    signalClient.sendAddTrack(req);
+    if (_isClosed) throw TrackPublishException('engine is closed');
+    if (_pendingTrackPublishes.containsKey(req.cid)) {
+      throw TrackPublishException('track publication is already pending');
+    }
+    final completer = Completer<lk_models.TrackInfo>();
+    _pendingTrackPublishes[req.cid] = completer;
+    try {
+      signalClient.sendAddTrack(req);
+      return await completer.future.timeout(
+        connectOptions.timeouts.publish,
+        onTimeout: () => throw TrackPublishException('timed out waiting for track acceptance'),
+      );
+    } finally {
+      if (identical(_pendingTrackPublishes[req.cid], completer)) {
+        _pendingTrackPublishes.remove(req.cid);
+      }
+    }
+  }
 
-    // wait for response, or timeout
-    final event = await _signalListener.waitFor<SignalLocalTrackPublishedEvent>(
-      filter: (event) => event.cid == req.cid,
-      duration: connectOptions.timeouts.publish,
-      onTimeout: () => throw TrackPublishException(),
-    );
-
-    return event.track;
+  void _failPendingTrackPublishes() {
+    final pending = _pendingTrackPublishes.values.toList();
+    _pendingTrackPublishes.clear();
+    for (final completer in pending) {
+      if (!completer.isCompleted) {
+        completer.completeError(TrackPublishException('connection closed while publishing'));
+      }
+    }
   }
 
   @internal
@@ -1554,6 +1575,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }
 
   void _setUpSignalListeners() => _signalListener
+    ..on<SignalLocalTrackPublishedEvent>((event) {
+      final completer = _pendingTrackPublishes[event.cid];
+      if (completer != null && !completer.isCompleted) completer.complete(event.track);
+    })
     ..on<SignalJoinResponseEvent>((event) async {
       // create peer connections
       _subscriberPrimary = event.response.subscriberPrimary;
@@ -1742,6 +1767,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     })
     ..on<SignalRequestResponseEvent>((event) async {
+      final response = event.response;
+      if (response.hasAddTrack() &&
+          response.reason != lk_rtc.RequestResponse_Reason.OK &&
+          response.reason != lk_rtc.RequestResponse_Reason.QUEUED) {
+        final completer = _pendingTrackPublishes[response.addTrack.cid];
+        if (completer != null && !completer.isCompleted) {
+          completer.completeError(TrackPublishException(response.message));
+        }
+      }
       events.emit(EngineRequestResponseEvent(response: event.response));
     })
     ..on<SignalRoomMovedEvent>((event) async {
@@ -1758,6 +1792,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   void markClosed() {
     if (_isClosed) return;
     _isClosed = true;
+    _failPendingTrackPublishes();
     _sendStateChanged.complete();
     events.emit(EngineClosingEvent());
   }
