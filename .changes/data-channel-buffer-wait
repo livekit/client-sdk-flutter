@@ -1,1 +1,0 @@
-patch type="fixed" "Fix data stream writes that could hang after a full reconnect, carried on after the room disconnected, or leaked a listener while waiting for the send buffer to drain. Writes now also wait for a reconnect to finish"
