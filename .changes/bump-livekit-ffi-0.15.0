@@ -1,0 +1,1 @@
+patch type="changed" "Require livekit_ffi 0.15.0, whose Dart bindings no longer leak the byte and string payloads that cross to the Rust core"
