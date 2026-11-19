@@ -32293,7 +32293,7 @@ if(d&&a2!=null)l.m(0,"sid",a2)
 l.m(0,"protocol",A.bvE(b.c))
 l.m(0,"client_protocol",B.f.j(b.d.c))
 l.m(0,"sdk","flutter")
-l.m(0,"version","2.13.1")
+l.m(0,"version","2.14.0")
 l.m(0,"network",m)
 if(o!=null){i=A.u(i,i)
 k=o.a
@@ -115074,7 +115074,7 @@ A.a5g.prototype={
 K(a){var s,r,q,p=null,o=A.W(a).ok.c
 o=A.bx("Flutter SDK example",p,p,p,p,o==null?p:o.aIa(B.dV,0),p,p)
 s=A.W(a).ok.w
-s=A.bx("SDK Version 2.13.1",p,p,p,p,s==null?p:s.bI(B.cp),p,p)
+s=A.bx("SDK Version 2.14.0",p,p,p,p,s==null?p:s.bI(B.cp),p,p)
 r=A.bjl()
 q=A.W(a).ok.x
 return A.dD(A.b([new A.a2x(210,new A.NU("images/logo-dark.svg",p,p,p,p),p,p),B.kg,o,B.dA,s,B.oU,A.bx(r,p,p,p,p,q==null?p:q.bI(B.cp),p,p)],t.p),B.b4,B.D,B.as)}}
