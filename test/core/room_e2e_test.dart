@@ -15,6 +15,7 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,7 @@ import 'package:logging/logging.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
+import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../mock/e2e_container.dart';
 import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
@@ -57,6 +59,56 @@ void main() {
       expect(room.connectionState, ConnectionState.connected);
       expect(room.localParticipant?.sid, joinResponse.join.participant.sid);
     }, skip: 'todo');
+  });
+
+  group('full reconnect', () {
+    test('republish failure still completes reconnection', () async {
+      ws.onData(participantJoinResponse.writeToBuffer());
+      await room.events.waitFor<ParticipantConnectedEvent>(duration: const Duration(seconds: 1));
+      container.engine.events.emit(
+        EngineTrackAddedEvent(
+          track: _FakeMediaStreamTrack(id: remoteAudioTrack.sid, kind: 'audio'),
+          stream: _FakeMediaStream('${remoteParticipantData.sid}|remote_stream'),
+          receiver: null,
+        ),
+      );
+      await room.events.waitFor<TrackSubscribedEvent>(duration: const Duration(seconds: 1));
+
+      final error = StateError('audio capture failed during republish');
+      final track = _FailingAudioTrack(error);
+      final participant = room.localParticipant!;
+      final publication = LocalTrackPublication<LocalAudioTrack>(
+        participant: participant,
+        info: remoteAudioTrack.deepCopy()..sid = 'local_audio_track_sid',
+        track: track,
+      );
+      participant.addTrackPublication(publication);
+      // Republishing removes the old publication from the participant.
+      addTearDown(publication.dispose);
+      await Future<void>.delayed(Duration.zero);
+
+      final records = <LogRecord>[];
+      final logs = Logger.root.onRecord.listen(records.add);
+      addTearDown(logs.cancel);
+      final notified = Completer<void>();
+      void onChanged() {
+        if (!notified.isCompleted) notified.complete();
+      }
+
+      room.addListener(onChanged);
+      addTearDown(() => room.removeListener(onChanged));
+      ws.sentData.clear();
+      final reconnected = room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 1));
+      container.engine.events.emit(const EngineRestartedEvent());
+
+      await reconnected;
+      await notified.future.timeout(const Duration(seconds: 1));
+      expect(track.startAttempts, 1);
+      final settings = ws.sentData.map(lk_rtc.SignalRequest.fromBuffer).where((request) => request.hasTrackSetting());
+      expect(settings, hasLength(1));
+      expect(settings.single.trackSetting.trackSids, [remoteAudioTrack.sid]);
+      expect(records.where((record) => identical(record.error, error)), hasLength(1));
+    });
   });
 
   group('room updates', () {
@@ -361,4 +413,23 @@ class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
 
   @override
   String toString() => 'FakeMediaStreamTrack(id: $id, kind: $kind, enabled: $enabled)';
+}
+
+class _FailingAudioTrack extends LocalAudioTrack {
+  final Object error;
+  int startAttempts = 0;
+
+  _FailingAudioTrack(this.error)
+    : super(
+        TrackSource.microphone,
+        _FakeMediaStream('local_stream'),
+        _FakeMediaStreamTrack(id: 'local_audio', kind: 'audio'),
+        const AudioCaptureOptions(),
+      );
+
+  @override
+  Future<void> startCapture() async {
+    startAttempts++;
+    throw error;
+  }
 }
