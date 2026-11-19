@@ -1,1 +1,0 @@
-patch type="fixed" "A data stream send completes once its packets are handed to the data channel, so a failed send throws and a large send no longer buffers the whole payload in memory"
