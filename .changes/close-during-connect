@@ -1,0 +1,1 @@
+patch type="fixed" "A room disconnected or disposed while a full reconnect was opening its new connection no longer joins the room again as a ghost participant"
