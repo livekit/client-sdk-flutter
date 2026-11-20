@@ -72,37 +72,39 @@ void main() {
     ),
   );
 
-  for (final fast in [false, true]) {
-    test('ordinary audio publication overlaps SDP only with codecs ($fast)', () async {
-      final join = joinResponse.deepCopy();
-      join.join.fastPublish = fast;
-      if (fast) {
-        join.join.enabledPublishCodecs.add(lk_models.Codec(mime: 'audio/opus'));
-      }
-      await container.connectRoom(joinResponseOverride: join);
-      final track = await LocalAudioTrack.create();
-      final requestSeen = Completer<lk_rtc.AddTrackRequest>();
-      container.wsConnector.onSend = (data) {
-        final request = lk_rtc.SignalRequest.fromBuffer(data);
-        if (request.hasAddTrack() && !requestSeen.isCompleted) requestSeen.complete(request.addTrack);
-      };
-      var completed = false;
-      final publication = container.room.localParticipant!.publishAudioTrack(track).then((pub) {
-        completed = true;
-        return pub;
+  for (final warmUp in [false, true]) {
+    for (final fast in [false, true]) {
+      test('publication overlap follows codecs ($fast), independently of warm-up ($warmUp)', () async {
+        final join = joinResponse.deepCopy();
+        join.join.fastPublish = warmUp;
+        if (fast) {
+          join.join.enabledPublishCodecs.add(lk_models.Codec(mime: 'audio/opus'));
+        }
+        await container.connectRoom(joinResponseOverride: join);
+        final track = await LocalAudioTrack.create();
+        final requestSeen = Completer<lk_rtc.AddTrackRequest>();
+        container.wsConnector.onSend = (data) {
+          final request = lk_rtc.SignalRequest.fromBuffer(data);
+          if (request.hasAddTrack() && !requestSeen.isCompleted) requestSeen.complete(request.addTrack);
+        };
+        var completed = false;
+        final publication = container.room.localParticipant!.publishAudioTrack(track).then((pub) {
+          completed = true;
+          return pub;
+        });
+        final request = await requestSeen.future.timeout(const Duration(seconds: 2));
+        if (fast) {
+          await waitUntil(() => track.transceiver != null);
+        }
+        expect(completed, isFalse, reason: 'publication must wait for server acceptance');
+        expect(track.transceiver != null, fast);
+        expect(container.room.localParticipant!.trackPublications, isEmpty);
+        container.wsConnector.onData(accepted(request.cid).writeToBuffer());
+        expect((await publication).sid, 'TR_accepted');
+        expect(track.transceiver, isNotNull);
+        expect(container.room.localParticipant!.trackPublications.length, 1);
       });
-      final request = await requestSeen.future.timeout(const Duration(seconds: 2));
-      if (fast) {
-        await waitUntil(() => track.transceiver != null);
-      }
-      expect(completed, isFalse, reason: 'publication must wait for server acceptance');
-      expect(track.transceiver != null, fast);
-      expect(container.room.localParticipant!.trackPublications, isEmpty);
-      container.wsConnector.onData(accepted(request.cid).writeToBuffer());
-      expect((await publication).sid, 'TR_accepted');
-      expect(track.transceiver, isNotNull);
-      expect(container.room.localParticipant!.trackPublications.length, 1);
-    });
+    }
   }
 
   test('immediate acknowledgment is retained by the registered waiter', () async {

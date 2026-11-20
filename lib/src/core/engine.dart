@@ -1607,9 +1607,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await _createPeerConnections(rtcConfiguration);
       }
 
+      // Codec support permits overlap independently of the publisher warm-up hint.
+      _enabledPublishCodecs = event.response.enabledPublishCodecs;
       if (!_subscriberPrimary || event.response.fastPublish) {
-        _enabledPublishCodecs = event.response.enabledPublishCodecs;
-
         /// for subscriberPrimary, we negotiate when necessary (lazy)
         /// and if `response.fastPublish == true`, we need to negotiate
         /// immediately
