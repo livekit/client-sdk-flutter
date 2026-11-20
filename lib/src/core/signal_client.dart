@@ -46,10 +46,12 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
   // Id of the socket whose callbacks are honored. connect() gives each new
   // socket the next id, and cleanUp() advances it too so the socket it disposes
-  // stops being current. A real socket reports its close a few milliseconds
-  // after dispose() returns, and that report used to be attributed to whatever
-  // connection was current by then, clobbering its state and starting a
-  // reconnect against a healthy socket.
+  // stops being current. A real socket reports its close after dispose()
+  // returns, a few milliseconds later on a good path but seconds later in a
+  // browser when the server keeps TCP open after the close handshake. That
+  // report used to be attributed to whatever connection was current by then,
+  // clobbering its state and starting a reconnect against a healthy socket,
+  // over and over when every reconnect replaced the socket again.
   int _socketId = 0;
   LiveKitWebSocket? _ws;
 
