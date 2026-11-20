@@ -43,6 +43,8 @@ class MockWebSocketConnector {
   /// Every message the SDK sent over any socket this connector opened.
   final List<List<int>> sentData = [];
 
+  void Function(List<int> data)? onSend;
+
   WebSocketOnData get onData => handlers!.onData!;
 
   WebSocketOnDispose get onDispose => handlers!.onDispose!;
@@ -70,6 +72,9 @@ class MockWebSocketConnector {
     }
 
     handlers = options;
-    return MockWebSocket(sentData.add);
+    return MockWebSocket((data) {
+      sentData.add(data);
+      onSend?.call(data);
+    });
   }
 }
