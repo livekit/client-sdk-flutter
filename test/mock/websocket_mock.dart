@@ -1,8 +1,3 @@
-import 'dart:async';
-
-import 'package:livekit_client/src/options.dart';
-import 'package:livekit_client/src/support/websocket.dart';
-
 // Copyright 2024 LiveKit, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +12,24 @@ import 'package:livekit_client/src/support/websocket.dart';
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
+import 'package:livekit_client/src/options.dart';
+import 'package:livekit_client/src/support/websocket.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
   /// Like the real sockets, the close is reported to the SDK after dispose()
   /// has returned, [closeLatency] later.
-  MockWebSocket(WebSocketEventHandlers? options, Duration closeLatency) {
+  MockWebSocket(WebSocketEventHandlers? options, Duration closeLatency, [this.onSend]) {
     onDispose(() async {
       unawaited(Future<void>.delayed(closeLatency, () => options?.onDispose?.call()));
     });
   }
 
+  final void Function(List<int> data)? onSend;
+
   @override
-  void send(List<int> data) {}
+  void send(List<int> data) => onSend?.call(data);
 }
 
 class MockWebSocketConnector {
@@ -40,6 +41,18 @@ class MockWebSocketConnector {
 
   /// Delay between the SDK disposing a socket and that socket reporting its close.
   Duration closeLatency = Duration.zero;
+
+  /// When true, [connectError] is thrown once and then cleared, so the next
+  /// connect succeeds. Models a first attempt that fails and a retry that gets
+  /// through.
+  bool connectErrorOnce = false;
+
+  /// When set, a connect waits for it before it answers. Models a socket
+  /// handshake that is still in flight.
+  Future<void>? connectGate;
+
+  /// Every message the SDK sent over any socket this connector opened.
+  final List<List<int>> sentData = [];
 
   WebSocketOnData get onData => handlers!.onData!;
 
@@ -57,12 +70,17 @@ class MockWebSocketConnector {
     this.headers = headers;
     this.networkOptions = networkOptions;
 
+    await connectGate;
+
     final error = connectError;
     if (error != null) {
+      if (connectErrorOnce) {
+        connectError = null;
+      }
       throw error;
     }
 
     handlers = options;
-    return MockWebSocket(options, closeLatency);
+    return MockWebSocket(options, closeLatency, sentData.add);
   }
 }

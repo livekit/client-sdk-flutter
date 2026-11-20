@@ -150,7 +150,7 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       reconnectReason: reconnectReason,
     );
 
-    logger.fine('SignalClient connecting with url: $rtcUri');
+    logger.fine('SignalClient connecting with url: ${rtcUri.redactingAccessToken}');
 
     try {
       if (reconnect == true) {

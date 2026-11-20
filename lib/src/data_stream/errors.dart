@@ -1,8 +1,12 @@
+import '../exceptions.dart';
+
 enum DataStreamErrorReason {
   // Unable to open a stream with the same ID more than once.
   AlreadyOpened,
 
-  // Stream closed abnormally by remote participant.
+  // Stream ended before completing: the sender disconnected mid-stream, the local room was
+  // disconnected or disposed, or sending or receiving failed. Also used for failures that map to no
+  // more specific reason.
   AbnormalEnd,
 
   // Incoming chunk data could not be decoded.
@@ -19,10 +23,14 @@ enum DataStreamErrorReason {
 
   // Encryption type mismatch.
   EncryptionTypeMismatch,
+
+  // The stream was already closed by this side.
+  AlreadyClosed,
 }
 
-class DataStreamError implements Exception {
+class DataStreamError implements LiveKitException {
   final DataStreamErrorReason reason;
+  @override
   final String message;
 
   DataStreamError({required this.reason, required this.message});
