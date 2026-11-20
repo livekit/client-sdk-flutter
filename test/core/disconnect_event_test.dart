@@ -15,15 +15,19 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
+import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
 import 'package:livekit_client/src/types/internal.dart';
 import '../mock/e2e_container.dart';
+import '../mock/peerconnection_mock.dart';
 
 const exampleUri = 'ws://www.example.com';
 const token = 'token';
@@ -133,32 +137,31 @@ void main() {
 
     expect(container.room.connectionState, ConnectionState.disconnected);
     expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+    expect(_leavesSent(container), 1);
   });
 
   test('disconnect with a leave echo followed by the socket close emits exactly one disconnected event', () async {
     await container.connectRoom();
     final disconnectedEvents = <RoomDisconnectedEvent>[];
     container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+    final engineDisconnects = <EngineDisconnectedEvent>[];
+    final engineListener = container.engine.createListener()..on<EngineDisconnectedEvent>(engineDisconnects.add);
 
     final disconnecting = container.room.disconnect();
     await Future<void>.delayed(const Duration(milliseconds: 10));
-    container.wsConnector.onData(
-      lk_rtc.SignalResponse(
-        leave: lk_rtc.LeaveRequest(
-          action: lk_rtc.LeaveRequest_Action.DISCONNECT,
-          reason: lk_models.DisconnectReason.CLIENT_INITIATED,
-        ),
-      ).writeToBuffer(),
-    );
+    container.wsConnector.onData(_leave(lk_rtc.LeaveRequest_Action.DISCONNECT));
     await Future<void>.delayed(const Duration(milliseconds: 10));
     // the real socket reports its close after the SDK disposed it
     container.wsConnector.onDispose();
 
     await disconnecting.timeout(const Duration(seconds: 2));
     await Future<void>.delayed(const Duration(milliseconds: 50));
+    await engineListener.dispose();
 
     expect(container.room.connectionState, ConnectionState.disconnected);
     expect(disconnectedEvents, hasLength(1));
+    expect(engineDisconnects, hasLength(1));
+    expect(_leavesSent(container), 1);
   });
 
   test('disconnect returns with the room torn down, without waiting on the server', () async {
@@ -173,8 +176,26 @@ void main() {
     expect(container.engine.publisher, isNull);
     expect(container.engine.subscriber, isNull);
     expect(container.room.localParticipant, isNull);
+    expect(_leavesSent(container), 1);
     await Future<void>.delayed(const Duration(milliseconds: 50));
     expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+  });
+
+  test('overlapping disconnect calls share one teardown', () async {
+    await container.connectRoom();
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+    final first = container.room.disconnect();
+    final second = container.room.disconnect();
+    await Future.wait([first, second]).timeout(const Duration(seconds: 2));
+
+    // both callers come back only once the teardown is done
+    expect(container.room.localParticipant, isNull);
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(disconnectedEvents, hasLength(1));
+    expect(_leavesSent(container), 1);
   });
 
   test('connect again to the same room right after disconnect returns', () async {
@@ -200,23 +221,83 @@ void main() {
   test('a connect started from the disconnected event survives the old teardown', () async {
     // an app that rejoins as soon as it hears it was disconnected
     await container.connectRoom();
-    Future<Object?>? rejoin;
+    var tornDownWhenReported = false;
+    final rejoin = Completer<Object?>();
     final listener = container.room.createListener();
     listener.once<RoomDisconnectedEvent>((_) {
-      rejoin = container.connectRoom().then<Object?>((_) => null, onError: (Object e) => e);
+      // the event comes after the teardown, never in the middle of it
+      tornDownWhenReported = container.room.localParticipant == null && container.engine.publisher == null;
+      rejoin.complete(container.connectRoom().then<Object?>((_) => null, onError: (Object e) => e));
     });
 
     await container.room.disconnect();
-    final deadline = DateTime.now().add(const Duration(seconds: 2));
-    while (rejoin == null && DateTime.now().isBefore(deadline)) {
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-    }
-    expect(rejoin, isNotNull, reason: 'the disconnected event must reach the app');
-    expect(await rejoin, isNull, reason: 'the rejoin must not fail');
+    final rejoinError = await rejoin.future.timeout(
+      const Duration(seconds: 2),
+      onTimeout: () => fail('the disconnected event must reach the app'),
+    );
+    expect(tornDownWhenReported, isTrue);
+    expect(rejoinError, isNull, reason: 'the rejoin must not fail');
     await Future<void>.delayed(const Duration(milliseconds: 50));
 
     expect(container.room.connectionState, ConnectionState.connected);
     expect(container.room.localParticipant, isNotNull);
+
+    // and the rejoined session tears down on its own disconnect
+    await container.room.disconnect().timeout(const Duration(seconds: 2));
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(container.room.localParticipant, isNull);
     await listener.dispose();
   });
+
+  test('a failing teardown step still reports the disconnect and tears down the rest', () async {
+    final failing = E2EContainer(
+      createEngine: (client, roomOptions) => _CleanUpFailsEngine(
+        connectOptions: const ConnectOptions(),
+        roomOptions: roomOptions,
+        signalClient: client,
+        peerConnectionCreate: MockPeerConnection.create,
+      ),
+    );
+    final engine = failing.engine as _CleanUpFailsEngine;
+    try {
+      await failing.connectRoom();
+      final disconnectedEvents = <RoomDisconnectedEvent>[];
+      failing.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+
+      engine.failCleanUp = true;
+      await expectLater(failing.room.disconnect(), throwsA(isA<StateError>()));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
+      expect(failing.room.localParticipant, isNull, reason: "the room's cleanup runs after the engine's failed");
+    } finally {
+      engine.failCleanUp = false;
+      await failing.dispose();
+    }
+  });
+}
+
+List<int> _leave(lk_rtc.LeaveRequest_Action action) => lk_rtc.SignalResponse(
+  leave: lk_rtc.LeaveRequest(action: action, reason: lk_models.DisconnectReason.CLIENT_INITIATED),
+).writeToBuffer();
+
+/// How many Leave requests the SDK sent over any socket.
+int _leavesSent(E2EContainer container) =>
+    container.wsConnector.sentData.where((data) => lk_rtc.SignalRequest.fromBuffer(data).hasLeave()).length;
+
+class _CleanUpFailsEngine extends Engine {
+  _CleanUpFailsEngine({
+    required super.connectOptions,
+    required super.roomOptions,
+    super.signalClient,
+    super.peerConnectionCreate,
+  });
+
+  bool failCleanUp = false;
+
+  @override
+  Future<void> cleanUp() async {
+    await super.cleanUp();
+    if (failCleanUp) throw StateError('engine cleanUp failed');
+  }
 }

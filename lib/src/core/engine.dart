@@ -1647,7 +1647,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
-      // after disconnect() the close is ours, cleanUp() already ran
+      // disconnect() marks the engine closed before it tears anything down,
+      // so a close that arrives during that teardown starts no reconnect
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleReconnect(
           ClientDisconnectReason.signal,
