@@ -14,37 +14,26 @@
 
 import 'dart:collection';
 
+import 'package:collection/collection.dart';
+
 import '../participant/participant.dart';
 
-/// Small helper to keep participant lookups by identity and sid in sync.
+/// Small helper for participant lookups by identity and sid.
 class ParticipantCollection<T extends Participant> extends IterableBase<T> {
   final Map<String, T> _byIdentity = {};
-  final Map<String, T> _bySid = {};
 
-  // Read-only views of the collections
   UnmodifiableMapView<String, T> get byIdentity => UnmodifiableMapView(_byIdentity);
-  UnmodifiableMapView<String, T> get bySid => UnmodifiableMapView(_bySid);
 
-  // Update methods
-  void set(T participant) {
-    _byIdentity[participant.identity] = participant;
-    _bySid[participant.sid] = participant;
-  }
+  // Searches by each participant's current sid. A takeover changes the sid in place, so a sid index would go stale.
+  T? findBySid(String sid) => _byIdentity.values.firstWhereOrNull((participant) => participant.sid == sid);
 
-  // Contains methods
+  void set(T participant) => _byIdentity[participant.identity] = participant;
+
   bool containsIdentity(String identity) => _byIdentity.containsKey(identity);
-  bool containsSid(String sid) => _bySid.containsKey(sid);
 
-  void clear() {
-    _byIdentity.clear();
-    _bySid.clear();
-  }
+  void clear() => _byIdentity.clear();
 
-  T? removeByIdentity(String identity) {
-    final participant = _byIdentity.remove(identity);
-    if (participant == null) return null;
-    return _bySid.remove(participant.sid);
-  }
+  T? removeByIdentity(String identity) => _byIdentity.remove(identity);
 
   @override
   Iterator<T> get iterator => _byIdentity.values.iterator;

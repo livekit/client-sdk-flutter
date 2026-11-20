@@ -49,8 +49,43 @@ class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
   }
 }
 
+/// A peer connection whose remote description takes a while to read, the way
+/// a platform call does when the native side is busy.
+class _SlowRemoteDescriptionPeerConnection extends MockPeerConnection {
+  @override
+  Future<rtc.RTCSessionDescription?> getRemoteDescription() async {
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    return super.getRemoteDescription();
+  }
+}
+
 void main() {
   group('Transport.negotiate', () {
+    test('sends an offer that was requested while the answer to the previous one is applied', () async {
+      final pc = _SlowRemoteDescriptionPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = offers.add;
+
+      // The first track is offered and waits for its answer.
+      await transport.createAndSendOffer();
+      expect(offers, hasLength(1));
+
+      // A second track asks for an offer while the first one is still pending,
+      // and the answer lands before that request has finished deciding to wait.
+      final second = transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0', 'answer'));
+      await second;
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(offers, hasLength(2), reason: 'the second track was never offered');
+      expect(transport.renegotiate, isFalse);
+    });
+
     test('reports a failed offer to onNegotiationError instead of leaking an unhandled error', () async {
       final uncaught = <Object>[];
       final reported = Completer<Object>();
@@ -135,6 +170,63 @@ void main() {
       transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
 
       await expectLater(transport.createAndSendOffer(), throwsA(isA<NegotiationError>()));
+    });
+  });
+
+  group('Transport.setRemoteDescription duplicate answers', () {
+    Future<(Transport, MockPeerConnection)> makeTransport() async {
+      final pc = MockPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      transport.onOffer = (_) {};
+      return (transport, pc);
+    }
+
+    test('ignores a second copy of an answer that was already applied', () async {
+      final (transport, pc) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer);
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nfirst', 'answer'));
+      expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateStable);
+
+      // A proxy (or a server retry) can deliver a second copy of the answer that
+      // was already applied. There is no local offer left to answer, so applying
+      // it again is invalid. The payload differs only so the test can tell.
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nduplicate', 'answer'));
+
+      final remote = await pc.getRemoteDescription();
+      expect(
+        remote?.sdp,
+        'v=0\r\nfirst',
+        reason: 'duplicate answer was applied to the peer connection',
+      );
+    });
+
+    test('still applies the answer to a pending offer', () async {
+      final (transport, pc) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer);
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nwanted', 'answer'));
+
+      final remote = await pc.getRemoteDescription();
+      expect(remote?.sdp, 'v=0\r\nwanted');
+    });
+
+    test('still applies a remote offer while in stable', () async {
+      final (transport, pc) = await makeTransport();
+
+      // Only answers are gated; a remote offer in stable is normal subscriber traffic.
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nremote-offer', 'offer'));
+
+      final remote = await pc.getRemoteDescription();
+      expect(remote?.sdp, 'v=0\r\nremote-offer');
     });
   });
 }

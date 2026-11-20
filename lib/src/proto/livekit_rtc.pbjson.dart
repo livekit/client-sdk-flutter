@@ -41,6 +41,22 @@ const StreamState$json = {
 final $typed_data.Uint8List streamStateDescriptor =
     $convert.base64Decode('CgtTdHJlYW1TdGF0ZRIKCgZBQ1RJVkUQABIKCgZQQVVTRUQQAQ==');
 
+@$core.Deprecated('Use negotiatedDataChannelIDDescriptor instead')
+const NegotiatedDataChannelID$json = {
+  '1': 'NegotiatedDataChannelID',
+  '2': [
+    {'1': 'NDCI_INVALID', '2': 0},
+    {'1': 'NDCI_RELIABLE', '2': 100},
+    {'1': 'NDCI_LOSSY', '2': 101},
+    {'1': 'NDCI_DATA_TRACK', '2': 102},
+  ],
+};
+
+/// Descriptor for `NegotiatedDataChannelID`. Decode as a `google.protobuf.EnumDescriptorProto`.
+final $typed_data.Uint8List negotiatedDataChannelIDDescriptor =
+    $convert.base64Decode('ChdOZWdvdGlhdGVkRGF0YUNoYW5uZWxJRBIQCgxORENJX0lOVkFMSUQQABIRCg1ORENJX1JFTE'
+        'lBQkxFEGQSDgoKTkRDSV9MT1NTWRBlEhMKD05EQ0lfREFUQV9UUkFDSxBm');
+
 @$core.Deprecated('Use candidateProtocolDescriptor instead')
 const CandidateProtocol$json = {
   '1': 'CandidateProtocol',
@@ -265,7 +281,7 @@ const SignalResponse$json = {
       '9': 0,
       '10': 'subscriptionPermissionUpdate'
     },
-    {'1': 'refresh_token', '3': 16, '4': 1, '5': 9, '9': 0, '10': 'refreshToken'},
+    {'1': 'refresh_token', '3': 16, '4': 1, '5': 9, '8': {}, '9': 0, '10': 'refreshToken'},
     {
       '1': 'track_unpublished',
       '3': 17,
@@ -394,29 +410,29 @@ final $typed_data.Uint8List signalResponseDescriptor =
         'ZWtpdC5TdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZUgAUhdzdWJzY3JpYmVkUXVhbGl0eVVwZGF0ZR'
         'JtCh5zdWJzY3JpcHRpb25fcGVybWlzc2lvbl91cGRhdGUYDyABKAsyJS5saXZla2l0LlN1YnNj'
         'cmlwdGlvblBlcm1pc3Npb25VcGRhdGVIAFIcc3Vic2NyaXB0aW9uUGVybWlzc2lvblVwZGF0ZR'
-        'IlCg1yZWZyZXNoX3Rva2VuGBAgASgJSABSDHJlZnJlc2hUb2tlbhJQChF0cmFja191bnB1Ymxp'
-        'c2hlZBgRIAEoCzIhLmxpdmVraXQuVHJhY2tVbnB1Ymxpc2hlZFJlc3BvbnNlSABSEHRyYWNrVW'
-        '5wdWJsaXNoZWQSFAoEcG9uZxgSIAEoA0gAUgRwb25nEjoKCXJlY29ubmVjdBgTIAEoCzIaLmxp'
-        'dmVraXQuUmVjb25uZWN0UmVzcG9uc2VIAFIJcmVjb25uZWN0EiwKCXBvbmdfcmVzcBgUIAEoCz'
-        'INLmxpdmVraXQuUG9uZ0gAUghwb25nUmVzcBJUChVzdWJzY3JpcHRpb25fcmVzcG9uc2UYFSAB'
-        'KAsyHS5saXZla2l0LlN1YnNjcmlwdGlvblJlc3BvbnNlSABSFHN1YnNjcmlwdGlvblJlc3Bvbn'
-        'NlEkUKEHJlcXVlc3RfcmVzcG9uc2UYFiABKAsyGC5saXZla2l0LlJlcXVlc3RSZXNwb25zZUgA'
-        'Ug9yZXF1ZXN0UmVzcG9uc2USRQoQdHJhY2tfc3Vic2NyaWJlZBgXIAEoCzIYLmxpdmVraXQuVH'
-        'JhY2tTdWJzY3JpYmVkSABSD3RyYWNrU3Vic2NyaWJlZBI7Cgpyb29tX21vdmVkGBggASgLMhou'
-        'bGl2ZWtpdC5Sb29tTW92ZWRSZXNwb25zZUgAUglyb29tTW92ZWQSYQoabWVkaWFfc2VjdGlvbn'
-        'NfcmVxdWlyZW1lbnQYGSABKAsyIS5saXZla2l0Lk1lZGlhU2VjdGlvbnNSZXF1aXJlbWVudEgA'
-        'UhhtZWRpYVNlY3Rpb25zUmVxdWlyZW1lbnQSaAodc3Vic2NyaWJlZF9hdWRpb19jb2RlY191cG'
-        'RhdGUYGiABKAsyIy5saXZla2l0LlN1YnNjcmliZWRBdWRpb0NvZGVjVXBkYXRlSABSGnN1YnNj'
-        'cmliZWRBdWRpb0NvZGVjVXBkYXRlEmIKG3B1Ymxpc2hfZGF0YV90cmFja19yZXNwb25zZRgbIA'
-        'EoCzIhLmxpdmVraXQuUHVibGlzaERhdGFUcmFja1Jlc3BvbnNlSABSGHB1Ymxpc2hEYXRhVHJh'
-        'Y2tSZXNwb25zZRJoCh11bnB1Ymxpc2hfZGF0YV90cmFja19yZXNwb25zZRgcIAEoCzIjLmxpdm'
-        'VraXQuVW5wdWJsaXNoRGF0YVRyYWNrUmVzcG9uc2VIAFIadW5wdWJsaXNoRGF0YVRyYWNrUmVz'
-        'cG9uc2USaAodZGF0YV90cmFja19zdWJzY3JpYmVyX2hhbmRsZXMYHSABKAsyIy5saXZla2l0Lk'
-        'RhdGFUcmFja1N1YnNjcmliZXJIYW5kbGVzSABSGmRhdGFUcmFja1N1YnNjcmliZXJIYW5kbGVz'
-        'ElkKGHN0b3JlX2RhdGFfYmxvYl9yZXNwb25zZRgeIAEoCzIeLmxpdmVraXQuU3RvcmVEYXRhQm'
-        'xvYlJlc3BvbnNlSABSFXN0b3JlRGF0YUJsb2JSZXNwb25zZRJTChZnZXRfZGF0YV9ibG9iX3Jl'
-        'c3BvbnNlGB8gASgLMhwubGl2ZWtpdC5HZXREYXRhQmxvYlJlc3BvbnNlSABSE2dldERhdGFCbG'
-        '9iUmVzcG9uc2VCCQoHbWVzc2FnZQ==');
+        'IqCg1yZWZyZXNoX3Rva2VuGBAgASgJQgPAUAJIAFIMcmVmcmVzaFRva2VuElAKEXRyYWNrX3Vu'
+        'cHVibGlzaGVkGBEgASgLMiEubGl2ZWtpdC5UcmFja1VucHVibGlzaGVkUmVzcG9uc2VIAFIQdH'
+        'JhY2tVbnB1Ymxpc2hlZBIUCgRwb25nGBIgASgDSABSBHBvbmcSOgoJcmVjb25uZWN0GBMgASgL'
+        'MhoubGl2ZWtpdC5SZWNvbm5lY3RSZXNwb25zZUgAUglyZWNvbm5lY3QSLAoJcG9uZ19yZXNwGB'
+        'QgASgLMg0ubGl2ZWtpdC5Qb25nSABSCHBvbmdSZXNwElQKFXN1YnNjcmlwdGlvbl9yZXNwb25z'
+        'ZRgVIAEoCzIdLmxpdmVraXQuU3Vic2NyaXB0aW9uUmVzcG9uc2VIAFIUc3Vic2NyaXB0aW9uUm'
+        'VzcG9uc2USRQoQcmVxdWVzdF9yZXNwb25zZRgWIAEoCzIYLmxpdmVraXQuUmVxdWVzdFJlc3Bv'
+        'bnNlSABSD3JlcXVlc3RSZXNwb25zZRJFChB0cmFja19zdWJzY3JpYmVkGBcgASgLMhgubGl2ZW'
+        'tpdC5UcmFja1N1YnNjcmliZWRIAFIPdHJhY2tTdWJzY3JpYmVkEjsKCnJvb21fbW92ZWQYGCAB'
+        'KAsyGi5saXZla2l0LlJvb21Nb3ZlZFJlc3BvbnNlSABSCXJvb21Nb3ZlZBJhChptZWRpYV9zZW'
+        'N0aW9uc19yZXF1aXJlbWVudBgZIAEoCzIhLmxpdmVraXQuTWVkaWFTZWN0aW9uc1JlcXVpcmVt'
+        'ZW50SABSGG1lZGlhU2VjdGlvbnNSZXF1aXJlbWVudBJoCh1zdWJzY3JpYmVkX2F1ZGlvX2NvZG'
+        'VjX3VwZGF0ZRgaIAEoCzIjLmxpdmVraXQuU3Vic2NyaWJlZEF1ZGlvQ29kZWNVcGRhdGVIAFIa'
+        'c3Vic2NyaWJlZEF1ZGlvQ29kZWNVcGRhdGUSYgobcHVibGlzaF9kYXRhX3RyYWNrX3Jlc3Bvbn'
+        'NlGBsgASgLMiEubGl2ZWtpdC5QdWJsaXNoRGF0YVRyYWNrUmVzcG9uc2VIAFIYcHVibGlzaERh'
+        'dGFUcmFja1Jlc3BvbnNlEmgKHXVucHVibGlzaF9kYXRhX3RyYWNrX3Jlc3BvbnNlGBwgASgLMi'
+        'MubGl2ZWtpdC5VbnB1Ymxpc2hEYXRhVHJhY2tSZXNwb25zZUgAUhp1bnB1Ymxpc2hEYXRhVHJh'
+        'Y2tSZXNwb25zZRJoCh1kYXRhX3RyYWNrX3N1YnNjcmliZXJfaGFuZGxlcxgdIAEoCzIjLmxpdm'
+        'VraXQuRGF0YVRyYWNrU3Vic2NyaWJlckhhbmRsZXNIAFIaZGF0YVRyYWNrU3Vic2NyaWJlckhh'
+        'bmRsZXMSWQoYc3RvcmVfZGF0YV9ibG9iX3Jlc3BvbnNlGB4gASgLMh4ubGl2ZWtpdC5TdG9yZU'
+        'RhdGFCbG9iUmVzcG9uc2VIAFIVc3RvcmVEYXRhQmxvYlJlc3BvbnNlElMKFmdldF9kYXRhX2Js'
+        'b2JfcmVzcG9uc2UYHyABKAsyHC5saXZla2l0LkdldERhdGFCbG9iUmVzcG9uc2VIAFITZ2V0RG'
+        'F0YUJsb2JSZXNwb25zZUIJCgdtZXNzYWdl');
 
 @$core.Deprecated('Use simulcastCodecDescriptor instead')
 const SimulcastCodec$json = {
@@ -1275,7 +1291,7 @@ const RoomMovedResponse$json = {
   '1': 'RoomMovedResponse',
   '2': [
     {'1': 'room', '3': 1, '4': 1, '5': 11, '6': '.livekit.Room', '10': 'room'},
-    {'1': 'token', '3': 2, '4': 1, '5': 9, '10': 'token'},
+    {'1': 'token', '3': 2, '4': 1, '5': 9, '8': {}, '10': 'token'},
     {'1': 'participant', '3': 3, '4': 1, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'participant'},
     {'1': 'other_participants', '3': 4, '4': 3, '5': 11, '6': '.livekit.ParticipantInfo', '10': 'otherParticipants'},
   ],
@@ -1284,9 +1300,9 @@ const RoomMovedResponse$json = {
 /// Descriptor for `RoomMovedResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List roomMovedResponseDescriptor =
     $convert.base64Decode('ChFSb29tTW92ZWRSZXNwb25zZRIhCgRyb29tGAEgASgLMg0ubGl2ZWtpdC5Sb29tUgRyb29tEh'
-        'QKBXRva2VuGAIgASgJUgV0b2tlbhI6CgtwYXJ0aWNpcGFudBgDIAEoCzIYLmxpdmVraXQuUGFy'
-        'dGljaXBhbnRJbmZvUgtwYXJ0aWNpcGFudBJHChJvdGhlcl9wYXJ0aWNpcGFudHMYBCADKAsyGC'
-        '5saXZla2l0LlBhcnRpY2lwYW50SW5mb1IRb3RoZXJQYXJ0aWNpcGFudHM=');
+        'kKBXRva2VuGAIgASgJQgPAUAJSBXRva2VuEjoKC3BhcnRpY2lwYW50GAMgASgLMhgubGl2ZWtp'
+        'dC5QYXJ0aWNpcGFudEluZm9SC3BhcnRpY2lwYW50EkcKEm90aGVyX3BhcnRpY2lwYW50cxgEIA'
+        'MoCzIYLmxpdmVraXQuUGFydGljaXBhbnRJbmZvUhFvdGhlclBhcnRpY2lwYW50cw==');
 
 @$core.Deprecated('Use syncStateDescriptor instead')
 const SyncState$json = {
