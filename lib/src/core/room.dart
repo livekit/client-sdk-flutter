@@ -130,8 +130,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
 
-  // true while disconnect() is tearing the room down itself
-  bool _disconnecting = false;
+  // The teardown disconnect() is running, shared by calls that overlap it.
+  Future<void>? _disconnectInFlight;
   //
   late EventsListener<SignalEvent> _signalListener;
 
@@ -699,7 +699,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     })
     ..on<EngineDisconnectedEvent>((event) async {
       // disconnect() tears down and reports the disconnect it started itself
-      if (_disconnecting) return;
+      if (_disconnectInFlight != null) return;
       // Suppress while a full reconnect is either pending or running — the
       // engine is going to re-establish the session, this is not a real
       // disconnect. Both flags are needed since the attempt consumes the
@@ -828,26 +828,38 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     });
 
-  /// Disconnects from the room, notifying server of disconnection.
-  /// Leaves the room. Returns once the engine and the room are torn down, so
-  /// connect() may be called again immediately. Nothing here waits on the
-  /// server, the Leave request is best effort.
-  Future<void> disconnect() async {
+  /// Leaves the room. Sends a best effort Leave request and returns once the
+  /// engine and the room are torn down, without waiting on the server, so
+  /// connect() may be called again immediately. Calls that overlap share one
+  /// teardown.
+  Future<void> disconnect() {
+    final inFlight = _disconnectInFlight;
+    if (inFlight != null) return inFlight;
     if (engine.isClosed && !engine.isPendingReconnect && engine.connectionState == ConnectionState.disconnected) {
       logger.warning('Engine is already closed');
-      return;
+      return Future.value();
     }
-    _disconnecting = true;
+    return _disconnectInFlight = _tearDown();
+  }
+
+  Future<void> _tearDown() async {
     try {
-      await engine.disconnect();
-      await _cleanUp();
+      // The room's own cleanup runs even when the engine teardown fails.
+      try {
+        await engine.disconnect();
+      } finally {
+        await _cleanUp();
+      }
     } finally {
-      _disconnecting = false;
+      // Released before reporting, so a disconnect() made after a rejoin from
+      // this event gets a teardown of its own.
+      _disconnectInFlight = null;
+      // Reported once the room is torn down, also when a step failed, so a
+      // listener that connects again on this event cannot have its new
+      // session cleared by the teardown.
+      events.emit(RoomDisconnectedEvent(reason: DisconnectReason.clientInitiated));
+      notifyListeners();
     }
-    // Reported only once the room is torn down, so a listener that connects
-    // again on this event cannot have its new session cleared by the teardown.
-    events.emit(RoomDisconnectedEvent(reason: DisconnectReason.clientInitiated));
-    notifyListeners();
   }
 
   Future<void> setE2EEEnabled(bool enabled) async {

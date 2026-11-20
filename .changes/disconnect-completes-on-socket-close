@@ -1,1 +1,1 @@
-patch type="fixed" "disconnect() tears the room down locally after sending the Leave instead of waiting for the server to echo it, so it no longer stalls 10 s when the echo is lost"
+patch type="fixed" "disconnect() tears the room down locally after sending the Leave instead of waiting for the server to echo it, so it no longer stalls 10 s when the echo is lost. Overlapping disconnect() calls share one teardown and report one disconnect"
