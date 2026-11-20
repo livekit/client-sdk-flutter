@@ -44,8 +44,7 @@ class ReconnectCheck extends Checker {
       });
 
     try {
-      // Forcefully close the underlying signal WebSocket; the engine should
-      // notice and resume the session on its own.
+      // Simulate a signal loss and wait for the room to resume.
       await engine.signalClient.simulateSignalDrop();
 
       await reconnectCompleter.future.timeout(

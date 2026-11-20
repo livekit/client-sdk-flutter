@@ -15,14 +15,21 @@
 @Timeout(Duration(seconds: 10))
 library;
 
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/connection_check/checks/reconnect.dart';
+import 'package:livekit_client/src/core/signal_client.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
 import '../mock/e2e_container.dart';
+import '../mock/websocket_mock.dart';
+
+const exampleUri = 'ws://www.example.com';
+const token = 'token';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -39,17 +46,18 @@ void main() {
 
   test('a close reported by a replaced socket does not disturb the next connection', () async {
     // the real sockets report their close some time after dispose()
-    container.wsConnector.closeLatency = const Duration(milliseconds: 50);
+    container.wsConnector.holdCloses = true;
     await container.connectRoom();
     await container.room.disconnect();
 
-    // connect again before the first socket has reported its close
     final events = <RoomEvent>[];
     container.room.events.on<RoomReconnectingEvent>(events.add);
     container.room.events.on<RoomDisconnectedEvent>(events.add);
     container.room.events.on<RoomAttemptReconnectEvent>(events.add);
     await container.connectRoom();
-    await Future<void>.delayed(const Duration(milliseconds: 150));
+    // the first socket reports its close only now, with the second one up
+    container.wsConnector.releaseCloses();
+    await _settle();
 
     expect(container.room.connectionState, ConnectionState.connected);
     expect(events, isEmpty, reason: 'the stale close belongs to the old socket and must be ignored');
@@ -63,8 +71,7 @@ void main() {
       // A browser reports the close when the server drops TCP, which can be
       // seconds after the close handshake. By then the reconnect is done and
       // the new socket is current.
-      const closeLatency = Duration(milliseconds: 300);
-      container.wsConnector.closeLatency = closeLatency;
+      container.wsConnector.holdCloses = true;
       await container.connectRoom();
 
       final events = <RoomEvent>[];
@@ -72,23 +79,20 @@ void main() {
       final replaced = container.wsConnector.handlers;
 
       // the server asks for a reconnect while the socket is still open
-      container.wsConnector.onData(
-        lk_rtc.SignalResponse(
-          leave: lk_rtc.LeaveRequest(action: action, reason: lk_models.DisconnectReason.MIGRATION),
-        ).writeToBuffer(),
-      );
+      container.wsConnector.onData(_leave(action, lk_models.DisconnectReason.MIGRATION));
       await _waitForNewSocket(container, replaced);
+      final reconnected = container.room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
       if (action == lk_rtc.LeaveRequest_Action.RESUME) {
         container.wsConnector.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
       } else {
         await container.answerJoin();
       }
-      await container.room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+      await reconnected;
       final current = container.wsConnector.handlers;
 
-      // let the replaced socket report its close, and give a reconnect it
-      // might start time to open a socket
-      await Future<void>.delayed(closeLatency * 3);
+      // the replaced socket reports its close only now
+      container.wsConnector.releaseCloses();
+      await _settle();
       await sub();
 
       expect(container.room.connectionState, ConnectionState.connected);
@@ -97,10 +101,94 @@ void main() {
         isTrue,
         reason: 'the close of the replaced socket must not open another connection',
       );
+      expect(events.whereType<RoomAttemptReconnectEvent>(), hasLength(1));
       expect(events.whereType<RoomReconnectedEvent>(), hasLength(1));
       expect(events.whereType<RoomDisconnectedEvent>(), isEmpty);
     });
   }
+
+  test('data a replaced socket delivers late is ignored', () async {
+    await container.connectRoom();
+    final replaced = container.wsConnector.handlers;
+    container.wsConnector.onData(_leave(lk_rtc.LeaveRequest_Action.RESUME, lk_models.DisconnectReason.MIGRATION));
+    await _waitForNewSocket(container, replaced);
+    final reconnected = container.room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 5));
+    container.wsConnector.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    await reconnected;
+
+    final disconnected = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnected.add);
+    // the old socket still had a Leave on its way
+    replaced!.onData!(_leave(lk_rtc.LeaveRequest_Action.DISCONNECT, lk_models.DisconnectReason.CLIENT_INITIATED));
+    await _settle();
+
+    expect(container.room.connectionState, ConnectionState.connected);
+    expect(disconnected, isEmpty);
+  });
+
+  test('a connect that opens after disconnect() and a rejoin does not take over the rejoined session', () async {
+    final gate = Completer<void>();
+    container.wsConnector.connectGate = gate.future;
+    final disconnected = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnected.add);
+
+    final stale = container.room.connect(exampleUri, token).then<Object?>((_) => null, onError: (Object e) => e);
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await container.room.disconnect();
+    container.wsConnector.connectGate = null;
+    await container.connectRoom();
+    final rejoined = container.wsConnector.sockets.last;
+
+    // the first connect's socket opens only now
+    gate.complete();
+    final staleError = await stale.timeout(const Duration(seconds: 2));
+    await _settle();
+    final staleSocket = container.wsConnector.sockets.last;
+
+    expect(staleError, isA<SignalConnectSupersededException>());
+    expect(staleSocket, isNot(same(rejoined)));
+    expect(staleSocket.isDisposed, isTrue, reason: 'a socket nobody wants any more is closed');
+    expect(container.room.connectionState, ConnectionState.connected);
+    expect(disconnected, hasLength(1), reason: 'only the disconnect() the app asked for');
+
+    final before = rejoined.sent.length;
+    await container.client.sendLeave();
+    expect(rejoined.sent, hasLength(before + 1), reason: 'requests go out on the rejoined session');
+    expect(staleSocket.sent, isEmpty);
+  });
+
+  test('a cleanUp still closing the old socket leaves the next connection alone', () async {
+    // a dart:io close waits for the server to answer the close frame
+    final connector = MockWebSocketConnector()..disposeLatency = const Duration(milliseconds: 100);
+    final client = SignalClient(connector.connect);
+    Future<void> connect() =>
+        client.connect(exampleUri, token, connectOptions: const ConnectOptions(), roomOptions: const RoomOptions());
+    try {
+      await connect();
+      final closing = client.cleanUp();
+      await connect();
+      final current = connector.sockets.last;
+      await closing;
+
+      final before = current.sent.length;
+      await client.sendLeave();
+      expect(current.sent, hasLength(before + 1), reason: 'the first cleanUp() must not detach the new socket');
+    } finally {
+      await client.dispose();
+    }
+  });
+
+  test('simulating a signal drop with no signal socket does nothing', () async {
+    final events = <RoomEvent>[];
+    container.room.events.on<RoomAttemptReconnectEvent>(events.add);
+    container.room.events.on<RoomReconnectingEvent>(events.add);
+
+    await container.room.sendSimulateScenario(signalReconnect: true);
+    await _settle();
+
+    expect(events, isEmpty);
+    expect(container.wsConnector.sockets, isEmpty);
+  });
 
   test('the signalReconnect debug scenario still drops the signal and starts a reconnect', () async {
     await container.connectRoom();
@@ -109,20 +197,15 @@ void main() {
 
     await container.room.sendSimulateScenario(signalReconnect: true);
 
-    final deadline = DateTime.now().add(const Duration(seconds: 3));
-    while (!(container.wsConnector.uri?.queryParameters['reconnect'] == '1') && DateTime.now().isBefore(deadline)) {
-      await Future<void>.delayed(const Duration(milliseconds: 5));
-    }
     expect(
-      container.wsConnector.uri?.queryParameters['reconnect'],
-      '1',
+      await _resumeStarted(container),
+      isTrue,
       reason: 'the engine must re-open the signal connection as a resume',
     );
     expect(events, isNotEmpty);
   });
 
   test('the disconnectSignalOnResume debug action still starts a resume', () async {
-    // the real sockets report their close a few milliseconds after dispose()
     container.wsConnector.closeLatency = const Duration(milliseconds: 50);
     await container.connectRoom();
 
@@ -131,20 +214,27 @@ void main() {
     expect(await _resumeStarted(container), isTrue, reason: 'the server only acts on the next resume');
   });
 
-  test('the connection checker reconnect check still sees a resume', () async {
+  test('the connection checker reconnect check succeeds once the room resumes', () async {
     container.wsConnector.closeLatency = const Duration(milliseconds: 50);
     await container.connectRoom();
+    final replaced = container.wsConnector.handlers;
 
-    final check = ReconnectCheck('ws://www.example.com', 'token', room: container.room);
-    final info = await check.run();
+    final check = ReconnectCheck(exampleUri, token, room: container.room);
+    final running = check.run();
+    await _waitForNewSocket(container, replaced);
+    container.wsConnector.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    final info = await running;
 
-    expect(
-      info.logs.map((l) => l.message),
-      isNot(contains('Did not attempt to reconnect')),
-      reason: 'the check drops the signal socket and expects the engine to notice',
-    );
+    expect(info.status, CheckStatus.success, reason: info.logs.map((l) => l.message).join(', '));
   });
 }
+
+List<int> _leave(lk_rtc.LeaveRequest_Action action, lk_models.DisconnectReason reason) => lk_rtc.SignalResponse(
+  leave: lk_rtc.LeaveRequest(action: action, reason: reason),
+).writeToBuffer();
+
+/// Lets the events of something that just happened run their course.
+Future<void> _settle() => Future<void>.delayed(const Duration(milliseconds: 100));
 
 Future<void> _waitForNewSocket(E2EContainer container, WebSocketEventHandlers? previous) async {
   final deadline = DateTime.now().add(const Duration(seconds: 3));
