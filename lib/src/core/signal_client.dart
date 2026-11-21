@@ -43,6 +43,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState get connectionState => _connectionState;
 
   final WebSocketConnector _wsConnector;
+
+  // Id of the socket whose callbacks are honored. connect() gives each new
+  // socket the next id, and cleanUp() advances it too so the socket it disposes
+  // stops being current. A real socket reports its close after dispose()
+  // returns, a few milliseconds later on a good path but seconds later in a
+  // browser when the server keeps TCP open after the close handshake. That
+  // report used to be attributed to whatever connection was current by then,
+  // clobbering its state and starting a reconnect against a healthy socket,
+  // over and over when every reconnect replaced the socket again.
+  int _socketId = 0;
   LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
@@ -144,6 +154,8 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     logger.fine('SignalClient connecting with url: ${rtcUri.redactingAccessToken}');
 
+    // Id of the socket this attempt opens, set once the previous one is gone.
+    int? socketId;
     try {
       if (reconnect == true) {
         _connectionState = ConnectionState.reconnecting;
@@ -154,25 +166,38 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
       // Clean up existing socket
       await cleanUp();
-      // Attempt to connect
-      var future = _wsConnector(
+      // Attempt to connect. Callbacks carry the id of the socket they belong to
+      // so a late report from a replaced socket is ignored.
+      final id = socketId = ++_socketId;
+      final ws = await _wsConnector(
         rtcUri,
         options: WebSocketEventHandlers(
-          onData: _onSocketData,
-          onDispose: _onSocketDispose,
-          onError: _onSocketError,
+          onData: (data) => _ifCurrentSocket(id, () => _onSocketData(data)),
+          onDispose: () => _ifCurrentSocket(id, _onSocketDispose),
+          onError: (error) => _ifCurrentSocket(id, () => _onSocketError(error)),
         ),
         headers: {
           'Authorization': 'Bearer $token',
         },
         networkOptions: roomOptions.networkOptions,
-      );
-      future = future.timeout(connectOptions.timeouts.connection);
-      _ws = await future;
+      ).timeout(connectOptions.timeouts.connection);
+      if (id != _socketId) {
+        // disconnect() or a newer connect() took over while this socket was
+        // opening. Installing it would take the place of the current one.
+        await ws.dispose();
+        throw const SignalConnectSupersededException();
+      }
+      _ws = ws;
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
     } catch (socketError) {
+      // An attempt that something else replaced leaves the state and the
+      // events to the connection that replaced it.
+      if (socketId != null && socketId != _socketId) {
+        if (socketError is SignalConnectSupersededException) rethrow;
+        throw const SignalConnectSupersededException();
+      }
       if (socketError is CertificatePinningException) {
         // In reconnect mode the engine owns state and event emission,
         // emitting here would race its reconnect handling.
@@ -242,11 +267,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
+    _socketId++;
     _connectionState = ConnectionState.disconnected;
-    await _ws?.dispose();
+    // Detached before the await, so a connect() that runs while the old
+    // socket is still closing keeps its own socket, queue and pings.
+    final ws = _ws;
     _ws = null;
     _queue.clear();
     _clearPingInterval();
+    await ws?.dispose();
   }
 
   void _sendRequest(
@@ -407,6 +436,31 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       default:
         logger.warning('received unknown signal message');
     }
+  }
+
+  void _ifCurrentSocket(int socketId, void Function() action) {
+    if (socketId != _socketId) {
+      logger.fine('[$objectId] ignoring a callback from a socket that was already replaced');
+      return;
+    }
+    action();
+  }
+
+  /// Drops the signal socket the way a server side close does: the socket goes
+  /// away and the engine sees a disconnect it has to recover from. For the
+  /// debug scenarios and the connection checker. [cleanUp] alone is a quiet
+  /// teardown, the disposed socket's own close is ignored.
+  @internal
+  Future<void> simulateSignalDrop() async {
+    if (_ws == null) {
+      logger.fine('[$objectId] simulateSignalDrop(): no signal socket to drop');
+      return;
+    }
+    // The loss is reported before the socket has finished closing, which can
+    // take a while, so it is charged to the socket that was dropped.
+    final dropped = cleanUp();
+    _onSocketDispose();
+    await dropped;
   }
 
   void _onSocketError(dynamic error) {
@@ -628,4 +682,15 @@ extension SignalClientInternalMethods on SignalClient {
 
   @internal
   void clearQueue() => _queue.clear();
+}
+
+/// Thrown by a [SignalClient.connect] whose socket was no longer wanted by the
+/// time it opened, because disconnect() or a newer connect() took over. The
+/// connection that took over owns the state and the events.
+@internal
+class SignalConnectSupersededException implements Exception {
+  const SignalConnectSupersededException();
+
+  @override
+  String toString() => 'SignalConnectSupersededException: the signal connection was superseded while it was opening';
 }

@@ -354,6 +354,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     } catch (error) {
       logger.fine('Connect Error $error');
 
+      // A superseded attempt reports nothing, the connection that replaced it
+      // is the one the room has.
+      if (error is SignalConnectSupersededException) rethrow;
+
       // during a reconnect this connect() runs inside restartConnection and
       // attemptReconnect owns disconnect emission, emitting here as well
       // would produce two events for one failure

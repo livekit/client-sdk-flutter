@@ -12,16 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'package:livekit_client/src/options.dart';
 import 'package:livekit_client/src/support/websocket.dart';
 
 class MockWebSocket extends LiveKitWebSocket {
-  MockWebSocket([this.onSend]);
+  /// Like the real sockets, the close is reported to the SDK after dispose()
+  /// has returned, see [MockWebSocketConnector.closeLatency] and
+  /// [MockWebSocketConnector.holdCloses].
+  MockWebSocket(this._connector, this.handlers) {
+    onDispose(() async {
+      final connector = _connector;
+      if (connector.disposeLatency > Duration.zero) await Future<void>.delayed(connector.disposeLatency);
+      void reportClose() => handlers?.onDispose?.call();
+      if (connector.holdCloses) {
+        connector._heldCloses.add(reportClose);
+      } else {
+        unawaited(Future<void>.delayed(connector.closeLatency, reportClose));
+      }
+    });
+  }
 
-  final void Function(List<int> data)? onSend;
+  final MockWebSocketConnector _connector;
+
+  /// The callbacks the SDK gave this socket.
+  final WebSocketEventHandlers? handlers;
+
+  /// Every message the SDK sent over this socket.
+  final List<List<int>> sent = [];
 
   @override
-  void send(List<int> data) => onSend?.call(data);
+  void send(List<int> data) {
+    sent.add(data);
+    _connector.sentData.add(data);
+  }
 }
 
 class MockWebSocketConnector {
@@ -30,6 +55,29 @@ class MockWebSocketConnector {
   Map<String, String>? headers;
   NetworkOptions? networkOptions;
   Object? connectError;
+
+  /// Delay between the SDK disposing a socket and that socket reporting its close.
+  Duration closeLatency = Duration.zero;
+
+  /// How long dispose() takes, like a dart:io close that waits on the server.
+  Duration disposeLatency = Duration.zero;
+
+  /// While true, the closes of disposed sockets are held until [releaseCloses],
+  /// so a test decides exactly when an old socket reports its close.
+  bool holdCloses = false;
+  final _heldCloses = <void Function()>[];
+
+  /// Reports every close held by [holdCloses].
+  void releaseCloses() {
+    final held = [..._heldCloses];
+    _heldCloses.clear();
+    for (final reportClose in held) {
+      reportClose();
+    }
+  }
+
+  /// Every socket this connector opened, oldest first.
+  final List<MockWebSocket> sockets = [];
 
   /// When true, [connectError] is thrown once and then cleared, so the next
   /// connect succeeds. Models a first attempt that fails and a retry that gets
@@ -70,6 +118,8 @@ class MockWebSocketConnector {
     }
 
     handlers = options;
-    return MockWebSocket(sentData.add);
+    final socket = MockWebSocket(this, options);
+    sockets.add(socket);
+    return socket;
   }
 }
