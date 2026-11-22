@@ -1234,19 +1234,25 @@ extension RoomPrivateMethods on Room {
   }
 
   Map<String, Map<VideoQuality, bool>> _subscribedQualities(
-      SignalSubscribedQualityUpdatedEvent event, LocalTrackPublication publication) {
+    SignalSubscribedQualityUpdatedEvent event,
+    LocalTrackPublication publication,
+  ) {
     Map<VideoQuality, bool> byQuality(Iterable<lk_rtc.SubscribedQuality> qualities) => {
       for (final q in qualities) q.quality.toLKType(): q.enabled,
     };
     return event.subscribedCodecs.isNotEmpty
         ? {for (final c in event.subscribedCodecs) c.codec: byQuality(c.qualities)}
         : {
-            (publication.track?.codec ?? publication.mimeType.split('/').last).toLowerCase():
-                byQuality(event.subscribedQualities),
+            (publication.track?.codec ?? publication.mimeType.split('/').last).toLowerCase(): byQuality(
+              event.subscribedQualities,
+            ),
           };
   }
 
-  void _emitSubscribedQualityUpdated(LocalTrackPublication publication, Map<String, Map<VideoQuality, bool>> qualities) {
+  void _emitSubscribedQualityUpdated(
+    LocalTrackPublication publication,
+    Map<String, Map<VideoQuality, bool>> qualities,
+  ) {
     final participant = localParticipant;
     if (participant == null || connectionState != ConnectionState.connected) return;
     [participant.events, events].emit(

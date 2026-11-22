@@ -25,6 +25,7 @@ import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
+
 import '../mock/e2e_container.dart';
 import '../mock/peerconnection_mock.dart';
 import '../mock/test_data.dart';
@@ -293,8 +294,9 @@ void main() {
       );
       lp.addTrackPublication(publication);
 
-      final future =
-          dynacast.room.events.waitFor<LocalTrackSubscribedQualityUpdatedEvent>(duration: const Duration(seconds: 1));
+      final future = dynacast.room.events.waitFor<LocalTrackSubscribedQualityUpdatedEvent>(
+        duration: const Duration(seconds: 1),
+      );
       dynacast.wsConnector.onData(update('TR_svc').writeToBuffer());
       final event = await future;
       expect(event.qualities, {
