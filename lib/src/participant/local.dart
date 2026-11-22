@@ -638,14 +638,19 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final tracks = trackPublications.values.toList();
     trackPublications.clear();
     for (LocalTrackPublication track in tracks) {
-      if (track.track is LocalAudioTrack) {
-        await publishAudioTrack(track.track as LocalAudioTrack);
-      } else if (track.track is LocalVideoTrack) {
-        final videoTrack = track.track as LocalVideoTrack;
-        // a full reconnect replaced the peer connection, so any simulcast
-        // codec senders the track still holds belong to the old one
-        videoTrack.clearSimulcastState();
-        await publishVideoTrack(videoTrack);
+      // one track failing to republish must not leave the others unpublished
+      try {
+        if (track.track is LocalAudioTrack) {
+          await publishAudioTrack(track.track as LocalAudioTrack);
+        } else if (track.track is LocalVideoTrack) {
+          final videoTrack = track.track as LocalVideoTrack;
+          // a full reconnect replaced the peer connection, so any simulcast
+          // codec senders the track still holds belong to the old one
+          videoTrack.clearSimulcastState();
+          await publishVideoTrack(videoTrack);
+        }
+      } catch (error, stackTrace) {
+        logger.warning('Failed to re-publish ${track.source} track ${track.sid}: $error', error, stackTrace);
       }
     }
   }

@@ -59,6 +59,30 @@ void main() {
     }, skip: 'todo');
   });
 
+  group('full reconnect', () {
+    test('republish failures do not stop other tracks or the reconnection', () async {
+      final participant = room.localParticipant!;
+      final tracks = [
+        for (final id in ['local_audio_1', 'local_audio_2']) _FailingAudioTrack(id, StateError('republish failed')),
+      ];
+      for (final track in tracks) {
+        participant.addTrackPublication(
+          LocalTrackPublication<LocalAudioTrack>(
+            participant: participant,
+            info: remoteAudioTrack.clone()..sid = 'sid_${track.mediaStreamTrack.id}',
+            track: track,
+          ),
+        );
+      }
+
+      final reconnected = room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 1));
+      container.engine.events.emit(const EngineRestartedEvent());
+      await reconnected;
+
+      expect(tracks.map((track) => track.startAttempts), [1, 1]);
+    });
+  });
+
   group('room updates', () {
     test('participant join', () async {
       final publicEventsStream = room.events.streamCtrl.stream.where((event) => event is! InternalEvent);
@@ -361,4 +385,23 @@ class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
 
   @override
   String toString() => 'FakeMediaStreamTrack(id: $id, kind: $kind, enabled: $enabled)';
+}
+
+class _FailingAudioTrack extends LocalAudioTrack {
+  final Object error;
+  int startAttempts = 0;
+
+  _FailingAudioTrack(String id, this.error)
+    : super(
+        TrackSource.microphone,
+        _FakeMediaStream('local_stream'),
+        _FakeMediaStreamTrack(id: id, kind: 'audio'),
+        const AudioCaptureOptions(),
+      );
+
+  @override
+  Future<void> startCapture() async {
+    startAttempts++;
+    throw error;
+  }
 }
