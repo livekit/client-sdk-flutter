@@ -38,22 +38,15 @@ class E2EContainer {
   /// since [connectRoom] returned. Populated only when [captureOutbound] is true.
   final List<lk_models.DataPacket> capturedDataPackets = [];
 
-  /// [createEngine] swaps in an engine of the test's own, for example one
-  /// whose teardown fails.
-  E2EContainer({
-    RoomOptions roomOptions = const RoomOptions(),
-    Engine Function(SignalClient client, RoomOptions roomOptions)? createEngine,
-  }) {
+  E2EContainer({RoomOptions roomOptions = const RoomOptions()}) {
     wsConnector = MockWebSocketConnector();
     client = SignalClient(wsConnector.connect);
-    engine =
-        createEngine?.call(client, roomOptions) ??
-        Engine(
-          connectOptions: const ConnectOptions(),
-          roomOptions: roomOptions,
-          signalClient: client,
-          peerConnectionCreate: MockPeerConnection.create,
-        );
+    engine = Engine(
+      connectOptions: const ConnectOptions(),
+      roomOptions: roomOptions,
+      signalClient: client,
+      peerConnectionCreate: MockPeerConnection.create,
+    );
     room = Room(engine: engine);
   }
 

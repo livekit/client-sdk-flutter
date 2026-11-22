@@ -1666,24 +1666,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       // relaying here produced a duplicate disconnect per failure.
     })
     ..on<SignalOfferEvent>((event) async {
+      // Read once: disconnect() or a full reconnect can dispose and clear the
+      // subscriber while this handler awaits.
+      final subscriber = this.subscriber;
       if (subscriber == null) {
         logger.warning('[$objectId] subscriber is null');
         return;
       }
-      final signalingState = await subscriber!.pc.getSignalingState();
+      final signalingState = await subscriber.pc.getSignalingState();
       logger.fine(
         '[$objectId] Received server offer(type: ${event.sd.type}, '
         '$signalingState)',
       );
       logger.finer('sdp: ${event.sd.sdp}');
 
-      await subscriber!.setRemoteDescription(event.sd);
+      await subscriber.setRemoteDescription(event.sd);
 
       try {
-        final answer = await subscriber!.pc.createAnswer();
+        final answer = await subscriber.pc.createAnswer();
         logger.fine('Created answer');
         logger.finer('sdp: ${answer.sdp}');
-        await subscriber!.pc.setLocalDescription(answer);
+        await subscriber.pc.setLocalDescription(answer);
         signalClient.sendAnswer(answer);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
