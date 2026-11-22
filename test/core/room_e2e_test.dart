@@ -26,6 +26,7 @@ import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../mock/e2e_container.dart';
+import '../mock/peerconnection_mock.dart';
 import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
 import 'signal_client_test.dart';
@@ -270,6 +271,40 @@ void main() {
       });
     });
 
+    test('emits the requested layers, not the ones kept active for an SVC codec', () async {
+      final dynacast = E2EContainer(roomOptions: const RoomOptions(dynacast: true));
+      await dynacast.connectRoom();
+      final lp = dynacast.room.localParticipant!;
+      final track = LocalVideoTrack(
+        TrackSource.camera,
+        _FakeMediaStream('svc_stream'),
+        _FakeMediaStreamTrack(id: 'svc_video', kind: 'video'),
+        const CameraCaptureOptions(),
+      )..codec = 'vp9';
+      final sender = _ParamsSender([
+        rtc.RTCRtpEncoding(rid: 'q', active: true),
+        rtc.RTCRtpEncoding(rid: 'f', active: true),
+      ]);
+      track.transceiver = MockRtpTransceiver(sender);
+      final publication = LocalTrackPublication<LocalVideoTrack>(
+        participant: lp,
+        info: lk_models.TrackInfo(sid: 'TR_svc', type: lk_models.TrackType.VIDEO, mimeType: 'video/VP9'),
+        track: track,
+      );
+      lp.addTrackPublication(publication);
+
+      final future =
+          dynacast.room.events.waitFor<LocalTrackSubscribedQualityUpdatedEvent>(duration: const Duration(seconds: 1));
+      dynacast.wsConnector.onData(update('TR_svc').writeToBuffer());
+      final event = await future;
+      expect(event.qualities, {
+        'vp9': {VideoQuality.LOW: true, VideoQuality.HIGH: false},
+      });
+      // The sender keeps every SVC layer on.
+      expect(sender.parameters.encodings!.every((e) => e.active), isTrue);
+      await dynacast.room.dispose();
+    });
+
     test('skips unknown tracks', () async {
       var emitted = false;
       final cancel = room.events.on<LocalTrackSubscribedQualityUpdatedEvent>((_) => emitted = true);
@@ -408,4 +443,24 @@ class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
 
   @override
   String toString() => 'FakeMediaStreamTrack(id: $id, kind: $kind, enabled: $enabled)';
+}
+
+/// A sender with fixed encodings, accepting any parameters.
+class _ParamsSender implements rtc.RTCRtpSender {
+  _ParamsSender(List<rtc.RTCRtpEncoding> encodings) : parameters = rtc.RTCRtpParameters(encodings: encodings);
+
+  @override
+  rtc.RTCRtpParameters parameters;
+
+  @override
+  String get senderId => 'svc_sender';
+
+  @override
+  Future<bool> setParameters(rtc.RTCRtpParameters parameters) async {
+    this.parameters = parameters;
+    return true;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
