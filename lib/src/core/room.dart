@@ -1348,6 +1348,9 @@ extension RoomDebugMethods on Room {
       return;
     }
     if (fullReconnect != null && fullReconnect) {
+      // With no socket there is nothing to drop, and a pending full reconnect
+      // would turn the next real resume into one.
+      if (!engine.signalClient.hasSocket) return;
       engine.fullReconnectOnNext = true;
       await engine.signalClient.simulateSignalDrop();
       return;

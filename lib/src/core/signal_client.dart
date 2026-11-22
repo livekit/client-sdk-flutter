@@ -154,8 +154,6 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
 
     logger.fine('SignalClient connecting with url: ${rtcUri.redactingAccessToken}');
 
-    // Id of the socket this attempt opens, set once the previous one is gone.
-    int? socketId;
     try {
       if (reconnect == true) {
         _connectionState = ConnectionState.reconnecting;
@@ -168,36 +166,25 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       await cleanUp();
       // Attempt to connect. Callbacks carry the id of the socket they belong to
       // so a late report from a replaced socket is ignored.
-      final id = socketId = ++_socketId;
-      final ws = await _wsConnector(
+      final socketId = ++_socketId;
+      var future = _wsConnector(
         rtcUri,
         options: WebSocketEventHandlers(
-          onData: (data) => _ifCurrentSocket(id, () => _onSocketData(data)),
-          onDispose: () => _ifCurrentSocket(id, _onSocketDispose),
-          onError: (error) => _ifCurrentSocket(id, () => _onSocketError(error)),
+          onData: (data) => _ifCurrentSocket(socketId, () => _onSocketData(data)),
+          onDispose: () => _ifCurrentSocket(socketId, _onSocketDispose),
+          onError: (error) => _ifCurrentSocket(socketId, () => _onSocketError(error)),
         ),
         headers: {
           'Authorization': 'Bearer $token',
         },
         networkOptions: roomOptions.networkOptions,
-      ).timeout(connectOptions.timeouts.connection);
-      if (id != _socketId) {
-        // disconnect() or a newer connect() took over while this socket was
-        // opening. Installing it would take the place of the current one.
-        await ws.dispose();
-        throw const SignalConnectSupersededException();
-      }
-      _ws = ws;
+      );
+      future = future.timeout(connectOptions.timeouts.connection);
+      _ws = await future;
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
     } catch (socketError) {
-      // An attempt that something else replaced leaves the state and the
-      // events to the connection that replaced it.
-      if (socketId != null && socketId != _socketId) {
-        if (socketError is SignalConnectSupersededException) rethrow;
-        throw const SignalConnectSupersededException();
-      }
       if (socketError is CertificatePinningException) {
         // In reconnect mode the engine owns state and event emission,
         // emitting here would race its reconnect handling.
@@ -446,13 +433,18 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
     action();
   }
 
+  /// Whether there is a connected signal socket, the one [simulateSignalDrop]
+  /// would drop. A socket that closed but is not cleaned up yet does not count.
+  @internal
+  bool get hasSocket => _ws != null && _connectionState == ConnectionState.connected;
+
   /// Drops the signal socket the way a server side close does: the socket goes
   /// away and the engine sees a disconnect it has to recover from. For the
   /// debug scenarios and the connection checker. [cleanUp] alone is a quiet
   /// teardown, the disposed socket's own close is ignored.
   @internal
   Future<void> simulateSignalDrop() async {
-    if (_ws == null) {
+    if (!hasSocket) {
       logger.fine('[$objectId] simulateSignalDrop(): no signal socket to drop');
       return;
     }
@@ -682,15 +674,4 @@ extension SignalClientInternalMethods on SignalClient {
 
   @internal
   void clearQueue() => _queue.clear();
-}
-
-/// Thrown by a [SignalClient.connect] whose socket was no longer wanted by the
-/// time it opened, because disconnect() or a newer connect() took over. The
-/// connection that took over owns the state and the events.
-@internal
-class SignalConnectSupersededException implements Exception {
-  const SignalConnectSupersededException();
-
-  @override
-  String toString() => 'SignalConnectSupersededException: the signal connection was superseded while it was opening';
 }

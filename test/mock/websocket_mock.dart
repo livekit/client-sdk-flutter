@@ -25,6 +25,7 @@ class MockWebSocket extends LiveKitWebSocket {
     onDispose(() async {
       final connector = _connector;
       if (connector.disposeLatency > Duration.zero) await Future<void>.delayed(connector.disposeLatency);
+      await connector.disposeGate;
       void reportClose() => handlers?.onDispose?.call();
       if (connector.holdCloses) {
         connector._heldCloses.add(reportClose);
@@ -61,6 +62,9 @@ class MockWebSocketConnector {
 
   /// How long dispose() takes, like a dart:io close that waits on the server.
   Duration disposeLatency = Duration.zero;
+
+  /// When set, dispose() waits for it, so a test decides when a close finishes.
+  Future<void>? disposeGate;
 
   /// While true, the closes of disposed sockets are held until [releaseCloses],
   /// so a test decides exactly when an old socket reports its close.

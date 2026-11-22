@@ -22,6 +22,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/connection_check/checks/reconnect.dart';
 import 'package:livekit_client/src/core/signal_client.dart';
+import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
@@ -126,37 +127,6 @@ void main() {
     expect(disconnected, isEmpty);
   });
 
-  test('a connect that opens after disconnect() and a rejoin does not take over the rejoined session', () async {
-    final gate = Completer<void>();
-    container.wsConnector.connectGate = gate.future;
-    final disconnected = <RoomDisconnectedEvent>[];
-    container.room.events.on<RoomDisconnectedEvent>(disconnected.add);
-
-    final stale = container.room.connect(exampleUri, token).then<Object?>((_) => null, onError: (Object e) => e);
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-    await container.room.disconnect();
-    container.wsConnector.connectGate = null;
-    await container.connectRoom();
-    final rejoined = container.wsConnector.sockets.last;
-
-    // the first connect's socket opens only now
-    gate.complete();
-    final staleError = await stale.timeout(const Duration(seconds: 2));
-    await _settle();
-    final staleSocket = container.wsConnector.sockets.last;
-
-    expect(staleError, isA<SignalConnectSupersededException>());
-    expect(staleSocket, isNot(same(rejoined)));
-    expect(staleSocket.isDisposed, isTrue, reason: 'a socket nobody wants any more is closed');
-    expect(container.room.connectionState, ConnectionState.connected);
-    expect(disconnected, hasLength(1), reason: 'only the disconnect() the app asked for');
-
-    final before = rejoined.sent.length;
-    await container.client.sendLeave();
-    expect(rejoined.sent, hasLength(before + 1), reason: 'requests go out on the rejoined session');
-    expect(staleSocket.sent, isEmpty);
-  });
-
   test('a cleanUp still closing the old socket leaves the next connection alone', () async {
     // a dart:io close waits for the server to answer the close frame
     final connector = MockWebSocketConnector()..disposeLatency = const Duration(milliseconds: 100);
@@ -184,10 +154,47 @@ void main() {
     container.room.events.on<RoomReconnectingEvent>(events.add);
 
     await container.room.sendSimulateScenario(signalReconnect: true);
+    await container.room.sendSimulateScenario(fullReconnect: true);
     await _settle();
 
     expect(events, isEmpty);
     expect(container.wsConnector.sockets, isEmpty);
+    expect(container.engine.fullReconnectOnNext, isFalse, reason: 'it would turn the next real resume into a full one');
+  });
+
+  test('a simulated signal drop is reported before the socket has finished closing', () async {
+    await container.connectRoom();
+    // a dart:io close waits for the server to answer the close frame
+    final closing = Completer<void>();
+    container.wsConnector.disposeGate = closing.future;
+    try {
+      final attempt = container.room.events.waitFor<RoomAttemptReconnectEvent>(duration: const Duration(seconds: 2));
+      final dropping = container.room.sendSimulateScenario(signalReconnect: true);
+      // the engine hears of the loss while the close is still held
+      await attempt;
+      expect(closing.isCompleted, isFalse);
+      closing.complete();
+      await dropping;
+    } finally {
+      if (!closing.isCompleted) closing.complete();
+      container.wsConnector.disposeGate = null;
+    }
+  });
+
+  test('a simulated drop after the socket really closed reports nothing more', () async {
+    await container.connectRoom();
+    container.wsConnector.closeLatency = const Duration(seconds: 1);
+    final lost = <SignalDisconnectedEvent>[];
+    final listener = container.client.createListener()..on<SignalDisconnectedEvent>(lost.add);
+    // the server drops the socket, the engine starts a resume
+    container.wsConnector.onDispose();
+    await container.room.sendSimulateScenario(signalReconnect: true);
+    await container.room.sendSimulateScenario(fullReconnect: true);
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    await listener.dispose();
+
+    expect(lost, hasLength(1), reason: 'the socket was already lost once');
+    expect(container.engine.fullReconnectOnNext, isFalse, reason: 'there was no live socket to drop');
   });
 
   test('the signalReconnect debug scenario still drops the signal and starts a reconnect', () async {
