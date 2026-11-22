@@ -38,6 +38,7 @@ import '../participant/remote.dart';
 import '../preconnect/pre_connect_audio_buffer.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
 import '../proto/livekit_rtc.pb.dart' as lk_rtc;
+import '../publication/local.dart';
 import '../rpc/rpc_client_manager.dart';
 import '../rpc/rpc_server_manager.dart';
 import '../support/disposable.dart';
@@ -444,18 +445,19 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<SignalConnectionQualityUpdateEvent>((event) => _onSignalConnectionQualityUpdateEvent(event.updates))
     ..on<SignalStreamStateUpdatedEvent>((event) => _onSignalStreamStateUpdateEvent(event.updates))
     ..on<SignalSubscribedQualityUpdatedEvent>((event) async {
+      // Find the publication
+      final publication = localParticipant?.trackPublications[event.trackSid];
+      if (publication == null) {
+        logger.warning('Received subscribed quality update for unknown track (${event.trackSid})');
+        return;
+      }
       // Dynacast is off or is unsupported
       if (!roomOptions.dynacast || _serverVersion == '0.15.1') {
         logger.fine(
           'Received subscribed quality update'
           ' but Dynacast is off or server version is not supported.',
         );
-        return;
-      }
-      // Find the publication
-      final publication = localParticipant?.trackPublications[event.trackSid];
-      if (publication == null) {
-        logger.warning('Received subscribed quality update for unknown track (${event.trackSid})');
+        _emitSubscribedQualityUpdated(event, publication);
         return;
       }
       if (event.subscribedCodecs.isNotEmpty) {
@@ -478,6 +480,7 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
           isSVC: isSVCCodec(videoTrack.codec ?? ''),
         );
       }
+      _emitSubscribedQualityUpdated(event, publication);
     })
     ..on<SignalSubscriptionPermissionUpdateEvent>((event) async {
       logger.fine(
@@ -1228,7 +1231,23 @@ extension RoomPrivateMethods on Room {
     }
   }
 
-  @internal
+  void _emitSubscribedQualityUpdated(SignalSubscribedQualityUpdatedEvent event, LocalTrackPublication publication) {
+    final participant = localParticipant;
+    if (participant == null || connectionState != ConnectionState.connected) return;
+    Map<VideoQuality, bool> byQuality(Iterable<lk_rtc.SubscribedQuality> qualities) => {
+      for (final q in qualities) q.quality.toLKType(): q.enabled,
+    };
+    final Map<String, Map<VideoQuality, bool>> qualities = event.subscribedCodecs.isNotEmpty
+        ? {for (final c in event.subscribedCodecs) c.codec: byQuality(c.qualities)}
+        : {
+            (publication.track?.codec ?? publication.mimeType.split('/').last).toLowerCase():
+                byQuality(event.subscribedQualities),
+          };
+    [participant.events, events].emit(
+      LocalTrackSubscribedQualityUpdatedEvent(participant: participant, publication: publication, qualities: qualities),
+    );
+  }
+
   void emitWhenConnected(RoomEvent event) {
     if (connectionState == ConnectionState.connected) {
       events.emit(event);

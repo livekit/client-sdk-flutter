@@ -117,6 +117,26 @@ class RoomReconnectedEvent with RoomEvent {
   String toString() => '${runtimeType}()';
 }
 
+/// The server updated the requested layers and codecs of a local track (dynacast). Emitted
+/// after the SDK has applied them, and also when [RoomOptions.dynacast] is off.
+/// Emitted by [Room] and [LocalParticipant].
+class LocalTrackSubscribedQualityUpdatedEvent with RoomEvent, ParticipantEvent {
+  final LocalParticipant participant;
+  final LocalTrackPublication publication;
+
+  /// Per codec (e.g. 'vp8'), whether subscribers request each layer.
+  final Map<String, Map<VideoQuality, bool>> qualities;
+  const LocalTrackSubscribedQualityUpdatedEvent({
+    required this.participant,
+    required this.publication,
+    required this.qualities,
+  });
+
+  @override
+  String toString() =>
+      '${runtimeType}(participant: ${participant}, publication: ${publication}, qualities: ${qualities})';
+}
+
 /// Disconnected from the room
 /// Emitted by [Room].
 class RoomDisconnectedEvent with RoomEvent {
