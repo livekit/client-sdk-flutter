@@ -15,6 +15,7 @@
 @Timeout(Duration(seconds: 5))
 library;
 
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,8 @@ import 'package:logging/logging.dart';
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/internal/events.dart';
+import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
+import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import '../mock/e2e_container.dart';
 import '../mock/test_data.dart';
 import '../mock/websocket_mock.dart';
@@ -80,6 +83,38 @@ void main() {
       await reconnected;
 
       expect(tracks.map((track) => track.startAttempts), [1, 1]);
+    });
+
+    test('no reconnected event when the server closes the room while a track is republished', () async {
+      final participant = room.localParticipant!;
+      final gate = Completer<void>();
+      final track = _FailingAudioTrack('local_audio_1', StateError('republish failed'), gate: gate);
+      participant.addTrackPublication(
+        LocalTrackPublication<LocalAudioTrack>(
+          participant: participant,
+          info: remoteAudioTrack.clone()..sid = 'sid_local_audio_1',
+          track: track,
+        ),
+      );
+
+      var reconnected = false;
+      final listener = room.createListener()..on<RoomReconnectedEvent>((_) => reconnected = true);
+      addTearDown(listener.dispose);
+      container.engine.events.emit(const EngineRestartedEvent());
+      ws.onData(
+        lk_rtc.SignalResponse(
+          leave: lk_rtc.LeaveRequest(
+            action: lk_rtc.LeaveRequest_Action.DISCONNECT,
+            reason: lk_models.DisconnectReason.ROOM_DELETED,
+          ),
+        ).writeToBuffer(),
+      );
+      await room.events.waitFor<RoomDisconnectedEvent>(duration: const Duration(seconds: 1));
+      gate.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(track.startAttempts, 1);
+      expect(reconnected, isFalse);
     });
   });
 
@@ -389,9 +424,10 @@ class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
 
 class _FailingAudioTrack extends LocalAudioTrack {
   final Object error;
+  final Completer<void>? gate;
   int startAttempts = 0;
 
-  _FailingAudioTrack(String id, this.error)
+  _FailingAudioTrack(String id, this.error, {this.gate})
     : super(
         TrackSource.microphone,
         _FakeMediaStream('local_stream'),
@@ -402,6 +438,7 @@ class _FailingAudioTrack extends LocalAudioTrack {
   @override
   Future<void> startCapture() async {
     startAttempts++;
+    await gate?.future;
     throw error;
   }
 }
