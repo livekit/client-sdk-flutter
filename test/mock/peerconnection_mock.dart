@@ -307,6 +307,28 @@ a=rtpmap:32 MPV/90000
   Future<void> restartIce() => throw UnimplementedError();
 }
 
+/// A peer connection that, once [stale] is set, still waits for the answer to its last offer and cannot take the
+/// previous answer back, as after an unanswered offer that added or removed a track.
+class StaleAnswerPeerConnection extends MockPeerConnection {
+  bool stale = false;
+
+  @override
+  RTCSignalingState? get signalingState =>
+      stale ? RTCSignalingState.RTCSignalingStateHaveLocalOffer : super.signalingState;
+
+  @override
+  Future<RTCSessionDescription?> getRemoteDescription() async =>
+      stale ? RTCSessionDescription('v=0\r\nprevious', 'answer') : super.getRemoteDescription();
+
+  @override
+  Future<void> setRemoteDescription(RTCSessionDescription description) async {
+    if (stale) {
+      throw Exception('InvalidAccessError: The order of m-lines in answer doesn\'t match order in offer.');
+    }
+    await super.setRemoteDescription(description);
+  }
+}
+
 class MockRtpSender implements RTCRtpSender {
   MockRtpSender(this.track);
 

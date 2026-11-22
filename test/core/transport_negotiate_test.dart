@@ -22,6 +22,7 @@ import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
 import 'package:livekit_client/src/core/transport.dart' show Transport;
 import 'package:livekit_client/src/exceptions.dart' show NegotiationError;
+import 'package:livekit_client/src/internal/types.dart' show RTCOfferOptions;
 import 'package:livekit_client/src/options.dart' show ConnectOptions;
 import '../mock/peerconnection_mock.dart';
 
@@ -61,6 +62,24 @@ class _SlowRemoteDescriptionPeerConnection extends MockPeerConnection {
 
 void main() {
   group('Transport.negotiate', () {
+    test('an ICE restart that cannot restore the previous answer throws a NegotiationError', () async {
+      final pc = StaleAnswerPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      final offers = <rtc.RTCSessionDescription>[];
+      transport.onOffer = offers.add;
+      pc.stale = true;
+
+      await expectLater(
+        transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true)),
+        throwsA(isA<NegotiationError>()),
+      );
+      expect(offers, isEmpty);
+    });
+
     test('sends an offer that was requested while the answer to the previous one is applied', () async {
       final pc = _SlowRemoteDescriptionPeerConnection();
       final transport = await Transport.create(

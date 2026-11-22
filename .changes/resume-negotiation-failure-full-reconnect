@@ -1,0 +1,1 @@
+patch type="fixed" "A resume that cannot restore the publisher's previous answer now falls back to a full reconnect instead of retrying until the reconnect attempts run out"

@@ -393,7 +393,13 @@ class Transport extends Disposable {
         renegotiate = true;
         return;
       }
-      await pc.setRemoteDescription(currentSD);
+      try {
+        await pc.setRemoteDescription(currentSD);
+      } catch (e) {
+        // The previous answer no longer fits the unanswered offer (one that added or removed a track, for example),
+        // and the publisher stays in have-local-offer, so resuming again fails the same way.
+        throw NegotiationError('could not restore the remote description for ICE restart: $e');
+      }
     }
 
     if (restartingIce && !lkPlatformIs(PlatformType.web)) {
