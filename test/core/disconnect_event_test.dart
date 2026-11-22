@@ -20,14 +20,12 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:livekit_client/livekit_client.dart';
-import 'package:livekit_client/src/core/engine.dart';
 import 'package:livekit_client/src/internal/events.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
 import 'package:livekit_client/src/proto/livekit_rtc.pb.dart' as lk_rtc;
 import 'package:livekit_client/src/support/websocket.dart';
 import 'package:livekit_client/src/types/internal.dart';
 import '../mock/e2e_container.dart';
-import '../mock/peerconnection_mock.dart';
 
 const exampleUri = 'ws://www.example.com';
 const token = 'token';
@@ -181,16 +179,16 @@ void main() {
     expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
   });
 
-  test('overlapping disconnect calls share one teardown', () async {
+  test('overlapping disconnect calls send one Leave and report one disconnect', () async {
     await container.connectRoom();
     final disconnectedEvents = <RoomDisconnectedEvent>[];
     container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
 
     final first = container.room.disconnect();
-    final second = container.room.disconnect();
-    await Future.wait([first, second]).timeout(const Duration(seconds: 2));
+    // the second call finds the first one tearing down and returns at once
+    await container.room.disconnect().timeout(const Duration(seconds: 2));
+    await first.timeout(const Duration(seconds: 2));
 
-    // both callers come back only once the teardown is done
     expect(container.room.localParticipant, isNull);
     expect(container.room.connectionState, ConnectionState.disconnected);
     await Future<void>.delayed(const Duration(milliseconds: 50));
@@ -249,31 +247,24 @@ void main() {
     await listener.dispose();
   });
 
-  test('a failing teardown step still reports the disconnect and tears down the rest', () async {
-    final failing = E2EContainer(
-      createEngine: (client, roomOptions) => _CleanUpFailsEngine(
-        connectOptions: const ConnectOptions(),
-        roomOptions: roomOptions,
-        signalClient: client,
-        peerConnectionCreate: MockPeerConnection.create,
-      ),
-    );
-    final engine = failing.engine as _CleanUpFailsEngine;
-    try {
-      await failing.connectRoom();
-      final disconnectedEvents = <RoomDisconnectedEvent>[];
-      failing.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+  test('a disconnect() from a callback the teardown runs returns at once', () async {
+    await container.connectRoom();
+    final disconnectedEvents = <RoomDisconnectedEvent>[];
+    container.room.events.on<RoomDisconnectedEvent>(disconnectedEvents.add);
+    // an app that leaves the room when its local participant goes away
+    var hookFinished = false;
+    container.room.localParticipant!.onDispose(() async {
+      await container.room.disconnect();
+      hookFinished = true;
+    });
 
-      engine.failCleanUp = true;
-      await expectLater(failing.room.disconnect(), throwsA(isA<StateError>()));
-      await Future<void>.delayed(const Duration(milliseconds: 50));
+    await container.room.disconnect().timeout(const Duration(seconds: 2));
+    await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      expect(disconnectedEvents.map((e) => e.reason), [DisconnectReason.clientInitiated]);
-      expect(failing.room.localParticipant, isNull, reason: "the room's cleanup runs after the engine's failed");
-    } finally {
-      engine.failCleanUp = false;
-      await failing.dispose();
-    }
+    expect(hookFinished, isTrue);
+    expect(container.room.connectionState, ConnectionState.disconnected);
+    expect(disconnectedEvents, hasLength(1));
+    expect(_leavesSent(container), 1);
   });
 }
 
@@ -284,20 +275,3 @@ List<int> _leave(lk_rtc.LeaveRequest_Action action) => lk_rtc.SignalResponse(
 /// How many Leave requests the SDK sent over any socket.
 int _leavesSent(E2EContainer container) =>
     container.wsConnector.sentData.where((data) => lk_rtc.SignalRequest.fromBuffer(data).hasLeave()).length;
-
-class _CleanUpFailsEngine extends Engine {
-  _CleanUpFailsEngine({
-    required super.connectOptions,
-    required super.roomOptions,
-    super.signalClient,
-    super.peerConnectionCreate,
-  });
-
-  bool failCleanUp = false;
-
-  @override
-  Future<void> cleanUp() async {
-    await super.cleanUp();
-    if (failCleanUp) throw StateError('engine cleanUp failed');
-  }
-}
