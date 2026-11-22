@@ -92,6 +92,7 @@ internal class LKAudioSwitchManager(private val context: Context) {
       if (isActive && sessionConfigChanged) {
         switch.deactivate()
         switch.activate()
+        setModeWithoutFocus(sessionConfig)
         applySpeakerRouting(switch, speakerRouting)
       }
     }
@@ -119,6 +120,7 @@ internal class LKAudioSwitchManager(private val context: Context) {
       val switch = audioSwitch ?: createSwitch(sessionConfig, speakerRouting).also { audioSwitch = it }
       if (!isActive) {
         switch.activate()
+        setModeWithoutFocus(sessionConfig)
         applySpeakerRouting(switch, speakerRouting)
         isActive = true
       }
@@ -182,6 +184,16 @@ internal class LKAudioSwitchManager(private val context: Context) {
     applyConfiguration(switch, sessionConfig)
     switch.start { _, _ -> }
     return switch
+  }
+
+  // audioswitch sets the audio mode only as it takes audio focus, so a session without focus
+  // would stay in MODE_NORMAL, without the call mode that echo cancelling and routing need. Set
+  // it here instead; deactivate() still restores the mode activate() saved.
+  private fun setModeWithoutFocus(sessionConfig: SessionConfig) {
+    if (!sessionConfig.manageAudioFocus) {
+      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      audioManager.mode = sessionConfig.audioMode
+    }
   }
 
   private fun applyConfiguration(switch: AbstractAudioSwitch, sessionConfig: SessionConfig) {
