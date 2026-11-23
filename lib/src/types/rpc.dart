@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 class PerformRpcParams {
@@ -58,6 +60,7 @@ class RpcError implements Exception {
     this.data,
   });
 
+  @internal
   factory RpcError.fromProto(lk_models.RpcError error) {
     return RpcError(
       message: error.message,
@@ -66,6 +69,7 @@ class RpcError implements Exception {
     );
   }
 
+  @internal
   lk_models.RpcError toProto() {
     return lk_models.RpcError()
       ..message = message

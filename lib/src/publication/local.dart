@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:meta/meta.dart';
+
 import '../options.dart';
 import '../participant/local.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -45,6 +47,7 @@ class LocalTrackPublication<T extends LocalTrack> extends TrackPublication<T> {
   /// Unmute the track associated with this publication
   Future<void> unmute({bool stopOnMute = true}) async => await track?.unmute(stopOnMute: stopOnMute);
 
+  @internal
   lk_rtc.TrackPublishedResponse toPBTrackPublishedResponse() => lk_rtc.TrackPublishedResponse(
     cid: track?.mediaStreamTrack.id,
     track: latestInfo,

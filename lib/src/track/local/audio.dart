@@ -95,6 +95,7 @@ class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMi
   num? _currentBitrate;
   num? get currentBitrate => _currentBitrate;
 
+  @internal
   AudioSenderStats? prevStats;
 
   @override

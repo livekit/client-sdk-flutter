@@ -14,6 +14,8 @@
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:meta/meta.dart';
+
 import '../proto/livekit_models.pb.dart' as lk_models;
 
 /// An optional feature a client advertises to its peers.
@@ -41,6 +43,7 @@ enum ClientCapability {
       ? <ClientCapability>[]
       : [ClientCapability.compressionDeflateRaw];
 
+  @internal
   static ClientCapability? fromProto(lk_models.ClientInfo_Capability value) {
     for (final capability in ClientCapability.values) {
       if (capability.wireValue == value.value) return capability;

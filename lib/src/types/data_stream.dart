@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io' show File;
 
+import 'package:meta/meta.dart';
+
 import '../data_stream/errors.dart';
 import '../data_stream/stream_reader.dart';
 import '../e2ee/options.dart';
@@ -245,6 +247,7 @@ enum TextStreamOperationType {
   delete,
   reaction;
 
+  @internal
   static TextStreamOperationType? fromPBType(lk_models.DataStream_OperationType? type) {
     if (type == null) return TextStreamOperationType.create;
     switch (type) {
@@ -261,6 +264,7 @@ enum TextStreamOperationType {
     }
   }
 
+  @internal
   lk_models.DataStream_OperationType toPBType() {
     switch (this) {
       case TextStreamOperationType.create:
