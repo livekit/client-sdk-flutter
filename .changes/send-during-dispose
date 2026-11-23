@@ -1,1 +1,0 @@
-patch type="fixed" "A data packet in flight when the room is disposed no longer fails with a PlatformException from the closed data channel. The send completes when the packet went out and fails with UnexpectedConnectionState when it did not"

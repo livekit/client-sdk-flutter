@@ -15,7 +15,7 @@
 name: livekit_client
 description: Flutter Client SDK for LiveKit. Build real-time video and audio
   into your apps. Supports iOS, Android, and Web.
-version: 2.13.1
+version: 2.14.0
 homepage: https://github.com/livekit/client-sdk-flutter
 
 # Test fixture keys for certificate pinning tests, not real secrets.
@@ -59,7 +59,7 @@ dependencies:
 
   # Rust core (livekit-ffi), delivered as a bundled cdylib via Native Assets.
   # Native platforms only, see lib/src/ffi/.
-  livekit_ffi: ^0.13.4
+  livekit_ffi: ^0.15.0
 
 dev_dependencies:
   flutter_test:

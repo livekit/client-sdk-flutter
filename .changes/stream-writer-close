@@ -1,1 +1,0 @@
-patch type="fixed" "Closing a data stream writer more than once ends the stream once instead of sending another trailer, and a write after close fails with DataStreamErrorReason.AlreadyClosed instead of sending a chunk after the stream ended"

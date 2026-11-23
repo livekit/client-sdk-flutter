@@ -444,10 +444,10 @@ packages:
     dependency: "direct main"
     description:
       name: livekit_ffi
-      sha256: "1bda89c8affc60752a78c880f42f8b35db0db5cf7455ba86274ff34ca196eabe"
+      sha256: c107a4c63d5c2a37f878bf9af7582238e12dec69f3041c80193dd6a2ccb2c694
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.4"
+    version: "0.15.0"
   logger:
     dependency: transitive
     description:
