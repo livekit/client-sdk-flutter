@@ -15,8 +15,8 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show PlatformException;
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';

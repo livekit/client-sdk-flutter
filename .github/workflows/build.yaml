@@ -56,6 +56,19 @@ jobs:
       - name: Check version consistency
         run: dart run scripts/check_version.dart
 
+  publish-validation-check:
+    name: Publish Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-flutter
+      # Warnings are ignored: the exact flutter_webrtc pin always gives one,
+      # and the publish runs with --force. Errors fail the job.
+      - name: Validate package
+        run: dart pub publish --dry-run --ignore-warnings
+
   dart-analyze-check:
     name: Dart Analyze
     runs-on: ubuntu-latest
@@ -83,6 +96,19 @@ jobs:
       - uses: ./.github/actions/setup-flutter
       - name: Dart Test Check
         run: flutter test
+
+  native-test-check:
+    name: Native Test
+    # The audio-session policy decisions are made in shared_swift and carry no
+    # Flutter, WebRTC or AVFoundation dependency, so they run as a plain host
+    # Swift package -- no simulator, device or pod install.
+    runs-on: macos-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+      - name: Native Test Check
+        run: swift test --package-path test/native
 
   build-for-android:
     name: Android

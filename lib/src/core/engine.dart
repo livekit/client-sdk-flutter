@@ -781,6 +781,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
+    // Keep gathering candidates after the connection is up, like the Swift, Android and JS SDKs,
+    // so a network change (e.g. Wi-Fi to cellular) yields new candidates without an ICE restart.
+    // libwebrtc defaults to gathering once. An explicit value from the app wins.
+    if (rtcConfiguration.continualGatheringPolicy == null) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+        continualGatheringPolicy: RTCContinualGatheringPolicy.gatherContinually,
+      );
+    }
+
     return rtcConfiguration;
   }
 
@@ -820,9 +829,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       }
     };
 
-    publisher?.onOffer = (offer) {
-      logger.fine('publisher onOffer');
-      signalClient.sendOffer(offer);
+    publisher?.onOffer = (offer, offerId) {
+      logger.fine('publisher onOffer (offerId: $offerId)');
+      signalClient.sendOffer(offer, offerId);
     };
 
     publisher?.onNegotiationError = _onPublisherNegotiationError;
@@ -1166,29 +1175,13 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           identity: dp.participantIdentity,
         ),
       );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader) {
-      // Data Stream Header
+    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamHeader ||
+        dp.whichValue() == lk_models.DataPacket_Value.streamChunk ||
+        dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
+      // Data stream header / chunk / trailer, forwarded whole — see EngineDataStreamPacketEvent.
       events.emit(
-        EngineDataStreamHeaderEvent(
-          header: dp.streamHeader,
-          identity: dp.participantIdentity,
-          encryptionType: encryptionType,
-        ),
-      );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamChunk) {
-      // Data Stream Chunk
-      events.emit(
-        EngineDataStreamChunkEvent(
-          chunk: dp.streamChunk,
-          identity: dp.participantIdentity,
-          encryptionType: encryptionType,
-        ),
-      );
-    } else if (dp.whichValue() == lk_models.DataPacket_Value.streamTrailer) {
-      // Data Stream trailer
-      events.emit(
-        EngineDataStreamTrailerEvent(
-          trailer: dp.streamTrailer,
+        EngineDataStreamPacketEvent(
+          packet: dp,
           identity: dp.participantIdentity,
           encryptionType: encryptionType,
         ),
@@ -1683,18 +1676,18 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       final signalingState = await subscriber!.pc.getSignalingState();
       logger.fine(
         '[$objectId] Received server offer(type: ${event.sd.type}, '
-        '$signalingState)',
+        'offerId: ${event.offerId}, $signalingState)',
       );
       logger.finer('sdp: ${event.sd.sdp}');
 
-      await subscriber!.setRemoteDescription(event.sd);
+      await subscriber!.setRemoteDescription(event.sd, offerId: event.offerId);
 
       try {
         final answer = await subscriber!.pc.createAnswer();
         logger.fine('Created answer');
         logger.finer('sdp: ${answer.sdp}');
         await subscriber!.pc.setLocalDescription(answer);
-        signalClient.sendAnswer(answer);
+        signalClient.sendAnswer(answer, event.offerId);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
       }
@@ -1703,9 +1696,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       if (publisher == null) {
         return;
       }
-      logger.fine('received answer (type: ${event.sd.type})');
+      logger.fine('received answer (type: ${event.sd.type}, offerId: ${event.offerId})');
       logger.finer('sdp: ${event.sd.sdp}');
-      await publisher!.setRemoteDescription(event.sd);
+      await publisher!.setRemoteDescription(event.sd, offerId: event.offerId);
       events.emit(const EngineSubscribedCodecRefreshRequestedEvent());
     })
     ..on<SignalTrickleEvent>((event) async {

@@ -14,7 +14,7 @@
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
@@ -125,11 +125,20 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   };
 }
 
+extension RTCContinualGatheringPolicyExt on RTCContinualGatheringPolicy {
+  // Values read by flutter_webrtc on iOS, macOS and Android.
+  String toStringValue() => switch (this) {
+    RTCContinualGatheringPolicy.gatherOnce => 'gather_once',
+    RTCContinualGatheringPolicy.gatherContinually => 'gather_continually',
+  };
+}
+
 // not so neat to directly expose protobuf types so we
 // define our own types (and convert methods)
 extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
-  lk_rtc.SessionDescription toPBType() {
-    return lk_rtc.SessionDescription(type: type, sdp: sdp);
+  /// [id] numbers an offer, or names the offer an answer answers. 0 means unnumbered.
+  lk_rtc.SessionDescription toPBType({int id = 0}) {
+    return lk_rtc.SessionDescription(type: type, sdp: sdp, id: id);
   }
 }
 

@@ -342,23 +342,31 @@ class SignalDisconnectedEvent with SignalEvent, InternalEvent {
 @internal
 class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// The server's id for this offer, echoed back on the answer. 0 from servers that send none.
+  final int offerId;
   const SignalOfferEvent({
     required this.sd,
+    required this.offerId,
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
 }
 
 @internal
 class SignalAnswerEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// Id of the offer this answers. 0 from servers that do not echo offer ids.
+  final int offerId;
   const SignalAnswerEvent({
     required this.sd,
+    required this.offerId,
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
 }
 
 @internal
@@ -554,8 +562,9 @@ class SignalTokenUpdatedEvent with SignalEvent, InternalEvent {
     required this.token,
   });
 
+  // Every emitted event is logged, so the token itself stays out of this.
   @override
-  String toString() => '${runtimeType}(token: ${token})';
+  String toString() => '${runtimeType}(token: <redacted>)';
 }
 
 @internal
@@ -708,12 +717,16 @@ class EngineRPCAckReceivedEvent with EngineEvent, InternalEvent {
 }
 
 @internal
-class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
-  final lk_models.DataStream_Header header;
+class EngineDataStreamPacketEvent with EngineEvent, InternalEvent {
+  /// The whole already-decrypted packet, carrying a stream header, chunk or trailer.
+  ///
+  /// Kept intact rather than split per part: the native data-stream path hands the serialized
+  /// packet straight to the Rust core, which decodes it itself.
+  final lk_models.DataPacket packet;
   final String identity;
   final EncryptionType encryptionType;
-  const EngineDataStreamHeaderEvent({
-    required this.header,
+  const EngineDataStreamPacketEvent({
+    required this.packet,
     required this.identity,
     required this.encryptionType,
   });
@@ -721,41 +734,7 @@ class EngineDataStreamHeaderEvent with EngineEvent, InternalEvent {
   @override
   String toString() =>
       '${runtimeType}'
-      '(header: ${header}, identity: ${identity}, encryptionType: ${encryptionType})';
-}
-
-@internal
-class EngineDataStreamChunkEvent with EngineEvent, InternalEvent {
-  final lk_models.DataStream_Chunk chunk;
-  final EncryptionType encryptionType;
-  final String identity;
-  const EngineDataStreamChunkEvent({
-    required this.chunk,
-    required this.identity,
-    required this.encryptionType,
-  });
-
-  @override
-  String toString() =>
-      '${runtimeType}'
-      '(chunk: ${chunk}, identity: ${identity}, encryptionType: ${encryptionType})';
-}
-
-@internal
-class EngineDataStreamTrailerEvent with EngineEvent, InternalEvent {
-  final lk_models.DataStream_Trailer trailer;
-  final String identity;
-  final EncryptionType encryptionType;
-  const EngineDataStreamTrailerEvent({
-    required this.trailer,
-    required this.identity,
-    required this.encryptionType,
-  });
-
-  @override
-  String toString() =>
-      '${runtimeType}'
-      '(trailer: ${trailer}, identity: ${identity}, encryptionType: ${encryptionType})';
+      '(packet: ${packet.whichValue()}, identity: ${identity}, encryptionType: ${encryptionType})';
 }
 
 @internal

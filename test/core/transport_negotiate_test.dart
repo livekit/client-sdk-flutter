@@ -38,6 +38,24 @@ Future<rtc.RTCPeerConnection> _createRejecting(
   Map<String, dynamic>? constraints,
 ]) async => _RejectingPeerConnection();
 
+class _RestartablePeerConnection extends MockPeerConnection {
+  @override
+  Future<void> restartIce() async {}
+}
+
+class _RejectFirstAnswerPeerConnection extends MockPeerConnection {
+  bool rejected = false;
+
+  @override
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription description) async {
+    if (description.type == 'answer' && !rejected) {
+      rejected = true;
+      throw Exception('Failed to set remote answer sdp');
+    }
+    await super.setRemoteDescription(description);
+  }
+}
+
 class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
   bool rejectLocal = false;
 
@@ -130,7 +148,7 @@ void main() {
       final pc = _LateStateReplyPeerConnection();
       final transport = await _transportFor(pc);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       await transport.createAndSendOffer();
       expect(offers, hasLength(1));
@@ -150,7 +168,7 @@ void main() {
       final pc = _SlowApplyPeerConnection();
       final transport = await _transportFor(pc);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       await transport.createAndSendOffer();
 
@@ -166,7 +184,7 @@ void main() {
       final pc = MockPeerConnection();
       final transport = await _transportFor(pc);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       await transport.createAndSendOffer();
       await transport.createAndSendOffer();
@@ -182,7 +200,7 @@ void main() {
     test('ignores a copy of an answer that arrives while the first one is applied', () async {
       final pc = _SlowApplyPeerConnection();
       final transport = await _transportFor(pc);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
 
       await transport.createAndSendOffer();
 
@@ -196,7 +214,7 @@ void main() {
     test('applies a retried answer after the first apply failed', () async {
       final pc = _SlowApplyPeerConnection();
       final transport = await _transportFor(pc);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
 
       await transport.createAndSendOffer();
 
@@ -215,7 +233,7 @@ void main() {
       final pc = _PendingOfferPeerConnection();
       final transport = await _transportFor(pc);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
       final previous = rtc.RTCSessionDescription('v=0\r\nprevious', 'answer');
       await pc.setRemoteDescription(previous);
       pc.remoteDescriptionsApplied.clear();
@@ -232,7 +250,7 @@ void main() {
       final pc = _PendingOfferPeerConnection();
       final transport = await _transportFor(pc);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       await transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
 
@@ -253,7 +271,7 @@ void main() {
       );
       addTearDown(transport.dispose);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       // The first track is offered and waits for its answer.
       await transport.createAndSendOffer();
@@ -277,7 +295,7 @@ void main() {
       await runZonedGuarded(() async {
         final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
         addTearDown(transport.dispose);
-        transport.onOffer = (_) {};
+        transport.onOffer = (_, _) {};
         transport.onNegotiationError = reported.complete;
 
         transport.negotiate(null);
@@ -295,7 +313,7 @@ void main() {
       final offers = <rtc.RTCSessionDescription>[];
       final transport = await Transport.create(MockPeerConnection.create, connectOptions: const ConnectOptions());
       addTearDown(transport.dispose);
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
       transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
 
       transport.negotiate(null);
@@ -311,7 +329,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
       final reported = Completer<Object>();
       transport.onNegotiationError = reported.complete;
 
@@ -334,7 +352,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
 
       await pc.setLocalDescription(await pc.createOffer());
       await transport.createAndSendOffer();
@@ -350,7 +368,7 @@ void main() {
     test('still throws from a direct createAndSendOffer', () async {
       final transport = await Transport.create(_createRejecting, connectOptions: const ConnectOptions());
       addTearDown(transport.dispose);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
       transport.onNegotiationError = (error) => fail('unexpected negotiation error: $error');
 
       await expectLater(transport.createAndSendOffer(), throwsA(isA<NegotiationError>()));
@@ -365,7 +383,7 @@ void main() {
         connectOptions: const ConnectOptions(),
       );
       addTearDown(transport.dispose);
-      transport.onOffer = (_) {};
+      transport.onOffer = (_, _) {};
       return (transport, pc);
     }
 
@@ -411,6 +429,93 @@ void main() {
 
       final remote = await pc.getRemoteDescription();
       expect(remote?.sdp, 'v=0\r\nremote-offer');
+    });
+  });
+
+  group('Transport offer ids', () {
+    Future<(Transport, MockPeerConnection, List<int>)> makeTransport([MockPeerConnection? mock]) async {
+      final pc = mock ?? MockPeerConnection();
+      final transport = await Transport.create(
+        (Map<String, dynamic> configuration, [Map<String, dynamic>? constraints]) async => pc,
+        connectOptions: const ConnectOptions(),
+      );
+      addTearDown(transport.dispose);
+      final sent = <int>[];
+      transport.onOffer = (_, offerId) => sent.add(offerId);
+      return (transport, pc, sent);
+    }
+
+    test('numbers offers from 1', () async {
+      final (transport, _, sent) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
+      await transport.createAndSendOffer();
+
+      expect(sent, [1, 2]);
+    });
+
+    test('ignores the answer to an offer that an ICE restart replaced', () async {
+      final (transport, pc, sent) = await makeTransport(_RestartablePeerConnection());
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
+      await transport.createAndSendOffer();
+      // Offer 2 is still waiting for its answer when the ICE restart replaces it.
+      await transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+      expect(sent, [1, 2, 3]);
+
+      // The answer to offer 2 lands after the restart offer was sent. Real WebRTC is in
+      // have-local-offer here, so the signaling state cannot tell it from the restart answer.
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-2', 'answer'), offerId: 2);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nanswer-1');
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-3', 'answer'), offerId: 3);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nanswer-3');
+    });
+
+    test('ignores a second copy of a numbered answer', () async {
+      final (transport, pc, _) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nfirst', 'answer'), offerId: 1);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nduplicate', 'answer'), offerId: 1);
+
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nfirst');
+    });
+
+    test('ignores a copy that arrives while the first is still being applied', () async {
+      final (transport, pc, _) = await makeTransport();
+
+      await transport.createAndSendOffer();
+      await Future.wait([
+        transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nfirst', 'answer'), offerId: 1),
+        transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nduplicate', 'answer'), offerId: 1),
+      ]);
+
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nfirst');
+    });
+
+    test('accepts the answer again after a failed apply', () async {
+      final (transport, pc, _) = await makeTransport(_RejectFirstAnswerPeerConnection());
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nrejected', 'answer'), offerId: 1);
+      expect(await pc.getRemoteDescription(), isNull);
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nretry', 'answer'), offerId: 1);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nretry');
+    });
+
+    test('defers an offer that overlaps another until its answer', () async {
+      final (transport, _, sent) = await makeTransport();
+
+      await Future.wait([transport.createAndSendOffer(), transport.createAndSendOffer()]);
+      expect(sent, [1]);
+      expect(transport.renegotiate, isTrue);
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
+      expect(sent, [1, 2]);
     });
   });
 }

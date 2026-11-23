@@ -205,7 +205,9 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
-typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
+/// Called with each new offer and its id. Internal, the engine sends both to the server.
+@internal
+typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
@@ -232,11 +234,20 @@ class Transport extends Disposable {
   bool restartingIce = false;
   bool renegotiate = false;
 
-  /// Held while an offer is built and while a remote description is applied, so the two
-  /// never interleave. Reading the signaling state is a platform call, and without the lock
-  /// an answer could finish applying between an offer request reading the state and acting
-  /// on it. [renegotiate] is only read and written while this is held.
+  /// Id of the last offer created. Ids start at 1, so 0 stays free for an answer from a
+  /// server that does not echo offer ids.
+  int _latestOfferId = 0;
+
+  /// Id of the last offer whose answer was applied.
+  int _answeredOfferId = 0;
+
+  /// Held while an offer is built and while a remote description is applied, so the two never
+  /// interleave. An offer request that overlaps an answer waits for it, and a copy of an answer
+  /// waits for the first one and then finds it applied. [renegotiate] is only read and written
+  /// while this is held. Not reentrant, so code that holds it calls [_createAndSendOffer].
   final _negotiationLock = sync.Lock();
+
+  @internal
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
@@ -317,27 +328,33 @@ class Transport extends Disposable {
     }
   }
 
-  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd) =>
-      _negotiationLock.synchronized(() => _setRemoteDescription(sd));
+  /// [offerId] is the id of the offer an answer answers, or the server's id for a remote
+  /// offer. 0 from servers that send none.
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) =>
+      _negotiationLock.synchronized(() => _setRemoteDescription(sd, offerId));
 
-  Future<void> _setRemoteDescription(rtc.RTCSessionDescription sd) async {
+  Future<void> _setRemoteDescription(rtc.RTCSessionDescription sd, int offerId) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
       return;
     }
 
-    // Offers are not numbered on this transport, so the signaling state is what says
-    // whether an answer is still wanted: in `stable` there is no local offer left to
-    // answer. A copy that arrives while the first one is applied waits for the lock and
-    // then finds `stable` too. If that apply failed, the offer is still waiting and the
-    // copy is applied as a retry.
-    if (sd.type == 'answer' && await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable) {
-      logger.warning('[$objectId] ignoring duplicate answer');
-      return;
+    if (sd.type == 'answer') {
+      if (_latestOfferId > 0 && offerId > 0 && offerId != _latestOfferId) {
+        logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $_latestOfferId');
+        return;
+      }
+      if (await _isAnswered(offerId)) {
+        logger.warning('[$objectId] ignoring duplicate answer (offerId: $offerId)');
+        return;
+      }
     }
 
     try {
       await pc.setRemoteDescription(sd);
+      // only a successfully applied answer makes later copies duplicates, so a failed apply
+      // can still be retried
+      if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
     }
@@ -351,8 +368,8 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
-      // The lock is already held here, so this goes to the inner method. Taking the lock
-      // again through [createAndSendOffer] would wait on itself forever.
+      // The lock is held here, so this calls the inner method. Taking the lock again through
+      // [createAndSendOffer] would wait on itself forever.
       //
       // The signal listener that awaits this call has no reconnect handling, so a failed deferred
       // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
@@ -363,6 +380,14 @@ class Transport extends Disposable {
         await _reportingNegotiationErrors(() => _createAndSendOffer(null));
       }
     }
+  }
+
+  /// Whether the offer [offerId] answers already has its answer applied. Servers that do not
+  /// echo offer ids leave only the signaling state to go by: in `stable` there is no local
+  /// offer left to answer.
+  Future<bool> _isAnswered(int offerId) async {
+    if (offerId > 0) return offerId == _answeredOfferId;
+    return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
   Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
@@ -388,7 +413,7 @@ class Transport extends Disposable {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
       if (!(options?.iceRestart ?? false)) {
-        // The answer cannot be applied while this holds the lock, so it finds the flag.
+        // An answer cannot be applied while this holds the lock, so the answer path finds the flag.
         renegotiate = true;
         return;
       }
@@ -407,7 +432,8 @@ class Transport extends Disposable {
     }
 
     // actually negotiate
-    logger.fine('starting to negotiate');
+    final offerId = ++_latestOfferId;
+    logger.fine('starting to negotiate (offerId: $offerId)');
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
 
     if ((offer.sdp ?? '').contains('goog-sped-v1')) {
@@ -465,7 +491,7 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
-    onOffer?.call(offer);
+    onOffer?.call(offer, offerId);
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
