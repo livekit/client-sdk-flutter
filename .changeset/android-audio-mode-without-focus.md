@@ -1,0 +1,5 @@
+---
+livekit_client: patch
+---
+
+Android: the audio mode is set when manageAudioFocus is false, so calls keep the communication mode without taking audio focus. Apps that pass manageAudioFocus: false without an audioMode now get the default inCommunication mode.
