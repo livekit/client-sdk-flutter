@@ -37,6 +37,16 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # the API check needs the base commit, the dry run the tags
+      # Changesets moved to .changeset/. Nothing reads a file left in
+      # .changes/, so its entry would never reach the changelog. The
+      # `internal` label does not skip this.
+      - name: Reject changesets in the old format
+        run: |
+          old=$(git ls-files .changes)
+          if [ -n "$old" ]; then
+            echo "::error::Changesets live in .changeset/ now, see AGENTS.md. Move these: $(echo $old)"
+            exit 1
+          fi
       - uses: ./.github/actions/setup-flutter # also the toolchain of the dry run
       - run: dart pub global activate dart_apitool
       - uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
