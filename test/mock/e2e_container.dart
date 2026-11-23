@@ -62,6 +62,7 @@ class E2EContainer {
   Future<void> connectRoom({
     int? localClientProtocol,
     bool captureOutbound = false,
+    lk_rtc.SignalResponse? joinResponseOverride,
     ConnectOptions? connectOptions,
     @Deprecated('mirrors the deprecated Room.connect parameter') RoomOptions? roomOptions,
     lk_models.ClientConfiguration? clientConfiguration,
@@ -73,7 +74,13 @@ class E2EContainer {
       // ignore: deprecated_member_use_from_same_package
       roomOptions: roomOptions,
     );
-    unawaited(answerJoin(localClientProtocol: localClientProtocol, clientConfiguration: clientConfiguration));
+    unawaited(
+      answerJoin(
+        localClientProtocol: localClientProtocol,
+        clientConfiguration: clientConfiguration,
+        joinResponseOverride: joinResponseOverride,
+      ),
+    );
 
     await connectFuture;
 
@@ -113,12 +120,13 @@ class E2EContainer {
   /// for a (re)join: a `JoinResponse` followed by the subscriber offer. Used by
   /// [connectRoom] and by tests that drive a full reconnect.
   Future<void> answerJoin({
+    lk_rtc.SignalResponse? joinResponseOverride,
     int? localClientProtocol,
     lk_models.ClientConfiguration? clientConfiguration,
   }) async {
     // Give the SDK a tick to start waiting for the join response.
     await Future<void>.delayed(const Duration(milliseconds: 1));
-    final resp = _buildJoinResponse(localClientProtocol, clientConfiguration);
+    final resp = joinResponseOverride ?? _buildJoinResponse(localClientProtocol, clientConfiguration);
     wsConnector.onData(resp.writeToBuffer());
     wsConnector.onData(offerResponse.writeToBuffer());
   }

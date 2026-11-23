@@ -1,0 +1,1 @@
+patch type="fixed" "Registers publication response waiters before sending AddTrack, fails pending publications promptly on rejection or disconnect, resets cached fast-publication codecs during cleanup, and preserves eligible publication overlap when publisher warm-up is disabled"
