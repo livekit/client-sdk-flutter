@@ -875,27 +875,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           await _handleGettingConnectedServerAddress(subscriber!.pc);
         }
       };
-    }
 
-    publisher?.onNumberedOffer = (offer, offerId) {
-      logger.fine('publisher onOffer $offerId');
-      signalClient.sendOffer(offer, offerId: offerId);
-    };
+      // in subscriber primary mode, the server opens the data channels on the subscriber
+      if (_subscriberPrimary) {
+        subscriber?.pc.onDataChannel = _onDataChannel;
+      }
 
-    publisher?.onNegotiationError = _onPublisherNegotiationError;
-    // subscribed video arrives on the publisher's recvonly sections in single PC mode
-    publisher?.negotiateReceivedVideoDependencyDescriptor = _singlePCMode;
-    publisher?.negotiateOpusNack = _singlePCMode;
-
-    // In single PC mode, server opens data channels on publisher.
-    // In dual PC subscriber-primary mode, server opens data channels on subscriber.
-    if (_singlePCMode) {
-      publisher?.pc.onDataChannel = _onDataChannel;
-    } else if (_subscriberPrimary) {
-      subscriber?.pc.onDataChannel = _onDataChannel;
-    }
-
-    if (!_singlePCMode) {
       subscriber?.pc.onConnectionState = (state) async {
         events.emit(
           EngineSubscriberPeerStateUpdatedEvent(
@@ -914,6 +899,16 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         }
       };
     }
+
+    publisher?.onNumberedOffer = (offer, offerId) {
+      logger.fine('publisher onOffer $offerId');
+      signalClient.sendOffer(offer, offerId: offerId);
+    };
+
+    publisher?.onNegotiationError = _onPublisherNegotiationError;
+    // subscribed video arrives on the publisher's recvonly sections in single PC mode
+    publisher?.negotiateReceivedVideoDependencyDescriptor = _singlePCMode;
+    publisher?.negotiateOpusNack = _singlePCMode;
 
     publisher?.pc.onConnectionState = (state) async {
       if ([
@@ -963,7 +958,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _lossyDCPub?.stateChangeStream.listen(
         (state) => events.emit(
           PublisherDataChannelStateUpdatedEvent(
-            isPrimary: !_subscriberPrimary,
+            isPrimary: _singlePCMode || !_subscriberPrimary,
             state: state,
             type: Reliability.lossy,
           ),
@@ -987,7 +982,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       _reliableDCPub?.stateChangeStream.listen(
         (state) => events.emit(
           PublisherDataChannelStateUpdatedEvent(
-            isPrimary: !_subscriberPrimary,
+            isPrimary: _singlePCMode || !_subscriberPrimary,
             state: state,
             type: Reliability.reliable,
           ),
