@@ -88,7 +88,7 @@ void main() {
       );
       addTearDown(transport.dispose);
       final offers = <rtc.RTCSessionDescription>[];
-      transport.onOffer = offers.add;
+      transport.onOffer = (offer, _) => offers.add(offer);
 
       // The first track is offered and waits for its answer.
       await transport.createAndSendOffer();
