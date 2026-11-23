@@ -101,6 +101,6 @@ livekit_client: patch
 Fix audio frame generation when publishing
 ```
 
-The summary is one sentence for users of the package, without the PR number (the changelog adds it and the author). CI (`changeset-check.yaml`) fails a PR without one, and runs `dart-apitool` against the last pub.dev release to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling take the `internal` label instead, a changeset would put noise in the user facing changelog.
+The summary is one sentence for users of the package, without the PR number (the changelog adds it and the author). CI (`changeset-check.yaml`) fails a PR without one, and runs `dart-apitool` against the PR's base commit to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling take the `internal` label instead, a changeset would put noise in the user facing changelog.
 
 Each push to `main` regenerates one release PR (`release/main`) from the pending changesets. Never edit it by hand: a fix goes to `main` with its own changeset. Merging it tags `vX.Y.Z`, creates the GitHub release and publishes to pub.dev (`release.yaml`, which starts `publish.yaml` on the tag). `verwalter status` names the next step when a release step failed; re-run that step, never retag.

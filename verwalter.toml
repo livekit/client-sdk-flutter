@@ -11,11 +11,14 @@ versioning.files = [
   { path = "README.md", regex = "livekit_client: \\^(?<version>\\S+)" },
 ]
 publish.registry = "pubdev"
-# dart-apitool compares the public API against the last release on pub.dev.
+# dart-apitool compares the public API of the PR with its base commit:
+# HEAD^1 of the merge commit that CI checks out. Not with the last
+# release on pub.dev: a break that is already on main, with its own
+# changeset, would then fail every later PR until the next release.
 # It only knows "breaking or not", so it answers major or nothing. The
 # header carries ANSI codes, so the match is not anchored. With
 # pipefail, a tool error fails the check instead of passing it silently.
-check.api = "set -o pipefail; dart-apitool diff --old pub://livekit_client/$VERWALTER_VERSION --new . --version-check-mode none 2>&1 | tee /dev/stderr | awk '/BREAKING CHANGES/ { found = 1 } END { if (found) print \"major\" }'"
+check.api = "set -o pipefail; old=$(mktemp -d) && git archive HEAD^1 | tar -x -C \"$old\" && dart-apitool diff --old \"$old\" --new . --version-check-mode none 2>&1 | tee /dev/stderr | awk '/BREAKING CHANGES/ { found = 1 } END { if (found) print \"major\" }'"
 # On the release PR, `check` runs this dry run before the merge. The
 # exact flutter_webrtc pin always gives a pub warning, and the built-in
 # dry run treats it as fatal. The publish runs with --force, so warnings

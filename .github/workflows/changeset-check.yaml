@@ -14,8 +14,8 @@
 
 # Fails a PR that changes the package without a changeset, with a comment
 # that links to a prefilled changeset file. The `internal` label skips the
-# check. The same run compares the public API against the last pub.dev
-# release with dart-apitool (`check.api` in verwalter.toml) and fails when
+# check. The same run compares the public API against the PR's base
+# commit with dart-apitool (`check.api` in verwalter.toml) and fails when
 # a break comes without a `major` changeset. On the release PR, the run
 # dry-runs the publish (`check.publish_dry_run`) and fails before the new
 # version reaches main.
@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0 # the API check needs the baseline tag, the dry run the tags
+          fetch-depth: 0 # the API check needs the base commit, the dry run the tags
       - uses: ./.github/actions/setup-flutter # also the toolchain of the dry run
       - run: dart pub global activate dart_apitool
       - uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
