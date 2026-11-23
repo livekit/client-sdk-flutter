@@ -89,6 +89,7 @@ int reconnectDelayInMs(int retryCount) {
   return (retryDelay * (0.5 + math.Random().nextDouble())).round();
 }
 
+@internal
 class Engine extends Disposable with EventsEmittable<EngineEvent> {
   static const _lossyDCLabel = '_lossy';
   static const _reliableDCLabel = '_reliable';

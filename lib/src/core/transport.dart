@@ -61,6 +61,7 @@ const minTargetBitrateKbps = 300;
 const setupTimeForMaxStartBitrate = Duration(milliseconds: 1500);
 const setupTimeForMinStartBitrate = Duration(milliseconds: 3500);
 
+@internal
 class TrackBitrateInfo {
   String? cid;
   rtc.RTCRtpTransceiver? transceiver;
@@ -210,6 +211,7 @@ typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
 
 /// a wrapper around PeerConnection
+@internal
 class Transport extends Disposable {
   final rtc.RTCPeerConnection pc;
   final List<rtc.RTCIceCandidate> _pendingCandidates = [];

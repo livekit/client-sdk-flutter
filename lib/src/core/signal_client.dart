@@ -38,6 +38,7 @@ import '../support/websocket.dart';
 import '../types/other.dart';
 import '../utils.dart' show Utils, UriExt;
 
+@internal
 class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState _connectionState = ConnectionState.disconnected;
   ConnectionState get connectionState => _connectionState;
