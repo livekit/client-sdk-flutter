@@ -205,6 +205,8 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
+/// Called with each new offer and its id. Internal, the engine sends both to the server.
+@internal
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
@@ -247,6 +249,7 @@ class Transport extends Disposable {
   /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
   /// Only an ICE restart replaces a waiting offer.
   final _offerLock = sync.Lock();
+  @internal
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
