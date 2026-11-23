@@ -505,7 +505,16 @@ class Transport extends Disposable {
         renegotiate = true;
         return;
       }
-      await pc.setRemoteDescription(currentSD);
+      try {
+        await pc.setRemoteDescription(currentSD);
+      } catch (e) {
+        // The pending offer added media sections the last answer does not have (a
+        // track published, or a receive section the server asked for, in single PC
+        // mode), so the answer is rejected and the offer stays pending. Retrying
+        // would fail the same way: report it as a media failure so the next
+        // reconnect attempt rebuilds the peer connection.
+        throw MediaConnectException('ICE restart could not re-apply the last answer: $e');
+      }
     }
 
     if (restartingIce && !lkPlatformIs(PlatformType.web)) {
