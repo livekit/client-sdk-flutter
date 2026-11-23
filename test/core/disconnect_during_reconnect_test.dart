@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// disconnect() closes the engine for good, even when a full reconnect is
-// already tearing down the old connection and is about to connect again, and
-// the room can connect again afterwards.
+// disconnect() and Room.dispose() close the engine for good, even when a full
+// reconnect is already tearing down the old connection and is about to connect
+// again, and the room can connect again after disconnect().
 
 @Timeout(Duration(seconds: 10))
 library;
@@ -92,5 +92,36 @@ void main() {
 
     await container.connectRoom();
     expect(room.connectionState, ConnectionState.connected);
+  });
+
+  test('disposing the room during a full reconnect does not connect again', () async {
+    final restartPaused = Completer<void>();
+    final resumeRestart = Completer<void>();
+    container.engine.publisher!.onDispose(() async {
+      restartPaused.complete();
+      await resumeRestart.future;
+    });
+    final disposePaused = Completer<void>();
+    final resumeDispose = Completer<void>();
+    container.engine.subscriber!.onDispose(() async {
+      disposePaused.complete();
+      await resumeDispose.future;
+    });
+
+    container.engine.fullReconnectOnNext = true;
+    final droppedHandlers = ws.handlers;
+    ws.onDispose();
+    await restartPaused.future;
+
+    // The room's teardown reaches the subscriber while the full reconnect still holds the publisher.
+    final disposing = room.dispose();
+    await disposePaused.future;
+    resumeRestart.complete();
+    // Give a reconnect that was not stopped time to open its socket.
+    await Future<void>.delayed(const Duration(milliseconds: 500));
+    resumeDispose.complete();
+    await disposing;
+
+    expect(identical(ws.handlers, droppedHandlers), isTrue, reason: 'the full reconnect opened a new signal socket');
   });
 }

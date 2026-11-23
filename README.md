@@ -22,6 +22,8 @@ This package is published to pub.dev as [livekit_client](https://pub.dev/package
 > [!IMPORTANT]
 > If you're building Voice AI, [LiveKit Agents](https://github.com/livekit/agents) is the SDK for code-first realtime voice agents. STT, LLM, TTS, turn detection, [expressive speech](https://docs.livekit.io/agents/models/tts/expressive/), [keyterm accuracy](https://docs.livekit.io/agents/models/stt/keyterms/), tool usage, and telephony all come bundled in the framework. It's available in both [Python](https://github.com/livekit/agents) and [Node.js](https://github.com/livekit/agents-js).
 >
+> LiveKit Agents is a great fit for customer support, healthcare, financial services, and outbound calling. Try the [live demos](https://livekit.com/agents).
+>
 > ```python
 > # agent.py
 > from livekit import agents
@@ -81,7 +83,7 @@ Include this package to your `pubspec.yaml`
 ```yaml
 ---
 dependencies:
-  livekit_client: ^2.13.1
+  livekit_client: ^2.14.0
 ```
 
 ### iOS
@@ -609,6 +611,34 @@ These controls are accessible on the `RemoteTrackPublication` object.
 
 For more info, see [Subscribing to tracks](https://docs.livekit.io/home/client/tracks/subscribe/).
 
+### Logging
+
+The SDK logs through [`package:logging`](https://pub.dev/packages/logging), on a logger named `livekit`. Listen on the root logger to receive its records:
+
+```dart
+import 'package:logging/logging.dart';
+
+Logger.root.onRecord.listen((record) {
+  print('${record.level.name} ${record.loggerName}: ${record.message}');
+});
+```
+
+By default the SDK follows the level of `Logger.root`. To give the SDK a level of its own, without changing what the rest of your app logs:
+
+```dart
+setLoggingLevel(LoggerLevel.kFINE); // more detail from the SDK only
+```
+
+Or to silence it:
+
+```dart
+disableLogging();
+```
+
+After either call the SDK keeps its own level and no longer follows `Logger.root`.
+
+Both calls turn on `hierarchicalLoggingEnabled`, the switch `package:logging` needs before any logger other than the root one can have a level of its own. With it on, `onRecord` of a logger other than the root one delivers only the records of that logger and its children, so listen on `Logger.root.onRecord` as above to keep receiving everything.
+
 ### Diagnosing connection issues
 
 `ConnectionCheck` runs a set of connection diagnostics against a LiveKit server — the same checks that power [livekit.io/connection-test](https://livekit.io/connection-test). Run it proactively at app start, or reactively when `room.connect()` fails, to determine why a connection cannot be established (firewall, VPN, blocked TURN, etc.).
@@ -659,6 +689,7 @@ A huge thank you to [flutter-webrtc](https://github.com/flutter-webrtc/flutter-w
 <tbody>
 <tr><td>Agents SDKs</td><td><a href="https://github.com/livekit/agents">Python</a> · <a href="https://github.com/livekit/agents-js">Node.js</a></td></tr><tr></tr>
 <tr><td>LiveKit SDKs</td><td><a href="https://github.com/livekit/client-sdk-js">Browser</a> · <a href="https://github.com/livekit/client-sdk-swift">Swift</a> · <a href="https://github.com/livekit/client-sdk-android">Android</a> · <b>Flutter</b> · <a href="https://github.com/livekit/client-sdk-react-native">React Native</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/client-sdk-unity">Unity</a> · <a href="https://github.com/livekit/client-sdk-unity-web">Unity (WebGL)</a> · <a href="https://github.com/livekit/client-sdk-esp32">ESP32</a> · <a href="https://github.com/livekit/client-sdk-cpp">C++</a></td></tr><tr></tr>
+<tr><td>Robotics</td><td><a href="https://github.com/livekit/portal">Portal</a> · <a href="https://github.com/livekit/ros-portal">Portal for ROS</a></td></tr><tr></tr>
 <tr><td>Starter Apps</td><td><a href="https://github.com/livekit-examples/agent-starter-python">Python Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-node">TypeScript Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-react">React App</a> · <a href="https://github.com/livekit-examples/agent-starter-swift">SwiftUI App</a> · <a href="https://github.com/livekit-examples/agent-starter-android">Android App</a> · <a href="https://github.com/livekit-examples/agent-starter-flutter">Flutter App</a> · <a href="https://github.com/livekit-examples/agent-starter-react-native">React Native App</a> · <a href="https://github.com/livekit-examples/agent-starter-embed">Web Embed</a></td></tr><tr></tr>
 <tr><td>UI Components</td><td><a href="https://github.com/livekit/components-js">React</a> · <a href="https://github.com/livekit/components-android">Android Compose</a> · <a href="https://github.com/livekit/components-swift">SwiftUI</a> · <a href="https://github.com/livekit/components-flutter">Flutter</a></td></tr><tr></tr>
 <tr><td>Server APIs</td><td><a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/server-sdk-go">Golang</a> · <a href="https://github.com/livekit/server-sdk-ruby">Ruby</a> · <a href="https://github.com/livekit/server-sdk-kotlin">Java/Kotlin</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/agence104/livekit-server-sdk-php">PHP (community)</a> · <a href="https://github.com/pabloFuente/livekit-server-sdk-dotnet">.NET (community)</a></td></tr><tr></tr>

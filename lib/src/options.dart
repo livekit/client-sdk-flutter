@@ -224,6 +224,9 @@ class ConnectOptions {
   /// does not support the v1 signal path (HTTP 404).
   final bool singlePeerConnection;
 
+  /// Tuning for incoming data streams.
+  final DataStreamOptions dataStream;
+
   const ConnectOptions({
     this.autoSubscribe = true,
     this.rtcConfiguration = const RTCConfiguration(),
@@ -231,6 +234,7 @@ class ConnectOptions {
     this.clientProtocolVersion = ClientProtocolVersion.current,
     this.timeouts = Timeouts.defaultTimeouts,
     this.singlePeerConnection = false,
+    this.dataStream = const DataStreamOptions(),
   });
 
   ConnectOptions copyWith({
@@ -240,6 +244,7 @@ class ConnectOptions {
     ClientProtocolVersion? clientProtocolVersion,
     Timeouts? timeouts,
     bool? singlePeerConnection,
+    DataStreamOptions? dataStream,
   }) {
     return ConnectOptions(
       autoSubscribe: autoSubscribe ?? this.autoSubscribe,
@@ -248,9 +253,23 @@ class ConnectOptions {
       clientProtocolVersion: clientProtocolVersion ?? this.clientProtocolVersion,
       timeouts: timeouts ?? this.timeouts,
       singlePeerConnection: singlePeerConnection ?? this.singlePeerConnection,
+      dataStream: dataStream ?? this.dataStream,
     );
   }
 }
+
+/// Options for receiving data streams.
+/// {@category Room}
+class DataStreamOptions {
+  /// Largest payload, in bytes, that a single incoming stream may deliver. If unset, defaults to
+  /// 5gb.
+  final int? maxPayloadByteLength;
+
+  const DataStreamOptions({this.maxPayloadByteLength});
+}
+
+/// Default for [DataStreamOptions.maxPayloadByteLength]; matches the Rust core's own default.
+const int kDefaultMaxPayloadByteLength = 5000000000;
 
 /// Options used to modify the behavior of the [Room].
 /// {@category Room}
