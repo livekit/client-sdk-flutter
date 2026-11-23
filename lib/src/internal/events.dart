@@ -342,23 +342,31 @@ class SignalDisconnectedEvent with SignalEvent, InternalEvent {
 @internal
 class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// The server's id for this offer, echoed back on the answer. 0 from servers that send none.
+  final int offerId;
   const SignalOfferEvent({
     required this.sd,
+    required this.offerId,
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
 }
 
 @internal
 class SignalAnswerEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
+
+  /// Id of the offer this answers. 0 from servers that do not echo offer ids.
+  final int offerId;
   const SignalAnswerEvent({
     required this.sd,
+    required this.offerId,
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
 }
 
 @internal
