@@ -56,6 +56,19 @@ jobs:
       - name: Check version consistency
         run: dart run scripts/check_version.dart
 
+  publish-validation-check:
+    name: Publish Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-flutter
+      # On the release PR this fails before the merge puts the new version
+      # on main, instead of after it in release.yaml.
+      - name: Validate package, only the flutter_webrtc pin warning is allowed
+        run: scripts/validate_publish.sh
+
   dart-analyze-check:
     name: Dart Analyze
     runs-on: ubuntu-latest

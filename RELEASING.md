@@ -41,6 +41,13 @@ not exist yet at that point.
 
 ## Release
 
+The first release after the switch to verwalter is an rc: run
+`gh workflow run pre-release.yaml --ref main` and merge the rc PR. It is
+the first run of `release.yaml`, and the first start of `publish.yaml`
+through `workflow_dispatch`, which pub.dev must allow. An rc on pub.dev
+does not reach users who depend on `^2.x`. Remove this paragraph after
+that rc is on pub.dev.
+
 1. Merge the release PR.
 2. Watch the run of `release.yaml`: `gh run list --workflow release.yaml --limit 1`.
    Its `publish` job waits for the run of `publish.yaml` on the new tag.
@@ -65,7 +72,7 @@ Find the cause first. The paths by cause are in the
 | Situation | Command |
 |---|---|
 | A job failed for a transient reason | `gh run rerun <run-id> --failed` |
-| `validate` failed: pub reports an issue other than the `flutter_webrtc` pin | Fix it on `main` with a changeset. No tag exists yet. The next release PR carries the fix. |
+| `validate` failed after the merge: pub reports an issue other than the `flutter_webrtc` pin | Merge the fix with the `internal` label and no changeset, and merge nothing else before the release. Then run `gh workflow run release.yaml -f ref=<fix commit>`. It tags the version that the release PR wrote on that commit. A fix with a changeset releases the next version instead, and leaves this version without a tag. |
 | The publish to pub.dev failed after the tag | `gh workflow run publish.yaml --ref <tag>`. A version pub.dev has is skipped. |
 | The workflow file needed a fix, and the fix is on `main` | `gh workflow run release.yaml -f ref=<tag>` |
 | The released commit is wrong | `verwalter release --abandon <tag>`, then a changeset and the next version |

@@ -30,7 +30,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: The release tag to publish, for example v2.15.0.
+        description: The release tag, for example v2.15.0. Or, when validate failed before the tag, the commit that fixes it.
         required: true
 
 permissions:
@@ -47,38 +47,22 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
       - uses: ./.github/actions/setup-flutter
-      # The exact flutter_webrtc pin is intentional (native WebRTC-SDK pods
-      # must match) but always triggers a pub validation warning, and pub
-      # treats any warning as fatal without --force. Publishing needs --force
-      # because of that, so this job makes sure, before the tag exists, that
-      # the pin warning is the only validation issue.
+      # Also runs on every PR in build.yaml. This run is the last guard
+      # before the tag exists.
       - name: Validate package, only the flutter_webrtc pin warning is allowed
-        run: |
-          set +e
-          output=$(dart pub publish --dry-run 2>&1)
-          status=$?
-          set -e
-          echo "$output"
-          if [ "$status" -eq 0 ]; then
-            exit 0
-          fi
-          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'dependency on "flutter_webrtc" should allow more than one version' || true)
-          if echo "$output" | grep -q '^Package has 1 warning\.$' && [ -z "$unexpected" ]; then
-            echo "Only the expected flutter_webrtc pin warning was found, continuing."
-            exit 0
-          fi
-          echo "Validation found issues other than the expected flutter_webrtc pin warning, refusing to publish."
-          exit 1
+        run: scripts/validate_publish.sh
 
   release:
     needs: validate
     runs-on: ubuntu-latest
     # One release at a time: a run by hand for a tag waits for the merge
     # run that is still tagging, instead of tagging at the same time.
-    # Skipped jobs of other closed PRs never enter the group.
+    # Skipped jobs of other closed PRs never enter the group. `queue: max`
+    # keeps every waiting run: without it, a third run cancels the waiting one.
     concurrency:
       group: release
       cancel-in-progress: false
+      queue: max
     outputs:
       released: ${{ steps.verwalter.outputs.released }}
       releases: ${{ steps.verwalter.outputs.releases }}
@@ -152,3 +136,28 @@ jobs:
         with:
           command: status
           args: --check
+
+  # The docs site holds one version: the newest final release on main.
+  # Its own job after verify, so a failed upload is red while the release
+  # jobs stay green and complete. A re-run overwrites the same files.
+  docs:
+    needs: [release, verify]
+    # Three facts from the handoff: this run released a version (`tag` is
+    # set, so an empty list skips), it is not an rc, and it is on main.
+    if: needs.release.outputs.releases && fromJSON(needs.release.outputs.releases)[0].tag && !fromJSON(needs.release.outputs.releases)[0].prerelease && (github.event.pull_request.base.ref || github.ref_name) == 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - uses: ./.github/actions/setup-flutter
+      - name: Generate dartdoc
+        run: dart doc
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
+          AWS_DEFAULT_REGION: "us-east-1"
+        run: aws s3 cp doc/api/ s3://${{ secrets.DOCS_DEPLOY_BUCKET }}/client-sdk-flutter/ --recursive
