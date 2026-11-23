@@ -1,0 +1,148 @@
+# Copyright 2026 LiveKit, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# After a release PR merges: validate the package, then tag and create the
+# GitHub release, then publish to pub.dev. The step that cannot be undone
+# comes last. pub.dev accepts only a run on a tag, so the publish job
+# starts publish.yaml on the new tag and waits for it.
+name: Release
+
+on:
+  # No `branches` filter: an rc PR from pre-release.yaml targets the branch
+  # the workflow was run on. The condition on the first job decides which
+  # PRs release.
+  pull_request:
+    types: [closed]
+  # A failed job is re-run with "Re-run failed jobs" on the run itself.
+  # This trigger is for a run that needs a fixed workflow file. `verwalter
+  # release` resumes from the current state and skips what is done.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The release tag to publish, for example v2.15.0.
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    # Only a release PR the tool opened: the branch prefix alone would let
+    # any pushed `release/*` branch trigger a publish.
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.user.login == 'verwalter-release[bot]' && contains(github.event.pull_request.body, '<!-- verwalter release -->'))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - uses: ./.github/actions/setup-flutter
+      # The exact flutter_webrtc pin is intentional (native WebRTC-SDK pods
+      # must match) but always triggers a pub validation warning, and pub
+      # treats any warning as fatal without --force. Publishing needs --force
+      # because of that, so this job makes sure, before the tag exists, that
+      # the pin warning is the only validation issue.
+      - name: Validate package, only the flutter_webrtc pin warning is allowed
+        run: |
+          set +e
+          output=$(dart pub publish --dry-run 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          if [ "$status" -eq 0 ]; then
+            exit 0
+          fi
+          unexpected=$(echo "$output" | grep '^\* ' | grep -v 'dependency on "flutter_webrtc" should allow more than one version' || true)
+          if echo "$output" | grep -q '^Package has 1 warning\.$' && [ -z "$unexpected" ]; then
+            echo "Only the expected flutter_webrtc pin warning was found, continuing."
+            exit 0
+          fi
+          echo "Validation found issues other than the expected flutter_webrtc pin warning, refusing to publish."
+          exit 1
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.verwalter.outputs.released }}
+      releases: ${{ steps.verwalter.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # The merge commit itself: a push to main right after the merge
+          # must not move the tag.
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+          fetch-depth: 0
+      - id: verwalter
+        uses: livekit/verwalter@39e3d7c57c2b6d96cf2d4b7771f3ab199490faba # v0.31.0
+        with:
+          command: release
+
+  publish:
+    needs: release
+    if: needs.release.outputs.released == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write # starts publish.yaml
+    steps:
+      - name: Start the publish run on the tag and wait for it
+        timeout-minutes: 60
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.release.outputs.releases && fromJSON(needs.release.outputs.releases)[0].tag || inputs.ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TAG" ]; then
+            echo "::error::no release tag to publish"
+            exit 1
+          fi
+          running() {
+            gh run list --workflow publish.yaml --branch "$TAG" \
+              --json databaseId,status \
+              --jq 'map(select(.status != "completed")) | .[0].databaseId // empty'
+          }
+          # A run for this tag that is still going: wait for it, start no second one.
+          run_id=$(running)
+          if [ -z "$run_id" ]; then
+            gh workflow run publish.yaml --ref "$TAG"
+            for _ in $(seq 1 30); do
+              sleep 5
+              run_id=$(running)
+              [ -n "$run_id" ] && break
+            done
+          fi
+          if [ -z "$run_id" ]; then
+            echo "::error::the publish run for $TAG did not start"
+            exit 1
+          fi
+          # The second call covers one failed poll.
+          gh run watch "$run_id" --exit-status || gh run watch "$run_id" --exit-status
+
+  # The end state, asserted: `status --check` fails when the tag is not on
+  # the remote, the GitHub release is missing or still a draft, or pub.dev
+  # does not have the version.
+  verify:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # reads only. A draft release is visible only with write access
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+          fetch-depth: 0
+      - uses: livekit/verwalter@39e3d7c57c2b6d96cf2d4b7771f3ab199490faba # v0.31.0
+        with:
+          command: status
+          args: --check
