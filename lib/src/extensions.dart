@@ -125,6 +125,14 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   };
 }
 
+extension RTCContinualGatheringPolicyExt on RTCContinualGatheringPolicy {
+  // Values read by flutter_webrtc on iOS, macOS and Android.
+  String toStringValue() => switch (this) {
+    RTCContinualGatheringPolicy.gatherOnce => 'gather_once',
+    RTCContinualGatheringPolicy.gatherContinually => 'gather_continually',
+  };
+}
+
 // not so neat to directly expose protobuf types so we
 // define our own types (and convert methods)
 extension RTCSessionDescriptionExt on rtc.RTCSessionDescription {
