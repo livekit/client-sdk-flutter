@@ -67,7 +67,7 @@ Two things to know about that hook: it picks the locally built library purely on
 
 - `flutter_webrtc` is pinned to an exact version on purpose: livekit_client and flutter_webrtc must agree on the same WebRTC-SDK native pods, and mismatches break user builds (CocoaPods conflicts). Bump it only in sync with a matching WebRTC-SDK version.
 - iOS `AVAudioSession` handling and reconnection-after-network-loss are the most frequent user-reported problem areas — change that code conservatively.
-- Don't hand-edit version numbers: `scripts/create_version.dart` propagates the version to `.version`, `pubspec.yaml`, `README.md`, `lib/src/livekit.dart`, and the podspecs; `check_version.dart` fails CI on mismatch.
+- Don't hand-edit version numbers: the verwalter release PR writes the version to every file listed in `verwalter.toml` (`pubspec.yaml`, `.version`, `README.md`, `lib/src/livekit.dart`, and the podspecs); `check_version.dart` fails CI on mismatch.
 
 ## Error-prone areas & anti-patterns (from bug/review history)
 
@@ -91,4 +91,16 @@ Most regressions live in `lib/src/core/` (`room.dart`, `engine.dart`, `signal_cl
 
 ## Releases
 
-Every PR that affects the published package needs a changeset file in `.changes/` (format: `patch|minor|major type="fixed|added|changed|..." "description"`); CI checks for it and runs `dart-apitool` against `main` to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling are exempt, a changeset would put noise in the user facing changelog. Releases are tag-driven (`vX.Y.Z`) and publish to pub.dev.
+Releases use [verwalter](https://github.com/livekit/verwalter), configured in `verwalter.toml`. Every PR that affects the published package needs a changeset in `.changeset/`, written with `verwalter changeset --level patch|minor|major --package livekit_client --summary "..."` or by hand:
+
+```md
+---
+livekit_client: patch
+---
+
+Fix audio frame generation when publishing
+```
+
+The summary is one sentence for users of the package, without the PR number (the changelog adds it and the author). CI (`changeset-check.yaml`) fails a PR without one, and runs `dart-apitool` against the PR's base commit to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling take the `internal` label instead, a changeset would put noise in the user facing changelog.
+
+Each push to `main` regenerates one release PR (`release/main`) from the pending changesets. Never edit it by hand: a fix goes to `main` with its own changeset. Merging it tags `vX.Y.Z`, creates the GitHub release and publishes to pub.dev (`release.yaml`, which starts `publish.yaml` on the tag). `verwalter status` names the next step when a release step failed; re-run that step, never retag.

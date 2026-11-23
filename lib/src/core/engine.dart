@@ -781,6 +781,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
+    // Keep gathering candidates after the connection is up, like the Swift, Android and JS SDKs,
+    // so a network change (e.g. Wi-Fi to cellular) yields new candidates without an ICE restart.
+    // libwebrtc defaults to gathering once. An explicit value from the app wins.
+    if (rtcConfiguration.continualGatheringPolicy == null) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+        continualGatheringPolicy: RTCContinualGatheringPolicy.gatherContinually,
+      );
+    }
+
     return rtcConfiguration;
   }
 

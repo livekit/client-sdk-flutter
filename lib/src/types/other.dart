@@ -250,12 +250,32 @@ enum RTCIceTransportPolicy {
   relay,
 }
 
+/// The continualGatheringPolicy used for [RTCConfiguration].
+///
+/// Native platforms only (iOS, macOS, Android); other platforms ignore it.
+enum RTCContinualGatheringPolicy {
+  /// Gather ICE candidates once, when the connection is set up. Candidates for a
+  /// network that appears later only arrive with an ICE restart.
+  gatherOnce,
+
+  /// Keep gathering ICE candidates for the lifetime of the connection, so a new
+  /// network (for example switching from Wi-Fi to cellular) is picked up without
+  /// waiting for an ICE restart.
+  gatherContinually,
+}
+
 @immutable
 class RTCConfiguration {
   final int? iceCandidatePoolSize;
   final List<RTCIceServer>? iceServers;
   final RTCIceTransportPolicy? iceTransportPolicy;
   final bool? encodedInsertableStreams;
+
+  /// When left unset, the SDK uses [RTCContinualGatheringPolicy.gatherContinually],
+  /// matching the LiveKit Swift, Android and JS SDKs.
+  ///
+  /// Ignored on web and desktop platforms other than macOS.
+  final RTCContinualGatheringPolicy? continualGatheringPolicy;
 
   /// Allows DSCP (Differentiated Services Code Point) codes to be set on
   /// outgoing packets for network level QoS.
@@ -272,6 +292,7 @@ class RTCConfiguration {
     this.iceTransportPolicy,
     this.encodedInsertableStreams,
     this.isDscpEnabled,
+    this.continualGatheringPolicy,
   });
 
   Map<String, dynamic> toMap() {
@@ -288,6 +309,7 @@ class RTCConfiguration {
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
       if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
       if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
+      if (continualGatheringPolicy != null) 'continualGatheringPolicy': continualGatheringPolicy!.toStringValue(),
     };
   }
 
@@ -298,12 +320,14 @@ class RTCConfiguration {
     RTCIceTransportPolicy? iceTransportPolicy,
     bool? encodedInsertableStreams,
     bool? isDscpEnabled,
+    RTCContinualGatheringPolicy? continualGatheringPolicy,
   }) => RTCConfiguration(
     iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
     iceServers: iceServers ?? this.iceServers,
     iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
     encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
     isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
+    continualGatheringPolicy: continualGatheringPolicy ?? this.continualGatheringPolicy,
   );
 }
 
