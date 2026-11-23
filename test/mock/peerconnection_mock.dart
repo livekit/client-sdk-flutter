@@ -306,8 +306,7 @@ a=rtpmap:32 MPV/90000
   ]) async => MockPeerConnection()..createConfiguration = configuration;
 
   @override
-  // TODO: implement restartIce
-  Future<void> restartIce() => throw UnimplementedError();
+  Future<void> restartIce() async {}
 }
 
 class MockRtpSender implements RTCRtpSender {
