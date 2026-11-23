@@ -32,7 +32,7 @@ void main() {
       roomOptions: const RoomOptions(),
     );
     expect(uri.path, '/rtc/v1');
-    final wrapped = lk_rtc.WrappedJoinRequest.fromBuffer(base64Decode(uri.queryParameters['join_request']!));
+    final wrapped = lk_rtc.WrappedJoinRequest.fromBuffer(base64Url.decode(uri.queryParameters['join_request']!));
     return lk_rtc.JoinRequest.fromBuffer(wrapped.joinRequest);
   }
 
@@ -63,6 +63,7 @@ void main() {
       protocolVersion: ProtocolVersion.v12,
       clientProtocolVersion: ClientProtocolVersion.v0,
       singlePeerConnection: true,
+      dataStream: DataStreamOptions(maxPayloadByteLength: 1024),
     );
     // Engine.connect falls back to dual peer connection this way.
     final fallback = options.copyWith(singlePeerConnection: false);
@@ -72,6 +73,46 @@ void main() {
     expect(fallback.clientProtocolVersion, ClientProtocolVersion.v0);
     expect(fallback.timeouts, options.timeouts);
     expect(fallback.rtcConfiguration, options.rtcConfiguration);
+    expect(fallback.dataStream.maxPayloadByteLength, 1024);
+  });
+
+  test('v1 join request advertises the same capabilities as the v0 capabilities param', () async {
+    final v0 = await Utils.buildV0Uri(
+      'ws://localhost:7880',
+      token: 'token',
+      connectOptions: const ConnectOptions(),
+      roomOptions: const RoomOptions(),
+    );
+    final join = await v1JoinRequest(const ConnectOptions());
+
+    expect(
+      join.clientInfo.capabilities.map((c) => ClientCapability.fromProto(c)),
+      ClientCapability.advertised,
+    );
+    expect(join.clientInfo.capabilities.map((c) => c.name).join(','), v0.queryParameters['capabilities'] ?? '');
+  });
+
+  test('v1 join request is padded base64url, as the server decodes it', () async {
+    // Dart's base64 decoder accepts both alphabets, so a round trip alone proves nothing:
+    // look for a request whose standard base64 would contain `+` or `/`, and check the
+    // URL carries the base64url form instead. The sid varies the encoded bytes.
+    var exercised = false;
+    for (var i = 0; i < 64 && !exercised; i++) {
+      final uri = await Utils.buildV1Uri(
+        'ws://localhost:7880',
+        token: 'token',
+        connectOptions: const ConnectOptions(),
+        roomOptions: const RoomOptions(),
+        reconnect: true,
+        sid: 'PA_${'?' * i}',
+      );
+      final encoded = uri.queryParameters['join_request']!;
+      final bytes = base64Url.decode(encoded);
+      expect(encoded, base64Url.encode(bytes));
+      expect(encoded.length % 4, 0, reason: 'Go base64.URLEncoding requires padding');
+      exercised = base64.encode(bytes).contains(RegExp(r'[+/]'));
+    }
+    expect(exercised, isTrue, reason: 'no fixture produced + or / under standard base64');
   });
 
   test('v1 validate URL keeps the join request of the signal URL', () async {

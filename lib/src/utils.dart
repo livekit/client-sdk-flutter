@@ -267,7 +267,11 @@ class Utils {
       ..version = LiveKitClient.version
       ..protocol = int.tryParse(connectOptions.protocolVersion.toStringValue()) ?? 0
       ..clientProtocol = connectOptions.clientProtocolVersion.wireValue
-      ..network = networkType;
+      ..network = networkType
+      // what v0 sends as the `capabilities` param
+      ..capabilities.addAll(
+        ClientCapability.advertised.map((c) => lk_models.ClientInfo_Capability.valueOf(c.wireValue)!),
+      );
 
     final joinRequest = lk_rtc.JoinRequest(
       clientInfo: clientInfo,
@@ -284,7 +288,9 @@ class Utils {
       joinRequest: joinRequest.writeToBuffer(),
     );
 
-    final joinRequestBase64 = base64Encode(wrappedJoinRequest.writeToBuffer());
+    // the server decodes padded base64url (Go's base64.URLEncoding); standard base64's
+    // `+` and `/` survive query encoding unchanged and fail that decode with HTTP 400
+    final joinRequestBase64 = base64Url.encode(wrappedJoinRequest.writeToBuffer());
 
     return uri.replace(
       scheme: wsScheme,
