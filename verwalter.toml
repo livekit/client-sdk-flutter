@@ -16,3 +16,8 @@ publish.registry = "pubdev"
 # header carries ANSI codes, so the match is not anchored. With
 # pipefail, a tool error fails the check instead of passing it silently.
 check.api = "set -o pipefail; dart-apitool diff --old pub://livekit_client/$VERWALTER_VERSION --new . --version-check-mode none 2>&1 | tee /dev/stderr | awk '/BREAKING CHANGES/ { found = 1 } END { if (found) print \"major\" }'"
+# On the release PR, `check` runs this dry run before the merge. The
+# exact flutter_webrtc pin always gives a pub warning, and the built-in
+# dry run treats it as fatal. The publish runs with --force, so warnings
+# never block it: the dry run fails only on what fails the publish.
+check.publish_dry_run = "dart pub publish --dry-run --ignore-warnings"

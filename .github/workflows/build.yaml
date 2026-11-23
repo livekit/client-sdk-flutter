@@ -64,10 +64,10 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
-      # On the release PR this fails before the merge puts the new version
-      # on main, instead of after it in release.yaml.
-      - name: Validate package, only the flutter_webrtc pin warning is allowed
-        run: scripts/validate_publish.sh
+      # Warnings are ignored: the exact flutter_webrtc pin always gives one,
+      # and the publish runs with --force. Errors fail the job.
+      - name: Validate package
+        run: dart pub publish --dry-run --ignore-warnings
 
   dart-analyze-check:
     name: Dart Analyze

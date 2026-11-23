@@ -20,8 +20,7 @@ name: Release
 
 on:
   # No `branches` filter: an rc PR from pre-release.yaml targets the branch
-  # the workflow was run on. The condition on the first job decides which
-  # PRs release.
+  # the workflow was run on. The `gate` job decides which PRs release.
   pull_request:
     types: [closed]
   # A failed job is re-run with "Re-run failed jobs" on the run itself.
@@ -37,20 +36,38 @@ permissions:
   contents: write
 
 jobs:
+  # Only a run by hand, or a merged release PR or rc PR that the tool
+  # opened: the branch prefix alone would let any pushed `release/*`
+  # branch trigger a publish. `gate` also checks the author
+  # (`[release].author`, default verwalter-release[bot]) and the marker.
+  gate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.verwalter.outputs.release }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - id: verwalter
+        uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
+        with:
+          command: gate
+
   validate:
-    # Only a release PR the tool opened: the branch prefix alone would let
-    # any pushed `release/*` branch trigger a publish.
-    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true && startsWith(github.event.pull_request.head.ref, 'release/') && github.event.pull_request.user.login == 'verwalter-release[bot]' && contains(github.event.pull_request.body, '<!-- verwalter release -->'))
+    needs: gate
+    if: needs.gate.outputs.release == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
       - uses: ./.github/actions/setup-flutter
-      # Also runs on every PR in build.yaml. This run is the last guard
-      # before the tag exists.
-      - name: Validate package, only the flutter_webrtc pin warning is allowed
-        run: scripts/validate_publish.sh
+      # Also runs on every PR in build.yaml, and on the release PR in
+      # changeset-check.yaml. This run is the last guard before the tag.
+      - name: Validate package
+        run: dart pub publish --dry-run --ignore-warnings
 
   release:
     needs: validate
@@ -74,7 +91,7 @@ jobs:
           ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
           fetch-depth: 0
       - id: verwalter
-        uses: livekit/verwalter@39e3d7c57c2b6d96cf2d4b7771f3ab199490faba # v0.31.0
+        uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
         with:
           command: release
 
@@ -132,7 +149,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
           fetch-depth: 0
-      - uses: livekit/verwalter@39e3d7c57c2b6d96cf2d4b7771f3ab199490faba # v0.31.0
+      - uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
         with:
           command: status
           args: --check
