@@ -375,9 +375,9 @@ class Transport extends Disposable {
       // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
       // error propagates to the caller instead of being dropped.
       if (onNegotiationError == null) {
-        await _createAndSendOffer(null);
+        await _createAndSendOffer();
       } else {
-        await _reportingNegotiationErrors(() => _createAndSendOffer(null));
+        await _reportingNegotiationErrors(_createAndSendOffer);
       }
     }
   }
@@ -390,10 +390,10 @@ class Transport extends Disposable {
     return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
-  Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
-      _negotiationLock.synchronized(() => _createAndSendOffer(options));
+  Future<void> createAndSendOffer({RTCOfferOptions? options}) =>
+      _negotiationLock.synchronized(() => _createAndSendOffer(options: options));
 
-  Future<void> _createAndSendOffer(RTCOfferOptions? options) async {
+  Future<void> _createAndSendOffer({RTCOfferOptions? options}) async {
     if (isDisposed) {
       logger.warning('[$objectId] createAndSendOffer() already disposed');
       return;

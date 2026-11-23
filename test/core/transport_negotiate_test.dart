@@ -238,7 +238,7 @@ void main() {
       await pc.setRemoteDescription(previous);
       pc.remoteDescriptionsApplied.clear();
 
-      await transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+      await transport.createAndSendOffer(options: const RTCOfferOptions(iceRestart: true));
 
       expect(pc.remoteDescriptionsApplied.map((sd) => sd.sdp), ['v=0\r\nprevious']);
       expect(pc.iceRestarts, 1);
@@ -252,7 +252,7 @@ void main() {
       final offers = <rtc.RTCSessionDescription>[];
       transport.onOffer = (offer, _) => offers.add(offer);
 
-      await transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+      await transport.createAndSendOffer(options: const RTCOfferOptions(iceRestart: true));
 
       expect(pc.remoteDescriptionsApplied, isEmpty);
       expect(pc.iceRestarts, 0);
@@ -462,7 +462,7 @@ void main() {
       await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
       await transport.createAndSendOffer();
       // Offer 2 is still waiting for its answer when the ICE restart replaces it.
-      await transport.createAndSendOffer(const RTCOfferOptions(iceRestart: true));
+      await transport.createAndSendOffer(options: const RTCOfferOptions(iceRestart: true));
       expect(sent, [1, 2, 3]);
 
       // The answer to offer 2 lands after the restart offer was sent. Real WebRTC is in

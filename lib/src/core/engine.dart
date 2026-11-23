@@ -1399,7 +1399,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_hasPublished) {
       logger.fine('resumeConnection: negotiating publisher...');
       await publisher!.createAndSendOffer(
-        const RTCOfferOptions(
+        options: const RTCOfferOptions(
           iceRestart: true,
         ),
       );
