@@ -14,7 +14,7 @@
 
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 
@@ -122,6 +122,14 @@ extension RTCIceTransportPolicyExt on RTCIceTransportPolicy {
   String toStringValue() => switch (this) {
     RTCIceTransportPolicy.all => 'all',
     RTCIceTransportPolicy.relay => 'relay',
+  };
+}
+
+extension RTCContinualGatheringPolicyExt on RTCContinualGatheringPolicy {
+  // Values read by flutter_webrtc on iOS, macOS and Android.
+  String toStringValue() => switch (this) {
+    RTCContinualGatheringPolicy.gatherOnce => 'gather_once',
+    RTCContinualGatheringPolicy.gatherContinually => 'gather_continually',
   };
 }
 

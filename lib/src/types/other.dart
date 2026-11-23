@@ -14,7 +14,8 @@
 
 // ignore_for_file: constant_identifier_names
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/widgets.dart';
 
 import '../extensions.dart';
 import '../participant/participant.dart';
@@ -51,7 +52,12 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   v0(0),
 
   /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_RPC`. Supports RPC v2 (data-stream payloads).
-  v1(1);
+  v1(1),
+
+  /// Spec: `CLIENT_PROTOCOL_DATA_STREAM_V2`. Understands data streams v2 — in particular
+  /// single-packet inline sends. Crossing this threshold is a baseline commitment with no opt-out;
+  /// optional v2 features such as compression are negotiated separately via [ClientCapability].
+  v2(2);
 
   const ClientProtocolVersion(this.wireValue);
 
@@ -61,11 +67,16 @@ enum ClientProtocolVersion implements Comparable<ClientProtocolVersion> {
   /// The highest version this SDK build supports. Used as the default for
   /// [ConnectOptions.clientProtocolVersion] and in tests that need to advertise
   /// "the current SDK".
-  static const ClientProtocolVersion current = v1;
+  ///
+  /// Web stays at [v1]: data streams v2 is implemented by the Rust core, which cannot run in a
+  /// browser. Advertising a lower protocol there is what makes a v2 sender fall back to
+  /// uncompressed multi-packet framing, which the Dart implementation understands.
+  static const ClientProtocolVersion current = kIsWeb ? v1 : v2;
 
   /// Maps wire values to the highest protocol version this SDK can use.
   static ClientProtocolVersion fromIntValue(int? value) {
     if (value == null) return v0;
+    if (value >= v2.wireValue) return v2;
     if (value >= v1.wireValue) return v1;
     return v0;
   }
@@ -239,12 +250,32 @@ enum RTCIceTransportPolicy {
   relay,
 }
 
+/// The continualGatheringPolicy used for [RTCConfiguration].
+///
+/// Native platforms only (iOS, macOS, Android); other platforms ignore it.
+enum RTCContinualGatheringPolicy {
+  /// Gather ICE candidates once, when the connection is set up. Candidates for a
+  /// network that appears later only arrive with an ICE restart.
+  gatherOnce,
+
+  /// Keep gathering ICE candidates for the lifetime of the connection, so a new
+  /// network (for example switching from Wi-Fi to cellular) is picked up without
+  /// waiting for an ICE restart.
+  gatherContinually,
+}
+
 @immutable
 class RTCConfiguration {
   final int? iceCandidatePoolSize;
   final List<RTCIceServer>? iceServers;
   final RTCIceTransportPolicy? iceTransportPolicy;
   final bool? encodedInsertableStreams;
+
+  /// When left unset, the SDK uses [RTCContinualGatheringPolicy.gatherContinually],
+  /// matching the LiveKit Swift, Android and JS SDKs.
+  ///
+  /// Ignored on web and desktop platforms other than macOS.
+  final RTCContinualGatheringPolicy? continualGatheringPolicy;
 
   /// Allows DSCP (Differentiated Services Code Point) codes to be set on
   /// outgoing packets for network level QoS.
@@ -261,6 +292,7 @@ class RTCConfiguration {
     this.iceTransportPolicy,
     this.encodedInsertableStreams,
     this.isDscpEnabled,
+    this.continualGatheringPolicy,
   });
 
   Map<String, dynamic> toMap() {
@@ -277,6 +309,7 @@ class RTCConfiguration {
       if (iceServersMap.isNotEmpty) 'iceServers': iceServersMap,
       if (iceCandidatePoolSize != null) 'iceCandidatePoolSize': iceCandidatePoolSize,
       if (iceTransportPolicy != null) 'iceTransportPolicy': iceTransportPolicy!.toStringValue(),
+      if (continualGatheringPolicy != null) 'continualGatheringPolicy': continualGatheringPolicy!.toStringValue(),
     };
   }
 
@@ -287,12 +320,14 @@ class RTCConfiguration {
     RTCIceTransportPolicy? iceTransportPolicy,
     bool? encodedInsertableStreams,
     bool? isDscpEnabled,
+    RTCContinualGatheringPolicy? continualGatheringPolicy,
   }) => RTCConfiguration(
     iceCandidatePoolSize: iceCandidatePoolSize ?? this.iceCandidatePoolSize,
     iceServers: iceServers ?? this.iceServers,
     iceTransportPolicy: iceTransportPolicy ?? this.iceTransportPolicy,
     encodedInsertableStreams: encodedInsertableStreams ?? this.encodedInsertableStreams,
     isDscpEnabled: isDscpEnabled ?? this.isDscpEnabled,
+    continualGatheringPolicy: continualGatheringPolicy ?? this.continualGatheringPolicy,
   );
 }
 

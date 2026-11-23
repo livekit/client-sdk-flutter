@@ -36,7 +36,16 @@ Web/native divergence is handled with conditional imports (e.g. `track/processor
 
 `lib/src/ffi/` wraps `livekit_ffi`, a Dart package generated from the `livekit-ffi` crate in the sibling `rust-sdks` repo. It reaches Rust through Dart's Native Assets: the package's `hook/build.dart` bundles a `cdylib` into the host app and the generated bindings call into it with `@Native`. This is why the SDK requires Flutter >= 3.38 / Dart >= 3.10.
 
-There is no dynamic library to load on the web, so `ffi.dart` splits native/web the same way the rest of the SDK does. **`ffi_io.dart` is the only file allowed to import `package:livekit_ffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. Guard calls with `LiveKitFFI.isAvailable`.
+There is no dynamic library to load on the web, so `ffi.dart` splits native/web the same way the rest of the SDK does. **Only `ffi_io.dart` and files under `lib/src/data_stream/` whose names end in `_native.dart` (plus `ffi_bridged.dart`) may import `package:livekit_ffi/...`** — importing it from anywhere reachable on web pulls `dart:ffi` into a web compile and breaks `flutter build web`/`--wasm`. No generated `livekit_ffi` type may appear in a public API signature; convert at the boundary (`data_stream/ffi_bridged.dart`). Guard calls with `LiveKitFFI.isAvailable`.
+
+### Data streams
+
+`lib/src/data_stream/` has two implementations behind one interface (`data_streams.dart`, conditional import): `data_streams_native.dart` delegates to the Rust core, which implements **data streams v2** (inline single-packet sends, deflate-raw compression, UTF-8-aware chunking, MTU-bounded headers); `data_streams_web.dart` is the original Dart v1 code, kept because the cdylib can't run in a browser. Web advertises `ClientProtocolVersion.v1` and no capabilities, so v2 senders fall back to uncompressed multi-packet for it.
+
+Two things to know when touching the native path:
+
+- **The core's push delegates cannot be used from Dart.** uniffi compiles a callback interface to `Pointer.fromFunction`, which is only valid on the isolate's thread, and the core invokes those delegates from its tokio runtime — the VM aborts with `Cannot invoke native callback outside an isolate`, which is not catchable. The managers are therefore built through the crate's `polled*` adapters (`livekit-ffi/src/core_modules/data_stream/polled.rs`), which implement the delegates *in Rust*, buffer into a channel, and expose an `async fn next_*` we await. `RemoteParticipantRegistryDelegate` is the one callback we implement directly, and it is safe: it is only called synchronously inside a `send*` future, which uniffi polls from the calling (Dart) thread.
+- **Whoever awaits a `livekit_ffi` object is the only thing that may dispose it.** Freeing the Rust handle while a `next()`/`nextBatch()` is in flight is a use-after-free that surfaces as a SIGBUS with no Dart stack. Hence readers are disposed by their pump rather than from a subscription's `onCancel`, and `dispose()` calls `close()` on the queues to wake their pumps instead of releasing them directly.
 
 ### Local development loop
 
@@ -58,7 +67,7 @@ Two things to know about that hook: it picks the locally built library purely on
 
 - `flutter_webrtc` is pinned to an exact version on purpose: livekit_client and flutter_webrtc must agree on the same WebRTC-SDK native pods, and mismatches break user builds (CocoaPods conflicts). Bump it only in sync with a matching WebRTC-SDK version.
 - iOS `AVAudioSession` handling and reconnection-after-network-loss are the most frequent user-reported problem areas — change that code conservatively.
-- Don't hand-edit version numbers: `scripts/create_version.dart` propagates the version to `.version`, `pubspec.yaml`, `README.md`, `lib/src/livekit.dart`, and the podspecs; `check_version.dart` fails CI on mismatch.
+- Don't hand-edit version numbers: the verwalter release PR writes the version to every file listed in `verwalter.toml` (`pubspec.yaml`, `.version`, `README.md`, `lib/src/livekit.dart`, and the podspecs); `check_version.dart` fails CI on mismatch.
 
 ## Error-prone areas & anti-patterns (from bug/review history)
 
@@ -82,4 +91,16 @@ Most regressions live in `lib/src/core/` (`room.dart`, `engine.dart`, `signal_cl
 
 ## Releases
 
-Every PR that affects the published package needs a changeset file in `.changes/` (format: `patch|minor|major type="fixed|added|changed|..." "description"`); CI checks for it and runs `dart-apitool` against `main` to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling are exempt, a changeset would put noise in the user facing changelog. Releases are tag-driven (`vX.Y.Z`) and publish to pub.dev.
+Releases use [verwalter](https://github.com/livekit/verwalter), configured in `verwalter.toml`. Every PR that affects the published package needs a changeset in `.changeset/`, written with `verwalter changeset --level patch|minor|major --package livekit_client --summary "..."` or by hand:
+
+```md
+---
+livekit_client: patch
+---
+
+Fix audio frame generation when publishing
+```
+
+The summary is one sentence for users of the package, without the PR number (the changelog adds it and the author). CI (`changeset-check.yaml`) fails a PR without one, and runs `dart-apitool` against the PR's base commit to require a `major` changeset for breaking public-API changes. PRs that only touch CI workflows or repo tooling take the `internal` label instead, a changeset would put noise in the user facing changelog.
+
+Each push to `main` regenerates one release PR (`release/main`) from the pending changesets. Never edit it by hand: a fix goes to `main` with its own changeset. Merging it tags `vX.Y.Z`, creates the GitHub release and publishes to pub.dev (`release.yaml`, which starts `publish.yaml` on the tag). `verwalter status` names the next step when a release step failed; re-run that step, never retag.
