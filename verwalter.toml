@@ -21,6 +21,7 @@ publish.registry = "pubdev"
 check.api = "set -o pipefail; old=$(mktemp -d) && git archive HEAD^1 | tar -x -C \"$old\" && dart-apitool diff --old \"$old\" --new . --version-check-mode none 2>&1 | tee /dev/stderr | awk '/BREAKING CHANGES/ { found = 1 } END { if (found) print \"major\" }'"
 # On the release PR, `check` runs this dry run before the merge. The
 # exact flutter_webrtc pin always gives a pub warning, and the built-in
-# dry run treats it as fatal. The publish runs with --force, so warnings
-# never block it: the dry run fails only on what fails the publish.
-check.publish_dry_run = "dart pub publish --dry-run --ignore-warnings"
+# dry run treats it as fatal. The publish runs with --force, which lets
+# every warning through, so the script allows that one warning and fails
+# on any other.
+check.publish_dry_run = "scripts/validate_publish.sh"

@@ -67,7 +67,7 @@ jobs:
       # Also runs on every PR in build.yaml, and on the release PR in
       # changeset-check.yaml. This run is the last guard before the tag.
       - name: Validate package
-        run: dart pub publish --dry-run --ignore-warnings
+        run: scripts/validate_publish.sh
 
   release:
     needs: validate
