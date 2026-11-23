@@ -27,12 +27,19 @@ concurrency:
 
 jobs:
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write # the tool flips the draft release after the publish
       id-token: write # trusted publishing
     steps:
+      # A run from a branch has nothing to publish. Fail it, so a run by
+      # hand on the wrong ref is red instead of a green run that did nothing.
+      - name: Require a release tag
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          echo "::error::Run this workflow on a release tag, not on $GITHUB_REF."
+          exit 1
+
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0 # tags decide what is published

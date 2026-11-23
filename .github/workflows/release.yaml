@@ -73,6 +73,12 @@ jobs:
   release:
     needs: validate
     runs-on: ubuntu-latest
+    # One release at a time: a run by hand for a tag waits for the merge
+    # run that is still tagging, instead of tagging at the same time.
+    # Skipped jobs of other closed PRs never enter the group.
+    concurrency:
+      group: release
+      cancel-in-progress: false
     outputs:
       released: ${{ steps.verwalter.outputs.released }}
       releases: ${{ steps.verwalter.outputs.releases }}
