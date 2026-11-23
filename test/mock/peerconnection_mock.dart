@@ -277,7 +277,14 @@ a=rtpmap:32 MPV/90000
   Future<List<RTCRtpSender>> getSenders() async => List.empty();
 
   @override
-  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async => List.empty();
+  Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async => [
+    if (selectedCandidatePairId != null)
+      StatsReport('T01', 'transport', 0, {'selectedCandidatePairId': selectedCandidatePairId}),
+  ];
+
+  /// Reported as the transport's selected candidate pair by [getStats], which reports no
+  /// transport while it is null.
+  String? selectedCandidatePairId;
 
   @override
   Future<List<RTCRtpTransceiver>> getTransceivers() async => List.empty();
@@ -305,9 +312,9 @@ a=rtpmap:32 MPV/90000
     Map<String, dynamic>? constraints,
   ]) async => MockPeerConnection()..createConfiguration = configuration;
 
+  // The next offer carries new ICE credentials. The mock has no ICE agent to restart.
   @override
-  // TODO: implement restartIce
-  Future<void> restartIce() => throw UnimplementedError();
+  Future<void> restartIce() async {}
 }
 
 class MockRtpSender implements RTCRtpSender {

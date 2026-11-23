@@ -27,6 +27,7 @@ import '../logger.dart';
 import '../options.dart';
 import '../support/disposable.dart';
 import '../support/platform.dart';
+import '../support/reusable_completer.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
@@ -245,6 +246,20 @@ class Transport extends Disposable {
   /// mid-apply is recognised as a duplicate too.
   int? _answerInFlight;
 
+  /// Id of the offer the local description holds, the offer an answer without an id answers.
+  int _localOfferId = 0;
+
+  /// Id of the last ICE restart offer sent, 0 before the first one.
+  int _iceRestartOfferId = 0;
+
+  /// An answer to the last ICE restart offer, or to an offer after it, has been applied.
+  bool _iceRestartAnswered = false;
+
+  rtc.RTCPeerConnectionState? _reportedConnectionState;
+
+  /// Completed whenever [iceRestartAnswered] or [reportedConnectionState] changes, and on dispose.
+  final ReusableCompleter<void> _iceRestartChanged = ReusableCompleter<void>();
+
   /// Builds one offer at a time. A call that overlaps another waits for it, then finds that
   /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
   /// Only an ICE restart replaces a waiting offer.
@@ -259,6 +274,8 @@ class Transport extends Disposable {
   Transport._(this.pc, this.connectOptions) {
     //
     onDispose(() async {
+      // wake a wait for the ICE restart, it sees the transport disposed
+      _iceRestartChanged.complete();
       _cancelDebounce?.call();
       _cancelDebounce = null;
 
@@ -359,6 +376,13 @@ class Transport extends Disposable {
       await pc.setRemoteDescription(sd);
       // only a successfully applied answer makes later copies duplicates
       if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
+      // An answer to the restart offer, or to a later offer that carries the same new ICE
+      // credentials, gives the connection what it needs to finish the restart.
+      final answers = offerId > 0 ? offerId : _localOfferId;
+      if (sd.type == 'answer' && _iceRestartOfferId > 0 && answers >= _iceRestartOfferId && !_iceRestartAnswered) {
+        _iceRestartAnswered = true;
+        _iceRestartChanged.complete();
+      }
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
     } finally {
@@ -497,7 +521,38 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
+    _localOfferId = offerId;
+    if (options?.iceRestart ?? false) {
+      _iceRestartOfferId = offerId;
+      _iceRestartAnswered = false;
+      _iceRestartChanged.complete();
+    }
     onOffer?.call(offer, offerId);
+  }
+
+  /// Id of the last ICE restart offer sent, 0 before the first one. A caller compares it before
+  /// and after [createAndSendOffer] to know whether its restart offer went out.
+  @internal
+  int get iceRestartOfferId => _iceRestartOfferId;
+
+  /// Whether an answer to the last ICE restart offer, or to a later offer, has been applied.
+  @internal
+  bool get iceRestartAnswered => _iceRestartAnswered;
+
+  /// The last state passed to [updateConnectionState].
+  @internal
+  rtc.RTCPeerConnectionState? get reportedConnectionState => _reportedConnectionState;
+
+  /// Completes on the next change of [iceRestartAnswered] or [reportedConnectionState], and on
+  /// dispose. Read [isDisposed] first, the future is not available after dispose.
+  @internal
+  Future<void> get iceRestartChanged => _iceRestartChanged.future;
+
+  /// Called by the owner of `pc.onConnectionState` with every connection state change.
+  @internal
+  void updateConnectionState(rtc.RTCPeerConnectionState state) {
+    _reportedConnectionState = state;
+    _iceRestartChanged.complete();
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {

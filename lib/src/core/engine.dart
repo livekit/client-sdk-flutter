@@ -858,6 +858,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     };
 
     publisher?.pc.onConnectionState = (state) async {
+      publisher?.updateConnectionState(state);
       if ([
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
@@ -1396,14 +1397,27 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('resumeConnection: reason: ${reason.name}');
 
+    // Only a publisher negotiated before the resume has an ICE restart to wait for, so a client
+    // that never published resumes as fast as before.
+    Transport? restartingPublisher;
+    String? pairBeforeRestart;
     if (_hasPublished) {
       logger.fine('resumeConnection: negotiating publisher...');
-      await publisher!.createAndSendOffer(
+      final publisher = this.publisher!;
+      pairBeforeRestart = await _selectedCandidatePairId(publisher.pc);
+      final previousRestart = publisher.iceRestartOfferId;
+      await publisher.createAndSendOffer(
         const RTCOfferOptions(
           iceRestart: true,
         ),
       );
+      if (publisher.iceRestartOfferId != previousRestart) {
+        restartingPublisher = publisher;
+      } else {
+        logger.warning('resumeConnection: the publisher ICE restart offer was not sent, not waiting for it');
+      }
     }
+    final publisherWait = Stopwatch()..start();
 
     final isConnected = (await primary?.pc.getConnectionState())?.isConnected() ?? false;
 
@@ -1421,6 +1435,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
+    // The primary check above passes on a publisher or subscriber that still reports connected over
+    // its old candidate pair, which after a migration leads to the old media node. Until the
+    // publisher has finished its ICE restart, reliable data sent now would be lost, so the resume
+    // is not done before that. Both waits count from the restart offer.
+    if (restartingPublisher != null) {
+      logger.fine('resumeConnection: waiting for the publisher to finish its ICE restart...');
+      await _waitForPublisherIceRestart(
+        restartingPublisher,
+        pairBeforeRestart,
+        connectOptions.timeouts.peerConnection - publisherWait.elapsed,
+      );
+      logger.fine('resumeConnection: publisher reconnected after ${publisherWait.elapsedMilliseconds} ms');
+    }
+
     // The socket can drop while the peer connections were being restored. A
     // resume that ends with a dead signal connection is a failure, not a
     // success: throwing here lets the retry path run another resume instead of
@@ -1435,6 +1463,66 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     _isReconnecting = false;
     events.emit(const EngineResumedEvent());
+  }
+
+  // A restart is finished once its answer is applied, the publisher is connected and its selected
+  // candidate pair is not the one from before the restart offer. Neither the state nor the answer
+  // is enough on its own: the publisher keeps reporting connected over its old pair, and a resume
+  // on the same node changes no state at all. The pair moves to the new ICE generation in both
+  // cases, and never moves when the publisher cannot reach the server. Without a selected pair in
+  // the stats ([pairBefore] null) the answer and the connected state have to do.
+  //
+  // Fails with a MediaConnectException when the restart does not finish in time or the publisher
+  // fails, so the next attempt is a full reconnect. Fails with a ConnectException as soon as the
+  // engine closes, which ends the attempt without a resumed event.
+  Future<void> _waitForPublisherIceRestart(Transport publisher, String? pairBefore, Duration timeout) async {
+    final waited = Stopwatch()..start();
+    while (true) {
+      if (_isClosed || isDisposed || publisher.isDisposed) {
+        throw ConnectException(
+          'resumeConnection: engine closed while waiting for the publisher',
+          reason: ConnectionErrorReason.InternalError,
+        );
+      }
+      final state = publisher.reportedConnectionState;
+      if (publisher.iceRestartAnswered && state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        if (pairBefore == null) return;
+        final pair = await _selectedCandidatePairId(publisher.pc);
+        if (pair != null && pair != pairBefore) return;
+      }
+      if (state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+          state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+        throw MediaConnectException('resumeConnection: publisher $state during its ICE restart');
+      }
+      final remaining = timeout - waited.elapsed;
+      if (remaining <= Duration.zero) {
+        throw MediaConnectException('resumeConnection: Timed out waiting for the publisher ICE restart');
+      }
+      if (_isClosed || publisher.isDisposed) continue;
+      // _sendStateChanged fires when the engine closes. The pair has no change event, so it is
+      // read again on a short interval.
+      await Future.any([
+        publisher.iceRestartChanged,
+        _sendStateChanged.future,
+        Future<void>.delayed(const Duration(milliseconds: 100)),
+      ]).timeout(remaining, onTimeout: () {});
+    }
+  }
+
+  // Id of the selected candidate pair, null when the stats do not say.
+  Future<String?> _selectedCandidatePairId(rtc.RTCPeerConnection pc) async {
+    try {
+      for (final report in await pc.getStats()) {
+        if (report.type == 'transport' && report.values['selectedCandidatePairId'] is String) {
+          return report.values['selectedCandidatePairId'] as String;
+        }
+        // where transport stats are missing, the pair itself says whether it is selected
+        if (report.type == 'candidate-pair' && report.values['selected'] == true) return report.id;
+      }
+    } catch (e) {
+      logger.fine('could not read the selected candidate pair: $e');
+    }
+    return null;
   }
 
   @internal
