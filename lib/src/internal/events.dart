@@ -352,7 +352,7 @@ class SignalOfferEvent with SignalEvent, InternalEvent {
 
   const SignalOfferEvent({
     required this.sd,
-    this.offerId = 0,
+    required this.offerId,
     this.midToTrackId = const {},
   });
 
@@ -373,7 +373,7 @@ class SignalAnswerEvent with SignalEvent, InternalEvent {
 
   const SignalAnswerEvent({
     required this.sd,
-    this.offerId = 0,
+    required this.offerId,
     this.midToTrackId = const {},
   });
 

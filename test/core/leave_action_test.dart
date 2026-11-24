@@ -145,6 +145,10 @@ void main() {
     final subscriber = container.engine.subscriber?.pc as MockPeerConnection?;
     expect(publisher?.appliedConfiguration, isNotNull);
     expect(subscriber?.appliedConfiguration, isNotNull);
+    // libwebrtc rejects a gathering policy change once gathering started, so a
+    // resume must re-apply the same policy the transports were created with.
+    expect(publisher?.appliedConfiguration?['continualGatheringPolicy'], 'gather_continually');
+    expect(subscriber?.appliedConfiguration?['continualGatheringPolicy'], 'gather_continually');
   });
 
   test('Leave{RECONNECT} performs a full reconnect', () async {

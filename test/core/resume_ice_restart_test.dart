@@ -74,7 +74,7 @@ void main() {
     );
     addTearDown(transport.dispose);
     var offers = 0;
-    transport.onNumberedOffer = (_, _) => offers++;
+    transport.onOffer = (_, _) => offers++;
 
     pc.offerPending = true;
     await expectLater(

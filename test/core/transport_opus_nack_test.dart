@@ -98,7 +98,7 @@ Future<(Transport, _AudioPeerConnection, List<rtc.RTCSessionDescription>)> _make
   transport.negotiateOpusNack = singlePC;
   addTearDown(transport.dispose);
   final offers = <rtc.RTCSessionDescription>[];
-  transport.onOffer = offers.add;
+  transport.onOffer = (offer, _) => offers.add(offer);
   return (transport, pc, offers);
 }
 

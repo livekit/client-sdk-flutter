@@ -835,6 +835,15 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       rtcConfiguration = rtcConfiguration.copyWith(encodedInsertableStreams: true);
     }
 
+    // Keep gathering candidates after the connection is up, like the Swift, Android and JS SDKs,
+    // so a network change (e.g. Wi-Fi to cellular) yields new candidates without an ICE restart.
+    // libwebrtc defaults to gathering once. An explicit value from the app wins.
+    if (rtcConfiguration.continualGatheringPolicy == null) {
+      rtcConfiguration = rtcConfiguration.copyWith(
+        continualGatheringPolicy: RTCContinualGatheringPolicy.gatherContinually,
+      );
+    }
+
     return rtcConfiguration;
   }
 
@@ -976,9 +985,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       };
     }
 
-    publisher?.onNumberedOffer = (offer, offerId) {
-      logger.fine('publisher onOffer $offerId');
-      signalClient.sendOffer(offer, offerId: offerId);
+    publisher?.onOffer = (offer, offerId) {
+      logger.fine('publisher onOffer (offerId: $offerId)');
+      signalClient.sendOffer(offer, offerId);
     };
 
     publisher?.onNegotiationError = _onPublisherNegotiationError;
@@ -1759,6 +1768,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     })
     ..on<SignalDisconnectedEvent>((event) async {
       logger.fine('Signal disconnected ${event.reason}');
+      // disconnect() marks the engine closed before it tears anything down,
+      // so a close that arrives during that teardown starts no reconnect
       if (event.reason == DisconnectReason.disconnected && !_isClosed) {
         await handleReconnect(
           ClientDisconnectReason.signal,
@@ -1777,25 +1788,28 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         logger.warning('Received SignalOfferEvent in single PC mode, ignoring');
         return;
       }
+      // Read once: disconnect() or a full reconnect can dispose and clear the
+      // subscriber while this handler awaits.
+      final subscriber = this.subscriber;
       if (subscriber == null) {
         logger.warning('[$objectId] subscriber is null');
         return;
       }
-      final signalingState = await subscriber!.pc.getSignalingState();
+      final signalingState = await subscriber.pc.getSignalingState();
       logger.fine(
         '[$objectId] Received server offer(type: ${event.sd.type}, '
-        '$signalingState)',
+        'offerId: ${event.offerId}, $signalingState)',
       );
       logger.finer('sdp: ${event.sd.sdp}');
 
       _midToTrackId = event.midToTrackId;
-      await subscriber!.setRemoteDescription(event.sd);
+      await subscriber.setRemoteDescription(event.sd, offerId: event.offerId);
 
       try {
-        final answer = await subscriber!.createAndSetAnswer(event.sd);
+        final answer = await subscriber.createAndSetAnswer(event.sd);
         logger.fine('Created answer');
         logger.finer('sdp: ${answer.sdp}');
-        signalClient.sendAnswer(answer, offerId: event.offerId);
+        signalClient.sendAnswer(answer, event.offerId);
       } catch (_) {
         logger.severe('[$objectId] Failed to createAnswer()');
       }
@@ -1875,6 +1889,12 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await handleReconnect(ClientDisconnectReason.leaveReconnect);
       } else {
         // DISCONNECT or v12 server with canReconnect=false
+        if (_isClosed) {
+          // the echo of our own Leave, or a server Leave that raced
+          // disconnect(). The local teardown has run or is running.
+          logger.fine('[Signal] Leave received after disconnect() started, ignoring');
+          return;
+        }
         await signalClient.cleanUp();
         fullReconnectOnNext = false;
         await disconnect(reason: event.reason.toSDKType());
@@ -1938,17 +1958,19 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   }) async {
     markClosed();
     if (connectionState == ConnectionState.connected) {
+      // Tell the server, then tear down locally without waiting for its Leave
+      // echo, the same as the other SDKs. The echo is not guaranteed: media
+      // nodes drop queued leave messages when they close the signal sink, and
+      // waiting for it cost a 10 s timeout whenever it was lost.
       await signalClient.sendLeave();
-    } else {
-      if (isPendingReconnect) {
-        logger.fine('disconnect: Cancel the reconnection processing!');
-        await signalClient.cleanUp();
-        await _signalListener.cancelAll();
-        _clearPendingReconnect();
-      }
-      await cleanUp();
-      events.emit(EngineDisconnectedEvent(reason: reason));
+    } else if (isPendingReconnect) {
+      logger.fine('disconnect: Cancel the reconnection processing!');
+      await signalClient.cleanUp();
+      await _signalListener.cancelAll();
+      _clearPendingReconnect();
     }
+    await cleanUp();
+    events.emit(EngineDisconnectedEvent(reason: reason));
   }
 
   void setRegionUrlProvider(RegionUrlProvider provider) {

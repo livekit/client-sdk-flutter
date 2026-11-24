@@ -18,6 +18,7 @@ import 'dart:math' as math;
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
 import 'package:meta/meta.dart';
 import 'package:sdp_transform/sdp_transform.dart' as sdp_transform;
+import 'package:synchronized/synchronized.dart' as sync;
 
 import '../exceptions.dart';
 import '../extensions.dart';
@@ -267,11 +268,9 @@ String mungeOpusNackForAnswer(String answer, String offer) {
   return changed ? sdp_transform.write(document, null) : answer;
 }
 
-typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer);
-
-/// [offerId] numbers the offer, starting at 1, so its answer can be told apart
-/// from the answer to an earlier offer.
-typedef TransportOnNumberedOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
+/// Called with each new offer and its id. Internal, the engine sends both to the server.
+@internal
+typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
 typedef TransportOnNegotiationError = void Function(Object error);
 typedef PeerConnectionCreate =
     Future<rtc.RTCPeerConnection> Function(Map<String, dynamic> configuration, [Map<String, dynamic> constraints]);
@@ -313,20 +312,27 @@ class Transport extends Disposable {
   @internal
   bool negotiateOpusNack = false;
 
+  /// Id of the last offer created. Ids start at 1, so 0 stays free for an answer from a
+  /// server that does not echo offer ids.
+  int _latestOfferId = 0;
+
   /// Id of the last offer created on this transport, 0 before the first one.
   @internal
-  int latestOfferId = 0;
+  int get latestOfferId => _latestOfferId;
 
-  /// Id of the offer whose answer was last applied, 0 when none was numbered.
+  /// Id of the last offer whose answer was applied.
   int _answeredOfferId = 0;
 
-  /// Offer id of the answer being applied right now (0 if unnumbered), so a copy
-  /// that arrives mid-apply is recognised as a duplicate too.
+  /// Id (0 if unnumbered) of the answer being applied right now, so a copy that arrives
+  /// mid-apply is recognised as a duplicate too.
   int? _answerInFlight;
-  TransportOnOffer? onOffer;
 
-  /// Like [onOffer], with the offer's id. Takes precedence over [onOffer].
-  TransportOnNumberedOffer? onNumberedOffer;
+  /// Builds one offer at a time. A call that overlaps another waits for it, then finds that
+  /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
+  /// Only an ICE restart replaces a waiting offer.
+  final _offerLock = sync.Lock();
+  @internal
+  TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
   Function? _cancelDebounce;
   ConnectOptions connectOptions;
@@ -408,11 +414,11 @@ class Transport extends Disposable {
 
   /// Whether an answer for [offerId] answers an offer older than the latest one
   /// sent. Unnumbered answers (0, from servers that do not echo the id) never are.
-  bool isStaleAnswer(int offerId) => latestOfferId > 0 && offerId > 0 && offerId != latestOfferId;
+  @internal
+  bool isStaleAnswer(int offerId) => _latestOfferId > 0 && offerId > 0 && offerId != _latestOfferId;
 
-  /// Applies [sd]. For an answer, [offerId] is the offer it answers, 0 when the
-  /// server does not number offers. An answer to an older offer, or a repeat of
-  /// one already applied, is dropped.
+  /// [offerId] is the id of the offer an answer answers, or the server's id for a remote
+  /// offer. 0 from servers that send none.
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
@@ -421,21 +427,24 @@ class Transport extends Disposable {
 
     if (sd.type == 'answer') {
       if (isStaleAnswer(offerId)) {
-        logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $latestOfferId');
+        logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $_latestOfferId');
         return;
       }
-      if (_answerInFlight == offerId || await _isAppliedAnswer(offerId)) {
-        // a repeat of an answer already applied or being applied (e.g. duplicated
-        // by a proxy): there is no local offer left to answer
-        logger.warning('[$objectId] ignoring duplicate answer (offer $offerId)');
+      if (_answerInFlight == offerId) {
+        logger.warning('[$objectId] ignoring duplicate answer (offerId: $offerId)');
         return;
       }
-      // claimed before the apply, so a copy arriving mid-apply is caught too
+      // claimed before any await, so a copy arriving mid-apply is caught too
       _answerInFlight = offerId;
     }
 
     try {
+      if (sd.type == 'answer' && await _isAnswered(offerId)) {
+        logger.warning('[$objectId] ignoring duplicate answer (offerId: $offerId)');
+        return;
+      }
       await pc.setRemoteDescription(sd);
+      // only a successfully applied answer makes later copies duplicates
       if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
@@ -464,21 +473,24 @@ class Transport extends Disposable {
     }
   }
 
-  /// With an offer id, an answer is a duplicate once that offer's answer was
-  /// applied. Without one, the signaling state decides: in `stable` there is no
-  /// local offer left to answer.
-  Future<bool> _isAppliedAnswer(int offerId) async {
+  /// Whether the offer [offerId] answers already has its answer applied. Servers that do not
+  /// echo offer ids leave only the signaling state to go by: in `stable` there is no local
+  /// offer left to answer.
+  Future<bool> _isAnswered(int offerId) async {
     if (offerId > 0) return offerId == _answeredOfferId;
     return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
-  Future<void> createAndSendOffer([RTCOfferOptions? options]) async {
+  Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
+      _offerLock.synchronized(() => _createAndSendOffer(options));
+
+  Future<void> _createAndSendOffer(RTCOfferOptions? options) async {
     if (isDisposed) {
       logger.warning('[$objectId] createAndSendOffer() already disposed');
       return;
     }
 
-    if (onOffer == null && onNumberedOffer == null) {
+    if (onOffer == null) {
       logger.warning('onOffer is null');
       return;
     }
@@ -522,10 +534,8 @@ class Transport extends Disposable {
     }
 
     // actually negotiate
-    logger.fine('starting to negotiate');
-    // numbered before the first await, so the id is always > 0 and 0 keeps meaning
-    // "unnumbered" for servers that do not echo it
-    final offerId = ++latestOfferId;
+    final offerId = ++_latestOfferId;
+    logger.fine('starting to negotiate (offerId: $offerId)');
     final offer = await pc.createOffer(options?.toMap() ?? <String, dynamic>{});
 
     if ((offer.sdp ?? '').contains('goog-sped-v1')) {
@@ -581,13 +591,6 @@ class Transport extends Disposable {
 
     final mungedSdp = sdp_transform.write(sdpParsed, null);
 
-    if (latestOfferId > offerId) {
-      // a newer offer started while this one was being created and supersedes it,
-      // so this one is neither set locally nor sent
-      logger.warning('[$objectId] offer $offerId superseded by $latestOfferId');
-      return;
-    }
-
     try {
       await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
@@ -598,11 +601,7 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
-    if (onNumberedOffer != null) {
-      onNumberedOffer!(offer, offerId);
-    } else {
-      onOffer?.call(offer);
-    }
+    onOffer?.call(offer, offerId);
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
