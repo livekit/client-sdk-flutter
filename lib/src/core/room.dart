@@ -129,6 +129,9 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
   final Engine engine;
   // suppport for multiple event listeners
   late final EventsListener<EngineEvent> _engineListener;
+
+  // true while disconnect() is tearing the room down itself
+  bool _disconnecting = false;
   //
   late EventsListener<SignalEvent> _signalListener;
 
@@ -695,6 +698,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       notifyListeners();
     })
     ..on<EngineDisconnectedEvent>((event) async {
+      // disconnect() tears down and reports the disconnect it started itself
+      if (_disconnecting) return;
       // Suppress while a full reconnect is either pending or running — the
       // engine is going to re-establish the session, this is not a real
       // disconnect. Both flags are needed since the attempt consumes the
@@ -823,18 +828,29 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
       }
     });
 
-  /// Disconnects from the room, notifying server of disconnection.
+  /// Leaves the room. Sends a best effort Leave request and returns once the
+  /// engine and the room are torn down, without waiting on the server, so
+  /// connect() may be called again immediately. A call made while another
+  /// disconnect() is tearing down returns at once, without waiting for it.
   Future<void> disconnect() async {
-    final bool isPendingReconnect = engine.isPendingReconnect;
-    if (engine.isClosed && !isPendingReconnect && engine.connectionState == ConnectionState.disconnected) {
+    // A call while a disconnect() is tearing down, from the app or from a
+    // callback that teardown runs, has nothing left to do.
+    if (_disconnecting) return;
+    if (engine.isClosed && !engine.isPendingReconnect && engine.connectionState == ConnectionState.disconnected) {
       logger.warning('Engine is already closed');
       return;
     }
-    await engine.disconnect();
-    if (!isPendingReconnect) {
-      await _engineListener.waitFor<EngineDisconnectedEvent>(duration: const Duration(seconds: 10));
+    _disconnecting = true;
+    try {
+      await engine.disconnect();
+      await _cleanUp();
+    } finally {
+      _disconnecting = false;
     }
-    await _cleanUp();
+    // Reported only once the room is torn down, so a listener that connects
+    // again on this event cannot have its new session cleared by the teardown.
+    events.emit(RoomDisconnectedEvent(reason: DisconnectReason.clientInitiated));
+    notifyListeners();
   }
 
   Future<void> setE2EEEnabled(bool enabled) async {
@@ -1328,12 +1344,15 @@ extension RoomDebugMethods on Room {
     bool? leaveRequestFullReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     if (fullReconnect != null && fullReconnect) {
+      // With no socket there is nothing to drop, and a pending full reconnect
+      // would turn the next real resume into one.
+      if (!engine.signalClient.hasSocket) return;
       engine.fullReconnectOnNext = true;
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     engine.signalClient.sendSimulateScenario(
@@ -1350,7 +1369,7 @@ extension RoomDebugMethods on Room {
     // The server only acts on the next resume, so start one now. Mirrors the
     // post action in client-sdk-js.
     if ((disconnectSignalOnResume ?? false) || (disconnectSignalOnResumeNoMessages ?? false)) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
     }
   }
 }

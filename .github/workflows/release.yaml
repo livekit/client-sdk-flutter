@@ -1,0 +1,180 @@
+# Copyright 2026 LiveKit, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# After a release PR merges: validate the package, then tag and create the
+# GitHub release, then publish to pub.dev. The step that cannot be undone
+# comes last. pub.dev accepts only a run on a tag, so the publish job
+# starts publish.yaml on the new tag and waits for it.
+name: Release
+
+on:
+  # No `branches` filter: an rc PR from pre-release.yaml targets the branch
+  # the workflow was run on. The `gate` job decides which PRs release.
+  pull_request:
+    types: [closed]
+  # A failed job is re-run with "Re-run failed jobs" on the run itself.
+  # This trigger is for a run that needs a fixed workflow file. `verwalter
+  # release` resumes from the current state and skips what is done.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The release tag, for example v2.15.0. Or, when validate failed before the tag, the commit that fixes it.
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  # Only a run by hand, or a merged release PR or rc PR that the tool
+  # opened: the branch prefix alone would let any pushed `release/*`
+  # branch trigger a publish. `gate` also checks the author
+  # (`[release].author`, default verwalter-release[bot]) and the marker.
+  gate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      release: ${{ steps.verwalter.outputs.release }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - id: verwalter
+        uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
+        with:
+          command: gate
+
+  validate:
+    needs: gate
+    if: needs.gate.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - uses: ./.github/actions/setup-flutter
+      # Also runs on every PR in build.yaml, and on the release PR in
+      # changeset-check.yaml. This run is the last guard before the tag.
+      - name: Validate package
+        run: dart pub publish --dry-run --ignore-warnings
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    # One release at a time: a run by hand for a tag waits for the merge
+    # run that is still tagging, instead of tagging at the same time.
+    # Skipped jobs of other closed PRs never enter the group. `queue: max`
+    # keeps every waiting run: without it, a third run cancels the waiting one.
+    concurrency:
+      group: release
+      cancel-in-progress: false
+      queue: max
+    outputs:
+      released: ${{ steps.verwalter.outputs.released }}
+      releases: ${{ steps.verwalter.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # The merge commit itself: a push to main right after the merge
+          # must not move the tag.
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+          fetch-depth: 0
+      - id: verwalter
+        uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
+        with:
+          command: release
+
+  publish:
+    needs: release
+    if: needs.release.outputs.released == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write # starts publish.yaml
+    steps:
+      - name: Start the publish run on the tag and wait for it
+        timeout-minutes: 60
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.release.outputs.releases && fromJSON(needs.release.outputs.releases)[0].tag || inputs.ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "$TAG" ]; then
+            echo "::error::no release tag to publish"
+            exit 1
+          fi
+          running() {
+            gh run list --workflow publish.yaml --branch "$TAG" \
+              --json databaseId,status \
+              --jq 'map(select(.status != "completed")) | .[0].databaseId // empty'
+          }
+          # A run for this tag that is still going: wait for it, start no second one.
+          run_id=$(running)
+          if [ -z "$run_id" ]; then
+            gh workflow run publish.yaml --ref "$TAG"
+            for _ in $(seq 1 30); do
+              sleep 5
+              run_id=$(running)
+              [ -n "$run_id" ] && break
+            done
+          fi
+          if [ -z "$run_id" ]; then
+            echo "::error::the publish run for $TAG did not start"
+            exit 1
+          fi
+          # The second call covers one failed poll.
+          gh run watch "$run_id" --exit-status || gh run watch "$run_id" --exit-status
+
+  # The end state, asserted: `status --check` fails when the tag is not on
+  # the remote, the GitHub release is missing or still a draft, or pub.dev
+  # does not have the version.
+  verify:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # reads only. A draft release is visible only with write access
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+          fetch-depth: 0
+      - uses: livekit/verwalter@9da894a1e4f7d298095a961be60c818afd47905b # v0.32.0-rc.1
+        with:
+          command: status
+          args: --check
+
+  # The docs site holds one version: the newest final release on main.
+  # Its own job after verify, so a failed upload is red while the release
+  # jobs stay green and complete. A re-run overwrites the same files.
+  docs:
+    needs: [release, verify]
+    # Three facts from the handoff: this run released a version (`tag` is
+    # set, so an empty list skips), it is not an rc, and it is on main.
+    if: needs.release.outputs.releases && fromJSON(needs.release.outputs.releases)[0].tag && !fromJSON(needs.release.outputs.releases)[0].prerelease && (github.event.pull_request.base.ref || github.ref_name) == 'main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.ref }}
+      - uses: ./.github/actions/setup-flutter
+      - name: Generate dartdoc
+        run: dart doc
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DOCS_DEPLOY_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DOCS_DEPLOY_AWS_API_SECRET }}
+          AWS_DEFAULT_REGION: "us-east-1"
+        run: aws s3 cp doc/api/ s3://${{ secrets.DOCS_DEPLOY_BUCKET }}/client-sdk-flutter/ --recursive
