@@ -1344,12 +1344,15 @@ extension RoomDebugMethods on Room {
     bool? leaveRequestFullReconnect,
   }) async {
     if (signalReconnect != null && signalReconnect) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     if (fullReconnect != null && fullReconnect) {
+      // With no socket there is nothing to drop, and a pending full reconnect
+      // would turn the next real resume into one.
+      if (!engine.signalClient.hasSocket) return;
       engine.fullReconnectOnNext = true;
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
       return;
     }
     engine.signalClient.sendSimulateScenario(
@@ -1366,7 +1369,7 @@ extension RoomDebugMethods on Room {
     // The server only acts on the next resume, so start one now. Mirrors the
     // post action in client-sdk-js.
     if ((disconnectSignalOnResume ?? false) || (disconnectSignalOnResumeNoMessages ?? false)) {
-      await engine.signalClient.cleanUp();
+      await engine.signalClient.simulateSignalDrop();
     }
   }
 }

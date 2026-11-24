@@ -43,6 +43,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   ConnectionState get connectionState => _connectionState;
 
   final WebSocketConnector _wsConnector;
+
+  // Id of the socket whose callbacks are honored. connect() gives each new
+  // socket the next id, and cleanUp() advances it too so the socket it disposes
+  // stops being current. A real socket reports its close after dispose()
+  // returns, a few milliseconds later on a good path but seconds later in a
+  // browser when the server keeps TCP open after the close handshake. That
+  // report used to be attributed to whatever connection was current by then,
+  // clobbering its state and starting a reconnect against a healthy socket,
+  // over and over when every reconnect replaced the socket again.
+  int _socketId = 0;
   LiveKitWebSocket? _ws;
 
   final _queue = Queue<lk_rtc.SignalRequest>();
@@ -154,13 +164,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       }
       // Clean up existing socket
       await cleanUp();
-      // Attempt to connect
+      // Attempt to connect. Callbacks carry the id of the socket they belong to
+      // so a late report from a replaced socket is ignored.
+      final socketId = ++_socketId;
       var future = _wsConnector(
         rtcUri,
         options: WebSocketEventHandlers(
-          onData: _onSocketData,
-          onDispose: _onSocketDispose,
-          onError: _onSocketError,
+          onData: (data) => _ifCurrentSocket(socketId, () => _onSocketData(data)),
+          onDispose: () => _ifCurrentSocket(socketId, _onSocketDispose),
+          onError: (error) => _ifCurrentSocket(socketId, () => _onSocketError(error)),
         ),
         headers: {
           'Authorization': 'Bearer $token',
@@ -168,7 +180,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         networkOptions: roomOptions.networkOptions,
       );
       future = future.timeout(connectOptions.timeouts.connection);
-      _ws = await future;
+      try {
+        _ws = await future;
+      } catch (_) {
+        // A dial that timed out can still open later. The SDK gave up on that
+        // socket, so nothing it reports applies, not even before the next
+        // connect() or cleanUp().
+        if (socketId == _socketId) _socketId++;
+        rethrow;
+      }
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());
@@ -242,11 +262,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   @internal
   Future<void> cleanUp() async {
     logger.fine('[${objectId}] cleanUp()');
+    _socketId++;
     _connectionState = ConnectionState.disconnected;
-    await _ws?.dispose();
+    // Detached before the await, so a connect() that runs while the old
+    // socket is still closing keeps its own socket, queue and pings.
+    final ws = _ws;
     _ws = null;
     _queue.clear();
     _clearPingInterval();
+    await ws?.dispose();
   }
 
   void _sendRequest(
@@ -407,6 +431,36 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
       default:
         logger.warning('received unknown signal message');
     }
+  }
+
+  void _ifCurrentSocket(int socketId, void Function() action) {
+    if (socketId != _socketId) {
+      logger.fine('[$objectId] ignoring a callback from a socket that was already replaced');
+      return;
+    }
+    action();
+  }
+
+  /// Whether there is a connected signal socket, the one [simulateSignalDrop]
+  /// would drop. A socket that closed but is not cleaned up yet does not count.
+  @internal
+  bool get hasSocket => _ws != null && _connectionState == ConnectionState.connected;
+
+  /// Drops the signal socket the way a server side close does: the socket goes
+  /// away and the engine sees a disconnect it has to recover from. For the
+  /// debug scenarios and the connection checker. [cleanUp] alone is a quiet
+  /// teardown, the disposed socket's own close is ignored.
+  @internal
+  Future<void> simulateSignalDrop() async {
+    if (!hasSocket) {
+      logger.fine('[$objectId] simulateSignalDrop(): no signal socket to drop');
+      return;
+    }
+    // The loss is reported before the socket has finished closing, which can
+    // take a while, so it is charged to the socket that was dropped.
+    final dropped = cleanUp();
+    _onSocketDispose();
+    await dropped;
   }
 
   void _onSocketError(dynamic error) {
