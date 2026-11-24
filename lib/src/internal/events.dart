@@ -343,30 +343,42 @@ class SignalDisconnectedEvent with SignalEvent, InternalEvent {
 class SignalOfferEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
 
-  /// The server's id for this offer, echoed back on the answer. 0 from servers that send none.
+  /// `SessionDescription.id`: the offer this description belongs to, 0 when the
+  /// server does not number offers.
   final int offerId;
+
+  /// `SessionDescription.mid_to_track_id`: track sid per media section mid.
+  final Map<String, String> midToTrackId;
+
   const SignalOfferEvent({
     required this.sd,
     required this.offerId,
+    this.midToTrackId = const {},
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: $offerId, midToTrackId: $midToTrackId)';
 }
 
 @internal
 class SignalAnswerEvent with SignalEvent, InternalEvent {
   final rtc.RTCSessionDescription sd;
 
-  /// Id of the offer this answers. 0 from servers that do not echo offer ids.
+  /// `SessionDescription.id`: the offer this description belongs to, 0 when the
+  /// server does not number offers.
   final int offerId;
+
+  /// `SessionDescription.mid_to_track_id`: track sid per media section mid.
+  final Map<String, String> midToTrackId;
+
   const SignalAnswerEvent({
     required this.sd,
     required this.offerId,
+    this.midToTrackId = const {},
   });
 
   @override
-  String toString() => '${runtimeType}(sd: ${sd}, offerId: ${offerId})';
+  String toString() => '${runtimeType}(sd: ${sd}, offerId: $offerId, midToTrackId: $midToTrackId)';
 }
 
 @internal
@@ -585,6 +597,19 @@ class SignalRoomMovedEvent with SignalEvent, InternalEvent {
 
   @override
   String toString() => '${runtimeType}(room: ${response.room.name})';
+}
+
+@internal
+class SignalMediaSectionsRequirementEvent with SignalEvent, InternalEvent {
+  final int numAudios;
+  final int numVideos;
+  const SignalMediaSectionsRequirementEvent({
+    required this.numAudios,
+    required this.numVideos,
+  });
+
+  @override
+  String toString() => '${runtimeType}(numAudios: $numAudios, numVideos: $numVideos)';
 }
 
 // ----------------------------------------------------------------------

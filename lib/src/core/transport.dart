@@ -205,6 +205,69 @@ void applyVideoStartBitrate(Map<String, dynamic> media, int codecPayload, int st
   media['fmtp'] = fmtpList;
 }
 
+/// Adds plain NACK to every Opus payload in an audio media section.
+///
+/// The SFU negotiates audio feedback from the first audio section, so single-PC
+/// send-only sections must advertise it before subscriptions exist. Existing plain
+/// or wildcard NACK is preserved; `nack pli` does not imply plain NACK.
+@internal
+void ensureOpusNack(Map<String, dynamic> media) {
+  if (media['type'] != 'audio') return;
+  final opusPayloads = (media['rtp'] as List? ?? const [])
+      .where((rtp) => (rtp['codec'] as String?)?.toLowerCase() == 'opus')
+      .map((rtp) => rtp['payload'] as int)
+      .toSet();
+  if (opusPayloads.isEmpty) return;
+
+  final feedback = media['rtcpFb'] as List? ?? <dynamic>[];
+  for (final payload in opusPayloads) {
+    final hasNack = feedback.any(
+      (fb) =>
+          (fb['payload'] == payload || fb['payload'] == '*') &&
+          fb['type'] == 'nack' &&
+          (fb['subtype'] == null || fb['subtype'] == ''),
+    );
+    if (!hasNack) {
+      feedback.add({'payload': payload, 'type': 'nack'});
+    }
+  }
+  media['rtcpFb'] = feedback;
+}
+
+/// Accepts Opus NACK only on answer sections whose MID offered it.
+@internal
+String mungeOpusNackForAnswer(String answer, String offer) {
+  final offeredMedia = sdp_transform.parse(offer)['media'] as List? ?? const [];
+  final nackMids = <String>{};
+  for (final media in offeredMedia) {
+    if (media['type'] != 'audio' || media['mid'] == null) continue;
+    final opus = (media['rtp'] as List? ?? const [])
+        .where((rtp) => (rtp['codec'] as String?)?.toLowerCase() == 'opus')
+        .map((rtp) => rtp['payload'])
+        .toSet();
+    final feedback = media['rtcpFb'] as List? ?? const [];
+    if (opus.isNotEmpty &&
+        feedback.any(
+          (fb) =>
+              (fb['payload'] == '*' || opus.contains(fb['payload'])) &&
+              fb['type'] == 'nack' &&
+              (fb['subtype'] == null || fb['subtype'] == ''),
+        )) {
+      nackMids.add(media['mid'].toString());
+    }
+  }
+  if (nackMids.isEmpty) return answer;
+  final document = sdp_transform.parse(answer);
+  var changed = false;
+  for (final media in document['media'] as List? ?? const []) {
+    if (media['mid'] == null || !nackMids.contains(media['mid'].toString())) continue;
+    final before = (media['rtcpFb'] as List? ?? const []).length;
+    ensureOpusNack(media);
+    changed = changed || (media['rtcpFb'] as List? ?? const []).length != before;
+  }
+  return changed ? sdp_transform.write(document, null) : answer;
+}
+
 /// Called with each new offer and its id. Internal, the engine sends both to the server.
 @internal
 typedef TransportOnOffer = void Function(rtc.RTCSessionDescription offer, int offerId);
@@ -238,9 +301,24 @@ class Transport extends Disposable {
   /// before one was chosen. See [ensureVideoDDExtension].
   int _ddExtID = 0;
 
+  /// Also negotiate the dependency descriptor on receive-only video sections. Set
+  /// in single PC mode, where subscribed video arrives on this transport's
+  /// recvonly sections, so SVC layers can be told apart on receive.
+  @internal
+  bool negotiateReceivedVideoDependencyDescriptor = false;
+
+  /// Advertise Opus NACK on local audio offers when this peer connection also receives.
+  /// Set from the effective single-PC mode, which can differ from the requested mode after fallback.
+  @internal
+  bool negotiateOpusNack = false;
+
   /// Id of the last offer created. Ids start at 1, so 0 stays free for an answer from a
   /// server that does not echo offer ids.
   int _latestOfferId = 0;
+
+  /// Id of the last offer created on this transport, 0 before the first one.
+  @internal
+  int get latestOfferId => _latestOfferId;
 
   /// Id of the last offer whose answer was applied.
   int _answeredOfferId = 0;
@@ -334,6 +412,11 @@ class Transport extends Disposable {
     }
   }
 
+  /// Whether an answer for [offerId] answers an offer older than the latest one
+  /// sent. Unnumbered answers (0, from servers that do not echo the id) never are.
+  @internal
+  bool isStaleAnswer(int offerId) => _latestOfferId > 0 && offerId > 0 && offerId != _latestOfferId;
+
   /// [offerId] is the id of the offer an answer answers, or the server's id for a remote
   /// offer. 0 from servers that send none.
   Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
@@ -343,7 +426,7 @@ class Transport extends Disposable {
     }
 
     if (sd.type == 'answer') {
-      if (_latestOfferId > 0 && offerId > 0 && offerId != _latestOfferId) {
+      if (isStaleAnswer(offerId)) {
         logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $_latestOfferId');
         return;
       }
@@ -434,7 +517,16 @@ class Transport extends Disposable {
         renegotiate = true;
         return;
       }
-      await pc.setRemoteDescription(currentSD);
+      try {
+        await pc.setRemoteDescription(currentSD);
+      } catch (e) {
+        // The pending offer added media sections the last answer does not have (a
+        // track published, or a receive section the server asked for, in single PC
+        // mode), so the answer is rejected and the offer stays pending. Retrying
+        // would fail the same way: report it as a media failure so the next
+        // reconnect attempt rebuilds the peer connection.
+        throw MediaConnectException('ICE restart could not re-apply the last answer: $e');
+      }
     }
 
     if (restartingIce && !lkPlatformIs(PlatformType.web)) {
@@ -468,9 +560,13 @@ class Transport extends Disposable {
     }
     var appliedVideoStartBitrate = false;
     sdpParsed['media']?.forEach((media) {
+      if (negotiateOpusNack) {
+        ensureOpusNack(media);
+      }
       if (media['type'] == 'video') {
         final codec = (media['rtp']?[0]?['codec'] as String?) ?? '';
-        if (isSVCCodec(codec)) {
+        final receiveOnly = media['direction'] == 'recvonly';
+        if (isSVCCodec(codec) || (receiveOnly && negotiateReceivedVideoDependencyDescriptor)) {
           _ddExtID = ensureVideoDDExtension(media, sdpParsed['media'] ?? const [], _ddExtID);
         }
 
@@ -494,6 +590,7 @@ class Transport extends Disposable {
     });
 
     final mungedSdp = sdp_transform.write(sdpParsed, null);
+
     try {
       await setMungedSDP(sd: offer, munged: mungedSdp);
     } catch (e) {
@@ -584,8 +681,8 @@ class Transport extends Disposable {
   /// A bundle has to map one URI to one id, so an id already used for the
   /// extension anywhere in [allMedia] wins over both the cached one and a fresh
   /// one: libwebrtc advertises the extension on sections it can send on, and an
-  /// earlier offer may have munged it into others. Picking the id per section, as
-  /// before, could hand the extension an id another section maps to another URI.
+  /// earlier offer may have munged it into others. In single PC mode sending and
+  /// receiving sections share the bundle, which is where a per-section id clashes.
   @internal
   static int ensureVideoDDExtension(Map<String, dynamic> media, List<dynamic> allMedia, int ddExtID) {
     final id = _ddExtensionIdFor(allMedia, ddExtID);
@@ -638,6 +735,14 @@ class Transport extends Disposable {
       if (value > maxId) maxId = value;
     }
     return maxId + 1 == 15 ? 16 : maxId + 1;
+  }
+
+  /// Creates and applies an answer accepting the server's offered Opus NACK.
+  Future<rtc.RTCSessionDescription> createAndSetAnswer(rtc.RTCSessionDescription offer) async {
+    final answer = await pc.createAnswer();
+    final munged = mungeOpusNackForAnswer(answer.sdp ?? '', offer.sdp ?? '');
+    await setMungedSDP(sd: answer, munged: munged == answer.sdp ? null : munged);
+    return answer;
   }
 
   Future<void> setMungedSDP({required rtc.RTCSessionDescription sd, String? munged, bool? remote}) async {
