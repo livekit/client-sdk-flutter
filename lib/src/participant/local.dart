@@ -651,6 +651,8 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         }
       } catch (error, stackTrace) {
         logger.warning('Failed to re-publish ${track.source} track ${track.sid}: $error', error, stackTrace);
+        // the publication is gone, so tell apps that track their tracks through events
+        [events, room.events].emit(LocalTrackUnpublishedEvent(participant: this, publication: track));
       }
     }
   }

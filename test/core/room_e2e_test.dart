@@ -116,6 +116,25 @@ void main() {
       expect(track.startAttempts, 1);
       expect(reconnected, isFalse);
     });
+
+    test('a track that fails to republish is reported as unpublished', () async {
+      final participant = room.localParticipant!;
+      final track = _FailingAudioTrack('local_audio_1', StateError('republish failed'));
+      participant.addTrackPublication(
+        LocalTrackPublication<LocalAudioTrack>(
+          participant: participant,
+          info: remoteAudioTrack.clone()..sid = 'sid_local_audio_1',
+          track: track,
+        ),
+      );
+
+      final unpublished = room.events.waitFor<LocalTrackUnpublishedEvent>(duration: const Duration(seconds: 1));
+      container.engine.events.emit(const EngineRestartedEvent());
+      final event = await unpublished;
+
+      expect(event.publication.sid, 'sid_local_audio_1');
+      expect(participant.isMicrophoneEnabled(), isFalse);
+    });
   });
 
   group('room updates', () {
