@@ -68,6 +68,34 @@ class _RejectAfterAnswerPeerConnection extends MockPeerConnection {
   }
 }
 
+/// Tracks the signaling state from the order descriptions are set in, as a real
+/// peer connection does, so a second offer after an answer is have-local-offer.
+class _OrderedPeerConnection extends MockPeerConnection {
+  rtc.RTCSignalingState _state = rtc.RTCSignalingState.RTCSignalingStateStable;
+
+  @override
+  rtc.RTCSignalingState? get signalingState => _state;
+
+  @override
+  Future<rtc.RTCSignalingState?> getSignalingState() async => _state;
+
+  @override
+  Future<void> setLocalDescription(rtc.RTCSessionDescription description) async {
+    await super.setLocalDescription(description);
+    _state = description.type == 'offer'
+        ? rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer
+        : rtc.RTCSignalingState.RTCSignalingStateStable;
+  }
+
+  @override
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription description) async {
+    await super.setRemoteDescription(description);
+    _state = description.type == 'offer'
+        ? rtc.RTCSignalingState.RTCSignalingStateHaveRemoteOffer
+        : rtc.RTCSignalingState.RTCSignalingStateStable;
+  }
+}
+
 /// A peer connection whose remote description takes a while to read, the way
 /// a platform call does when the native side is busy.
 class _SlowRemoteDescriptionPeerConnection extends MockPeerConnection {
@@ -333,6 +361,36 @@ void main() {
 
       await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
       expect(sent, [1, 2]);
+    });
+
+    test('reports the latest offer id and which answers are stale', () async {
+      final (transport, pc, _) = await makeTransport(_OrderedPeerConnection());
+
+      await transport.createAndSendOffer();
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-1', 'answer'), offerId: 1);
+      await transport.createAndSendOffer();
+      expect(transport.latestOfferId, 2);
+      expect(pc.signalingState, rtc.RTCSignalingState.RTCSignalingStateHaveLocalOffer);
+
+      // A late copy of the first answer arrives while offer 2 waits for its own
+      // answer. The signaling state alone would accept it.
+      expect(transport.isStaleAnswer(1), isTrue);
+      expect(transport.isStaleAnswer(2), isFalse);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nstale', 'answer'), offerId: 1);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nanswer-1');
+
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nanswer-2', 'answer'), offerId: 2);
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nanswer-2');
+    });
+
+    test('applies unnumbered answers from servers that do not echo the id', () async {
+      final (transport, pc, _) = await makeTransport(_OrderedPeerConnection());
+
+      await transport.createAndSendOffer();
+      await transport.createAndSendOffer(); // deferred: offer 1 is still pending
+      expect(transport.isStaleAnswer(0), isFalse);
+      await transport.setRemoteDescription(rtc.RTCSessionDescription('v=0\r\nlegacy', 'answer'));
+      expect((await pc.getRemoteDescription())?.sdp, 'v=0\r\nlegacy');
     });
   });
 }

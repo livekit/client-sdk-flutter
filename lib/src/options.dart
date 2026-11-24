@@ -219,6 +219,11 @@ class ConnectOptions {
 
   final Timeouts timeouts;
 
+  /// When true, will attempt to connect via single peer connection mode.
+  /// Automatically falls back to dual peer connection mode if the server
+  /// does not support the v1 signal path (HTTP 404).
+  final bool singlePeerConnection;
+
   /// Tuning for incoming data streams.
   final DataStreamOptions dataStream;
 
@@ -228,8 +233,29 @@ class ConnectOptions {
     this.protocolVersion = ProtocolVersion.v16,
     this.clientProtocolVersion = ClientProtocolVersion.current,
     this.timeouts = Timeouts.defaultTimeouts,
+    this.singlePeerConnection = false,
     this.dataStream = const DataStreamOptions(),
   });
+
+  ConnectOptions copyWith({
+    bool? autoSubscribe,
+    RTCConfiguration? rtcConfiguration,
+    ProtocolVersion? protocolVersion,
+    ClientProtocolVersion? clientProtocolVersion,
+    Timeouts? timeouts,
+    bool? singlePeerConnection,
+    DataStreamOptions? dataStream,
+  }) {
+    return ConnectOptions(
+      autoSubscribe: autoSubscribe ?? this.autoSubscribe,
+      rtcConfiguration: rtcConfiguration ?? this.rtcConfiguration,
+      protocolVersion: protocolVersion ?? this.protocolVersion,
+      clientProtocolVersion: clientProtocolVersion ?? this.clientProtocolVersion,
+      timeouts: timeouts ?? this.timeouts,
+      singlePeerConnection: singlePeerConnection ?? this.singlePeerConnection,
+      dataStream: dataStream ?? this.dataStream,
+    );
+  }
 }
 
 /// Options for receiving data streams.
