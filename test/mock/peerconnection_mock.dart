@@ -46,6 +46,32 @@ void Function(MockDataChannel dc)? onMockReliableChannelCreated;
 void resetMockDataChannels() {
   _dataChannels.clear();
   onMockReliableChannelCreated = null;
+  mockReportsSelectedPair = true;
+  mockPairReportsHaveUfrags = true;
+}
+
+/// Whether new mock peer connections report their selected candidate pair, as flutter_webrtc does
+/// on iOS, macOS and Android once it has the event. Reset by [resetMockDataChannels].
+bool mockReportsSelectedPair = true;
+
+/// Whether the candidates of those reports carry their ICE username fragment, as libwebrtc's
+/// candidate lines do. Reset by [resetMockDataChannels].
+bool mockPairReportsHaveUfrags = true;
+
+/// What a mock reports as a selected candidate pair, read the way the SDK reads the plugin's.
+class MockCandidatePair {
+  MockCandidatePair(String localUfrag, String remoteUfrag)
+    : local = RTCIceCandidate(_candidateLine(localUfrag), '0', -1),
+      remote = RTCIceCandidate(_candidateLine(remoteUfrag), '0', -1);
+
+  final RTCIceCandidate local;
+  final RTCIceCandidate remote;
+  final String reason = 'candidate pair state changed';
+  final int lastDataReceivedMs = 0;
+
+  static String _candidateLine(String ufrag) =>
+      'candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host generation 0'
+      '${mockPairReportsHaveUfrags ? ' ufrag $ufrag' : ''} network-id 1';
 }
 
 class MockPeerConnection extends RTCPeerConnection {
@@ -53,6 +79,44 @@ class MockPeerConnection extends RTCPeerConnection {
   static const _answerType = 'answer';
 
   bool closed = false;
+
+  // The SDK sets onSelectedCandidatePairChanged through a dynamic call. A webrtc_interface without
+  // the field lands in noSuchMethod, so the mock keeps the callback there and builds with both.
+  Function? _pairCallback;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    if (invocation.memberName == const Symbol('onSelectedCandidatePairChanged=')) {
+      return _pairCallback = invocation.positionalArguments.first as Function?;
+    }
+    if (invocation.memberName == #onSelectedCandidatePairChanged) return _pairCallback;
+    return super.noSuchMethod(invocation);
+  }
+
+  /// Whether this connection reports its selected candidate pair, see [mockReportsSelectedPair].
+  final bool reportsSelectedPair = mockReportsSelectedPair;
+
+  /// ICE username fragment of the local offers, new after every [restartIce].
+  String localUfrag = 'local0';
+  int _iceGeneration = 0;
+  bool _restartPending = false;
+
+  /// Username fragments of the selected candidate pair, null before one is selected.
+  ({String local, String remote})? selectedPair;
+
+  /// Whether [getStats] names the username fragments of the selected pair's candidates.
+  bool statsHaveUfrags = false;
+
+  /// Selects the pair with these username fragments, reporting it where the connection reports
+  /// pairs, and naming it in the stats.
+  void selectPair(String localUfrag, String remoteUfrag) {
+    selectedPair = (local: localUfrag, remote: remoteUfrag);
+    selectedCandidatePairId = 'pair-$localUfrag-$remoteUfrag';
+    if (!reportsSelectedPair) return;
+    final dynamic callback = (this as dynamic).onSelectedCandidatePairChanged;
+    if (callback != null) callback(MockCandidatePair(localUfrag, remoteUfrag));
+  }
+
   RTCSessionDescription? _localDescription;
   RTCSessionDescription? _remoteDescription;
 
@@ -84,6 +148,10 @@ class MockPeerConnection extends RTCPeerConnection {
       iceConnectionState = RTCIceConnectionState.RTCIceConnectionStateCompleted;
       _connectionState = RTCPeerConnectionState.RTCPeerConnectionStateConnected;
       onConnectionState?.call(_connectionState);
+      // The first pair is selected when the connection first connects. A test moves it later.
+      if (selectedPair == null) {
+        selectPair(_ufragOf(_localDescription) ?? localUfrag, _ufragOf(_remoteDescription) ?? 'remote');
+      }
 
       if (onDataChannel != null) {
         // open data channels
@@ -104,6 +172,9 @@ class MockPeerConnection extends RTCPeerConnection {
       }
     }
   }
+
+  static String? _ufragOf(RTCSessionDescription? description) =>
+      RegExp(r'a=ice-ufrag:(\S+)').firstMatch(description?.sdp ?? '')?.group(1);
 
   @override
   RTCPeerConnectionState get connectionState => _connectionState;
@@ -201,12 +272,17 @@ a=rtpmap:31 H261/90000
 
   @override
   Future<RTCSessionDescription> createOffer([Map<String, dynamic>? constraints]) async {
+    if (_restartPending || constraints?['iceRestart'] == true) {
+      _restartPending = false;
+      localUfrag = 'local${++_iceGeneration}';
+    }
     return RTCSessionDescription('''
 v=0
 o=alice 2890844526 2890844526 IN IP4 host.atlanta.example.com
 s=
 c=IN IP4 host.atlanta.example.com
 t=0 0
+a=ice-ufrag:$localUfrag
 m=audio 49170 RTP/AVP 0 8 97
 a=rtpmap:0 PCMU/8000
 a=rtpmap:8 PCMA/8000
@@ -278,8 +354,19 @@ a=rtpmap:32 MPV/90000
 
   @override
   Future<List<StatsReport>> getStats([MediaStreamTrack? track]) async => [
-    if (selectedCandidatePairId != null)
+    if (selectedCandidatePairId != null) ...[
       StatsReport('T01', 'transport', 0, {'selectedCandidatePairId': selectedCandidatePairId}),
+      StatsReport(selectedCandidatePairId!, 'candidate-pair', 0, {
+        'localCandidateId': 'L-$selectedCandidatePairId',
+        'remoteCandidateId': 'R-$selectedCandidatePairId',
+      }),
+      StatsReport('L-$selectedCandidatePairId', 'local-candidate', 0, {
+        if (statsHaveUfrags && selectedPair != null) 'usernameFragment': selectedPair!.local,
+      }),
+      StatsReport('R-$selectedCandidatePairId', 'remote-candidate', 0, {
+        if (statsHaveUfrags && selectedPair != null) 'usernameFragment': selectedPair!.remote,
+      }),
+    ],
   ];
 
   /// Reported as the transport's selected candidate pair by [getStats], which reports no
@@ -314,7 +401,7 @@ a=rtpmap:32 MPV/90000
 
   // The next offer carries new ICE credentials. The mock has no ICE agent to restart.
   @override
-  Future<void> restartIce() async {}
+  Future<void> restartIce() async => _restartPending = true;
 }
 
 class MockRtpSender implements RTCRtpSender {
