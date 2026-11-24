@@ -180,7 +180,15 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
         networkOptions: roomOptions.networkOptions,
       );
       future = future.timeout(connectOptions.timeouts.connection);
-      _ws = await future;
+      try {
+        _ws = await future;
+      } catch (_) {
+        // A dial that timed out can still open later. The SDK gave up on that
+        // socket, so nothing it reports applies, not even before the next
+        // connect() or cleanUp().
+        if (socketId == _socketId) _socketId++;
+        rethrow;
+      }
       // Successful connection
       _connectionState = ConnectionState.connected;
       events.emit(const SignalConnectedEvent());

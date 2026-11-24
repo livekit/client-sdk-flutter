@@ -148,6 +148,59 @@ void main() {
     }
   });
 
+  test('a close reported after cleanUp() is ignored', () async {
+    final connector = MockWebSocketConnector()..holdCloses = true;
+    final client = SignalClient(connector.connect);
+    final lost = <SignalDisconnectedEvent>[];
+    final listener = client.createListener()..on<SignalDisconnectedEvent>(lost.add);
+    try {
+      await client.connect(exampleUri, token, connectOptions: const ConnectOptions(), roomOptions: const RoomOptions());
+      await client.cleanUp();
+      // no connect() has run since, the cleanUp() alone made the socket stale
+      connector.releaseCloses();
+      await _settle();
+
+      expect(lost, isEmpty);
+    } finally {
+      await listener.dispose();
+      await client.dispose();
+    }
+  });
+
+  test('a socket that opens after its connect timed out is ignored', () async {
+    final handshake = Completer<void>();
+    final connector = MockWebSocketConnector()..connectGate = handshake.future;
+    final client = SignalClient(connector.connect);
+    final heard = <SignalEvent>[];
+    final listener = client.createListener()
+      ..on<SignalReconnectResponseEvent>(heard.add)
+      ..on<SignalDisconnectedEvent>(heard.add);
+    try {
+      await expectLater(
+        client.connect(
+          exampleUri,
+          token,
+          connectOptions: ConnectOptions(timeouts: _timeouts(connection: const Duration(milliseconds: 50))),
+          roomOptions: const RoomOptions(),
+          reconnect: true,
+        ),
+        throwsA(anything),
+      );
+      // the dial completes late, while the engine waits to retry
+      handshake.complete();
+      await _settle();
+      final late = connector.sockets.single;
+      late.handlers!.onData!(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+      late.handlers!.onDispose!();
+      await _settle();
+
+      expect(heard, isEmpty, reason: 'the SDK gave up on this socket when its connect timed out');
+    } finally {
+      await listener.dispose();
+      await client.dispose();
+    }
+  });
+
   test('simulating a signal drop with no signal socket does nothing', () async {
     final events = <RoomEvent>[];
     container.room.events.on<RoomAttemptReconnectEvent>(events.add);
@@ -259,3 +312,12 @@ Future<bool> _resumeStarted(E2EContainer container) async {
   }
   return false;
 }
+
+Timeouts _timeouts({required Duration connection}) => Timeouts(
+  connection: connection,
+  debounce: Timeouts.defaultTimeouts.debounce,
+  publish: Timeouts.defaultTimeouts.publish,
+  subscribe: Timeouts.defaultTimeouts.subscribe,
+  peerConnection: Timeouts.defaultTimeouts.peerConnection,
+  iceRestart: Timeouts.defaultTimeouts.iceRestart,
+);
