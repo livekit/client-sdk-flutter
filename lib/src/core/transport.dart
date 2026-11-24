@@ -323,14 +323,12 @@ class Transport extends Disposable {
   /// Id of the last offer whose answer was applied.
   int _answeredOfferId = 0;
 
-  /// Id (0 if unnumbered) of the answer being applied right now, so a copy that arrives
-  /// mid-apply is recognised as a duplicate too.
-  int? _answerInFlight;
+  /// Held while an offer is built and while a remote description is applied, so the two never
+  /// interleave. An offer request that overlaps an answer waits for it, and a copy of an answer
+  /// waits for the first one and then finds it applied. [renegotiate] is only read and written
+  /// while this is held. Not reentrant, so code that holds it calls [_createAndSendOffer].
+  final _negotiationLock = sync.Lock();
 
-  /// Builds one offer at a time. A call that overlaps another waits for it, then finds that
-  /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
-  /// Only an ICE restart replaces a waiting offer.
-  final _offerLock = sync.Lock();
   @internal
   TransportOnOffer? onOffer;
   TransportOnNegotiationError? onNegotiationError;
@@ -395,7 +393,7 @@ class Transport extends Disposable {
   Duration? get connectionSetupTimeForOffer => _connectStopwatch?.elapsed;
 
   late final negotiate = Utils.createDebounceFunc(
-    (void _) => _createAndSendOfferReportingErrors(),
+    (void _) => _reportingNegotiationErrors(createAndSendOffer),
     cancelFunc: (f) => _cancelDebounce = f,
     wait: connectOptions.timeouts.debounce,
   );
@@ -403,9 +401,9 @@ class Transport extends Disposable {
   /// The debouncer and the offer deferred until the answer arrives have no caller that handles
   /// errors, so a failure here would surface as an unhandled error. Hand it to
   /// [onNegotiationError] instead. Direct [createAndSendOffer] callers still get the error.
-  Future<void> _createAndSendOfferReportingErrors() async {
+  Future<void> _reportingNegotiationErrors(Future<void> Function() sendOffer) async {
     try {
-      await createAndSendOffer();
+      await sendOffer();
     } catch (error) {
       logger.warning('[$objectId] negotiate() failed with error: $error');
       onNegotiationError?.call(error);
@@ -419,7 +417,10 @@ class Transport extends Disposable {
 
   /// [offerId] is the id of the offer an answer answers, or the server's id for a remote
   /// offer. 0 from servers that send none.
-  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) async {
+  Future<void> setRemoteDescription(rtc.RTCSessionDescription sd, {int offerId = 0}) =>
+      _negotiationLock.synchronized(() => _setRemoteDescription(sd, offerId));
+
+  Future<void> _setRemoteDescription(rtc.RTCSessionDescription sd, int offerId) async {
     if (isDisposed) {
       logger.warning('[$objectId] setRemoteDescription() already disposed');
       return;
@@ -430,27 +431,19 @@ class Transport extends Disposable {
         logger.warning('[$objectId] ignoring answer for old offer $offerId, latest is $_latestOfferId');
         return;
       }
-      if (_answerInFlight == offerId) {
+      if (await _isAnswered(offerId)) {
         logger.warning('[$objectId] ignoring duplicate answer (offerId: $offerId)');
         return;
       }
-      // claimed before any await, so a copy arriving mid-apply is caught too
-      _answerInFlight = offerId;
     }
 
     try {
-      if (sd.type == 'answer' && await _isAnswered(offerId)) {
-        logger.warning('[$objectId] ignoring duplicate answer (offerId: $offerId)');
-        return;
-      }
       await pc.setRemoteDescription(sd);
-      // only a successfully applied answer makes later copies duplicates
+      // only a successfully applied answer makes later copies duplicates, so a failed apply
+      // can still be retried
       if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
-    } finally {
-      // released however the apply ends, so a genuine retry is still possible
-      if (sd.type == 'answer') _answerInFlight = null;
     }
 
     for (final candidate in _pendingCandidates) {
@@ -462,13 +455,16 @@ class Transport extends Disposable {
 
     if (renegotiate) {
       renegotiate = false;
+      // The lock is held here, so this calls the inner method. Taking the lock again through
+      // [createAndSendOffer] would wait on itself forever.
+      //
       // The signal listener that awaits this call has no reconnect handling, so a failed deferred
       // offer is reported to [onNegotiationError] like a debounced one. Without a handler the
       // error propagates to the caller instead of being dropped.
       if (onNegotiationError == null) {
-        await createAndSendOffer();
+        await _createAndSendOffer();
       } else {
-        await _createAndSendOfferReportingErrors();
+        await _reportingNegotiationErrors(_createAndSendOffer);
       }
     }
   }
@@ -481,10 +477,10 @@ class Transport extends Disposable {
     return await pc.getSignalingState() == rtc.RTCSignalingState.RTCSignalingStateStable;
   }
 
-  Future<void> createAndSendOffer([RTCOfferOptions? options]) =>
-      _offerLock.synchronized(() => _createAndSendOffer(options));
+  Future<void> createAndSendOffer({RTCOfferOptions? options}) =>
+      _negotiationLock.synchronized(() => _createAndSendOffer(options: options));
 
-  Future<void> _createAndSendOffer(RTCOfferOptions? options) async {
+  Future<void> _createAndSendOffer({RTCOfferOptions? options}) async {
     if (isDisposed) {
       logger.warning('[$objectId] createAndSendOffer() already disposed');
       return;
@@ -504,9 +500,7 @@ class Transport extends Disposable {
       // we're waiting for the peer to accept our offer, so we'll just wait
       // the only exception to this is when ICE restart is needed
       if (!(options?.iceRestart ?? false)) {
-        // Nothing may be awaited between reading the state and setting the flag. The answer
-        // can finish applying in that gap, and setRemoteDescription checks the flag only once,
-        // so a flag set after that check is never picked up and this offer is never sent.
+        // An answer cannot be applied while this holds the lock, so the answer path finds the flag.
         renegotiate = true;
         return;
       }
