@@ -651,6 +651,12 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         }
       } catch (error, stackTrace) {
         logger.warning('Failed to re-publish ${track.source} track ${track.sid}: $error', error, stackTrace);
+        // The room closed while the track was republished: the disconnect ends the session, so neither this track
+        // nor the ones after it are reported or republished.
+        if (room.engine.isClosed || room.connectionState == ConnectionState.disconnected) return;
+        // The publish failed after registering the replacement (a processor's onPublish threw, for example), so the
+        // track is still published.
+        if (trackPublications.values.any((pub) => pub.track == track.track)) continue;
         // the publication is gone, so tell apps that track their tracks through events
         [events, room.events].emit(LocalTrackUnpublishedEvent(participant: this, publication: track));
       }

@@ -98,7 +98,10 @@ void main() {
       );
 
       var reconnected = false;
-      final listener = room.createListener()..on<RoomReconnectedEvent>((_) => reconnected = true);
+      final unpublished = <LocalTrackUnpublishedEvent>[];
+      final listener = room.createListener()
+        ..on<RoomReconnectedEvent>((_) => reconnected = true)
+        ..on<LocalTrackUnpublishedEvent>(unpublished.add);
       addTearDown(listener.dispose);
       container.engine.events.emit(const EngineRestartedEvent());
       ws.onData(
@@ -115,6 +118,7 @@ void main() {
 
       expect(track.startAttempts, 1);
       expect(reconnected, isFalse);
+      expect(unpublished, isEmpty, reason: 'the disconnect ended the session');
     });
 
     test('a track that fails to republish is reported as unpublished', () async {
@@ -134,6 +138,48 @@ void main() {
 
       expect(event.publication.sid, 'sid_local_audio_1');
       expect(participant.isMicrophoneEnabled(), isFalse);
+    });
+
+    test('a track still published after its republish fails is not reported as unpublished', () async {
+      final participant = room.localParticipant!;
+      final track = _OnPublishFailingAudioTrack('local_audio_1');
+      participant.addTrackPublication(
+        LocalTrackPublication<LocalAudioTrack>(
+          participant: participant,
+          info: remoteAudioTrack.clone()..sid = 'sid_local_audio_1',
+          track: track,
+        ),
+      );
+
+      var unpublished = false;
+      final listener = room.createListener()..on<LocalTrackUnpublishedEvent>((_) => unpublished = true);
+      addTearDown(listener.dispose);
+      final reconnected = room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 1));
+      container.engine.events.emit(const EngineRestartedEvent());
+      // Answer the republish, so it registers the publication before onPublish fails.
+      lk_rtc.AddTrackRequest? request;
+      for (var i = 0; i < 100 && request == null; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+        request = ws.sentData
+            .map(lk_rtc.SignalRequest.fromBuffer)
+            .where((r) => r.hasAddTrack())
+            .map((r) => r.addTrack)
+            .firstOrNull;
+      }
+      expect(request, isNotNull, reason: 'the SDK never sent an AddTrackRequest');
+      ws.onData(
+        lk_rtc.SignalResponse(
+          trackPublished: lk_rtc.TrackPublishedResponse(
+            cid: request!.cid,
+            track: lk_models.TrackInfo(sid: 'sid_local_audio_1', type: lk_models.TrackType.AUDIO),
+          ),
+        ).writeToBuffer(),
+      );
+      await reconnected;
+
+      expect(track.publishAttempts, 1);
+      expect(participant.trackPublications.values.map((pub) => pub.track), [track]);
+      expect(unpublished, isFalse);
     });
   });
 
@@ -439,6 +485,29 @@ class _FakeMediaStreamTrack implements rtc.MediaStreamTrack {
 
   @override
   String toString() => 'FakeMediaStreamTrack(id: $id, kind: $kind, enabled: $enabled)';
+}
+
+/// Publishes, then fails in [onPublish], after the publication is registered.
+class _OnPublishFailingAudioTrack extends LocalAudioTrack {
+  int publishAttempts = 0;
+
+  _OnPublishFailingAudioTrack(String id)
+    : super(
+        TrackSource.microphone,
+        _FakeMediaStream('local_stream'),
+        _FakeMediaStreamTrack(id: id, kind: 'audio'),
+        const AudioCaptureOptions(),
+      );
+
+  @override
+  Future<void> startCapture() async {}
+
+  @override
+  Future<bool> onPublish() async {
+    publishAttempts++;
+    await super.onPublish();
+    throw StateError('processor failed');
+  }
 }
 
 class _FailingAudioTrack extends LocalAudioTrack {
