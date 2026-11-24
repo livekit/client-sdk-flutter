@@ -1,0 +1,5 @@
+---
+livekit_client: patch
+---
+
+Web: a signal connection that fails after it opened no longer throws an uncaught Future already completed error
