@@ -15,6 +15,8 @@
 @Timeout(Duration(seconds: 10))
 library;
 
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCPeerConnectionState;
 
@@ -178,6 +180,10 @@ void main() {
     pc.selectPair('local1', 'remote0');
     await settle();
     expect(engineEvents.whereType<EngineResumedEvent>(), isEmpty, reason: 'resumed on a pair with old remote ufrag');
+    // A remote candidate without a fragment, as a peer reflexive one can be, leaves the local one.
+    pc.selectPair('local0', '');
+    await settle();
+    expect(engineEvents.whereType<EngineResumedEvent>(), isEmpty, reason: 'resumed on a pair with old local ufrag');
     expect(roomEvents.whereType<RoomReconnectedEvent>(), isEmpty);
     expect(sendDone, isFalse, reason: 'a reliable send went out while the publisher was still on the old pair');
     expect(sent.where(_isMarker), isEmpty);
@@ -400,5 +406,111 @@ void main() {
     expect(roomEvents.whereType<RoomDisconnectedEvent>(), hasLength(1));
     expect(identical(ws.handlers, resumeHandlers), isTrue, reason: 'the SDK reconnected after the disconnect');
     expect(container.engine.isClosed, isTrue);
+  });
+
+  group('single PC mode', () {
+    const singlePC = ConnectOptions(singlePeerConnection: true);
+
+    /// Whether the signal connection the SDK opened last is a resume, on either signal path.
+    bool isResume() {
+      final uri = ws.uri!;
+      if (uri.queryParameters['reconnect'] == '1') return true;
+      final joinRequest = uri.queryParameters['join_request'];
+      if (joinRequest == null) return false;
+      final wrapped = lk_rtc.WrappedJoinRequest.fromBuffer(base64Url.decode(joinRequest));
+      return lk_rtc.JoinRequest.fromBuffer(wrapped.joinRequest).reconnect;
+    }
+
+    Future<void> answerSinglePCResume(WebSocketEventHandlers? previous) async {
+      await waitForNewSignalConnection(previous);
+      expect(ws.uri?.pathSegments, containsAllInOrder(['rtc', 'v1']), reason: 'expected the single PC signal path');
+      expect(isResume(), isTrue, reason: 'expected a resume');
+      ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    }
+
+    /// Connects in single PC mode. The one peer connection is negotiated on join, before anything
+    /// is published, and the connect waits for it, so its offer is answered here.
+    Future<void> connectSinglePC(ConnectOptions connectOptions) async {
+      final connected = connect(connectOptions: connectOptions);
+      answerOffer(await waitForOffer(after: 0));
+      await connected;
+      expect(container.engine.subscriber, isNull, reason: 'expected one peer connection');
+      expect(publisherPc().connectionState, RTCPeerConnectionState.RTCPeerConnectionStateConnected);
+    }
+
+    /// The resume also renegotiates in single PC mode, so the restart offer is told apart by its
+    /// new local username fragment.
+    Future<int> waitForRestartOffer(String ufrag) async {
+      for (var i = 0; i < 300; i++) {
+        final offers = ws.sentData
+            .map(lk_rtc.SignalRequest.fromBuffer)
+            .where((request) => request.hasOffer() && request.offer.sdp.contains('a=ice-ufrag:$ufrag'));
+        if (offers.isNotEmpty) return offers.first.offer.id;
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      fail('the SDK sent no ICE restart offer with ufrag $ufrag');
+    }
+
+    test('the one peer connection is restarted and waited for, without a publish', () async {
+      await connectSinglePC(singlePC);
+      final pc = publisherPc();
+
+      final previous = ws.handlers;
+      sendResumeLeave();
+      await answerSinglePCResume(previous);
+      final restartOffer = await waitForRestartOffer('local1');
+
+      var sendDone = false;
+      final send = container.engine
+          .sendDataPacket(_marker(), reliability: Reliability.reliable)
+          .whenComplete(() => sendDone = true);
+
+      // The answer is applied and the connection reports connected, still over the old pair. This
+      // passes the primary check, the primary being this same peer connection.
+      answerOffer(restartOffer, ufrag: 'remote1');
+      pc.onConnectionState?.call(RTCPeerConnectionState.RTCPeerConnectionStateConnected);
+      await settle();
+      expect(engineEvents.whereType<EngineResumedEvent>(), isEmpty, reason: 'resumed while still on the old pair');
+      expect(sendDone, isFalse, reason: 'a reliable send went out while still on the old pair');
+      expect(sent.where(_isMarker), isEmpty);
+
+      final reconnected = room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 2));
+      pc.selectPair('local1', 'remote1');
+      await reconnected;
+      await send.timeout(const Duration(seconds: 2));
+
+      expect(engineEvents.whereType<EngineResumedEvent>(), hasLength(1));
+      expect(engineEvents.whereType<EngineFullRestartingEvent>(), isEmpty);
+      expect(sent.where(_isMarker), hasLength(1));
+    });
+
+    test('a peer connection that does not finish its ICE restart in time leads to a full reconnect', () async {
+      await connectSinglePC(
+        const ConnectOptions(
+          singlePeerConnection: true,
+          timeouts: Timeouts(
+            connection: Duration(seconds: 10),
+            debounce: Duration(milliseconds: 20),
+            publish: Duration(seconds: 10),
+            subscribe: Duration(seconds: 10),
+            peerConnection: Duration(milliseconds: 500),
+            iceRestart: Duration(seconds: 10),
+          ),
+        ),
+      );
+
+      final previous = ws.handlers;
+      sendResumeLeave();
+      await answerSinglePCResume(previous);
+      final restartOffer = await waitForRestartOffer('local1');
+      final resumeHandlers = ws.handlers;
+
+      // Answered and connected, but it never leaves its old pair.
+      answerOffer(restartOffer, ufrag: 'remote1');
+      await waitForNewSignalConnection(resumeHandlers);
+      expect(isResume(), isFalse, reason: 'the next attempt must re-join');
+      expect(engineEvents.whereType<EngineResumedEvent>(), isEmpty, reason: 'the failed resume was reported done');
+      expect(engineEvents.whereType<EngineFullRestartingEvent>(), hasLength(1));
+    });
   });
 }
