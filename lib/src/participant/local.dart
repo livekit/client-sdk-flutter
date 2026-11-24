@@ -652,8 +652,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       } catch (error, stackTrace) {
         logger.warning('Failed to re-publish ${track.source} track ${track.sid}: $error', error, stackTrace);
         // The room closed while the track was republished: the disconnect ends the session, so neither this track
-        // nor the ones after it are reported or republished.
-        if (room.engine.isClosed || room.connectionState == ConnectionState.disconnected) return;
+        // nor the ones after it are reported or republished. Only a closed engine means that: the connection state
+        // also reads disconnected while a dropped signal socket reconnects, and the remaining tracks must still be
+        // republished then.
+        if (room.engine.isClosed) return;
         // The publish failed after registering the replacement (a processor's onPublish threw, for example), so the
         // track is still published.
         if (trackPublications.values.any((pub) => pub.track == track.track)) continue;

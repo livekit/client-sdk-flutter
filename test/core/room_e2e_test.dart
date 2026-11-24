@@ -121,6 +121,35 @@ void main() {
       expect(unpublished, isEmpty, reason: 'the disconnect ended the session');
     });
 
+    test('a signal drop while a track is republished does not skip the remaining tracks', () async {
+      final participant = room.localParticipant!;
+      final gate = Completer<void>();
+      final tracks = [
+        _FailingAudioTrack('local_audio_1', StateError('republish failed'), gate: gate),
+        _FailingAudioTrack('local_audio_2', StateError('republish failed')),
+      ];
+      for (final track in tracks) {
+        participant.addTrackPublication(
+          LocalTrackPublication<LocalAudioTrack>(
+            participant: participant,
+            info: remoteAudioTrack.clone()..sid = 'sid_${track.mediaStreamTrack.id}',
+            track: track,
+          ),
+        );
+      }
+
+      container.engine.events.emit(const EngineRestartedEvent());
+      // The signal socket drops while the first track is republished, and that republish fails before signaling
+      // is back: the room reads disconnected, but the engine reconnects rather than closing.
+      ws.onDispose();
+      expect(room.connectionState, ConnectionState.disconnected);
+      expect(container.engine.isClosed, isFalse);
+      gate.complete();
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+
+      expect(tracks.map((track) => track.startAttempts), [1, 1]);
+    });
+
     test('a track that fails to republish is reported as unpublished', () async {
       final participant = room.localParticipant!;
       final track = _FailingAudioTrack('local_audio_1', StateError('republish failed'));
