@@ -48,6 +48,7 @@ void resetMockDataChannels() {
   onMockReliableChannelCreated = null;
   mockReportsSelectedPair = true;
   mockPairReportsHaveUfrags = true;
+  mockPairCandidatesNameFragmentInField = false;
 }
 
 /// Whether new mock peer connections report their selected candidate pair, as flutter_webrtc does
@@ -58,16 +59,33 @@ bool mockReportsSelectedPair = true;
 /// candidate lines do. Reset by [resetMockDataChannels].
 bool mockPairReportsHaveUfrags = true;
 
+/// Whether the candidates of those reports name their username fragment in a `usernameFragment`
+/// field and not in the candidate line, as a browser's do. Reset by [resetMockDataChannels].
+bool mockPairCandidatesNameFragmentInField = false;
+
+/// A candidate of a reported pair. The published webrtc_interface has no `usernameFragment` on
+/// RTCIceCandidate yet, so the mock carries its own.
+class MockPairCandidate {
+  MockPairCandidate(this.candidate, this.usernameFragment);
+
+  final String candidate;
+  final String? usernameFragment;
+}
+
 /// What a mock reports as a selected candidate pair, read the way the SDK reads the plugin's.
 class MockCandidatePair {
   MockCandidatePair(String localUfrag, String remoteUfrag)
-    : local = RTCIceCandidate(_candidateLine(localUfrag), '0', -1),
-      remote = RTCIceCandidate(_candidateLine(remoteUfrag), '0', -1);
+    : local = _candidate(localUfrag),
+      remote = _candidate(remoteUfrag);
 
-  final RTCIceCandidate local;
-  final RTCIceCandidate remote;
+  final dynamic local;
+  final dynamic remote;
   final String reason = 'candidate pair state changed';
   final int lastDataReceivedMs = 0;
+
+  static dynamic _candidate(String ufrag) => mockPairCandidatesNameFragmentInField
+      ? MockPairCandidate('candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host', ufrag)
+      : RTCIceCandidate(_candidateLine(ufrag), '0', -1);
 
   static String _candidateLine(String ufrag) =>
       'candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host generation 0'

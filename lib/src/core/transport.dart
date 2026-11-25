@@ -715,7 +715,13 @@ class Transport extends Disposable {
     try {
       (pc as dynamic).onSelectedCandidatePairChanged = (dynamic pair) {
         if (isDisposed) return;
+        // A plugin that reports the pair also gives each candidate its username fragment. The
+        // candidate line is only read when that field is missing.
         String? ufrag(dynamic candidate) {
+          try {
+            final fragment = candidate.usernameFragment;
+            if (fragment is String && fragment.isNotEmpty) return fragment;
+          } catch (_) {}
           try {
             return candidateUfragOf(candidate.candidate as String?);
           } catch (_) {
