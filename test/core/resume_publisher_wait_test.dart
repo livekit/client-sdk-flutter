@@ -285,30 +285,6 @@ void main() {
     expect(engineEvents.whereType<EngineFullRestartingEvent>(), isEmpty);
   });
 
-  test('pair reports that name the username fragment in a field are told apart by it', () async {
-    mockPairCandidatesNameFragmentInField = true;
-    await connect();
-    final firstOffer = await negotiatePublisher();
-    final pc = publisherPc();
-
-    final previous = ws.handlers;
-    sendResumeLeave();
-    await answerResume(previous);
-    final restartOffer = await waitForOffer(after: firstOffer);
-    answerOffer(restartOffer, ufrag: 'remote1');
-
-    // Another pair of the old ICE generation is selected, as after a network change. It is not
-    // the restart's, so the resume keeps waiting.
-    pc.selectPair('local0', 'other0');
-    await Future<void>.delayed(const Duration(milliseconds: 300));
-    expect(engineEvents.whereType<EngineResumedEvent>(), isEmpty, reason: 'a pair of the old generation ended it');
-
-    final reconnected = room.events.waitFor<RoomReconnectedEvent>(duration: const Duration(seconds: 2));
-    pc.selectPair('local1', 'remote1');
-    await reconnected;
-    expect(engineEvents.whereType<EngineFullRestartingEvent>(), isEmpty);
-  });
-
   test('without pair reports or fragments in the stats, the selected pair has to change', () async {
     mockReportsSelectedPair = false;
     await connect();

@@ -48,68 +48,28 @@ void resetMockDataChannels() {
   onMockReliableChannelCreated = null;
   mockReportsSelectedPair = true;
   mockPairReportsHaveUfrags = true;
-  mockPairCandidatesNameFragmentInField = false;
 }
 
 /// Whether new mock peer connections report their selected candidate pair, as flutter_webrtc does
 /// on iOS, macOS and Android once it has the event. Reset by [resetMockDataChannels].
 bool mockReportsSelectedPair = true;
 
-/// Whether the candidates of those reports carry their ICE username fragment, as libwebrtc's
-/// candidate lines do. Reset by [resetMockDataChannels].
+/// Whether the candidates of those reports carry their ICE username fragment, as they do on a
+/// platform that reports it. Reset by [resetMockDataChannels].
 bool mockPairReportsHaveUfrags = true;
 
-/// Whether the candidates of those reports name their username fragment in a `usernameFragment`
-/// field and not in the candidate line, as a browser's do. Reset by [resetMockDataChannels].
-bool mockPairCandidatesNameFragmentInField = false;
-
-/// A candidate of a reported pair. The published webrtc_interface has no `usernameFragment` on
-/// RTCIceCandidate yet, so the mock carries its own.
-class MockPairCandidate {
-  MockPairCandidate(this.candidate, this.usernameFragment);
-
-  final String candidate;
-  final String? usernameFragment;
-}
-
-/// What a mock reports as a selected candidate pair, read the way the SDK reads the plugin's.
-class MockCandidatePair {
-  MockCandidatePair(String localUfrag, String remoteUfrag)
-    : local = _candidate(localUfrag),
-      remote = _candidate(remoteUfrag);
-
-  final dynamic local;
-  final dynamic remote;
-  final String reason = 'candidate pair state changed';
-  final int lastDataReceivedMs = 0;
-
-  static dynamic _candidate(String ufrag) => mockPairCandidatesNameFragmentInField
-      ? MockPairCandidate('candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host', ufrag)
-      : RTCIceCandidate(_candidateLine(ufrag), '0', -1);
-
-  static String _candidateLine(String ufrag) =>
-      'candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host generation 0'
-      '${mockPairReportsHaveUfrags ? ' ufrag $ufrag' : ''} network-id 1';
-}
+RTCIceCandidate _mockPairCandidate(String ufrag) => RTCIceCandidate(
+  'candidate:1 1 udp 2130706431 192.0.2.1 50000 typ host generation 0 network-id 1',
+  '0',
+  -1,
+  usernameFragment: mockPairReportsHaveUfrags ? ufrag : null,
+);
 
 class MockPeerConnection extends RTCPeerConnection {
   static const _offerType = 'offer';
   static const _answerType = 'answer';
 
   bool closed = false;
-
-  // The SDK sets onSelectedCandidatePairChanged through a dynamic call. A webrtc_interface without
-  // the field lands in noSuchMethod, so the mock keeps the callback there and builds with both.
-  Function? _pairCallback;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.memberName == const Symbol('onSelectedCandidatePairChanged=')) {
-      return _pairCallback = invocation.positionalArguments.first as Function?;
-    }
-    if (invocation.memberName == #onSelectedCandidatePairChanged) return _pairCallback;
-    return super.noSuchMethod(invocation);
-  }
 
   /// Whether this connection reports its selected candidate pair, see [mockReportsSelectedPair].
   final bool reportsSelectedPair = mockReportsSelectedPair;
@@ -131,8 +91,14 @@ class MockPeerConnection extends RTCPeerConnection {
     selectedPair = (local: localUfrag, remote: remoteUfrag);
     selectedCandidatePairId = 'pair-$localUfrag-$remoteUfrag';
     if (!reportsSelectedPair) return;
-    final dynamic callback = (this as dynamic).onSelectedCandidatePairChanged;
-    if (callback != null) callback(MockCandidatePair(localUfrag, remoteUfrag));
+    onSelectedCandidatePairChanged?.call(
+      RTCIceCandidatePair(
+        _mockPairCandidate(localUfrag),
+        _mockPairCandidate(remoteUfrag),
+        reason: 'candidate pair state changed',
+        lastDataReceivedMs: 0,
+      ),
+    );
   }
 
   RTCSessionDescription? _localDescription;

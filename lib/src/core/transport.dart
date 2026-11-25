@@ -383,9 +383,7 @@ class Transport extends Disposable {
       pc.onConnectionState = null;
       pc.onIceConnectionState = null;
       pc.onTrack = null;
-      try {
-        (pc as dynamic).onSelectedCandidatePairChanged = null;
-      } catch (_) {}
+      pc.onSelectedCandidatePairChanged = null;
 
       // Remove all senders
       List<rtc.RTCRtpSender> senders = [];
@@ -708,40 +706,21 @@ class Transport extends Disposable {
     return pair != null && isIceRestartPair(pair.local, pair.remote);
   }
 
-  // flutter_webrtc 1.6.3 and older have no onSelectedCandidatePairChanged, so it is set through a
-  // dynamic call that fails there. Platforms whose plugin has the field but never calls it are
-  // told apart by [reportsSelectedPair] staying false.
+  // A platform that never reports a pair, or reports candidates without their username fragment,
+  // is told apart by [reportsSelectedPair] staying false.
   void _listenForSelectedCandidatePair() {
-    try {
-      (pc as dynamic).onSelectedCandidatePairChanged = (dynamic pair) {
-        if (isDisposed) return;
-        // A plugin that reports the pair also gives each candidate its username fragment. The
-        // candidate line is only read when that field is missing.
-        String? ufrag(dynamic candidate) {
-          try {
-            final fragment = candidate.usernameFragment;
-            if (fragment is String && fragment.isNotEmpty) return fragment;
-          } catch (_) {}
-          try {
-            return candidateUfragOf(candidate.candidate as String?);
-          } catch (_) {
-            return null;
-          }
-        }
-
-        final local = ufrag(pair.local);
-        final remote = ufrag(pair.remote);
-        logger.fine('[$objectId] selected candidate pair changed, ufrag local: $local, remote: $remote');
-        // A report without the local fragment cannot be tied to a restart, the stats are read
-        // instead.
-        if (local == null) return;
-        _reportsSelectedPair = true;
-        _selectedPair = (local: local, remote: remote);
-        _iceRestartChanged.complete();
-      };
-    } catch (_) {
-      logger.fine('[$objectId] this flutter_webrtc does not report the selected candidate pair');
-    }
+    pc.onSelectedCandidatePairChanged = (rtc.RTCIceCandidatePair pair) {
+      if (isDisposed) return;
+      final local = pair.local.usernameFragment;
+      final remote = pair.remote.usernameFragment;
+      logger.fine('[$objectId] selected candidate pair changed, ufrag local: $local, remote: $remote');
+      // A report without the local fragment cannot be tied to a restart, the stats are read
+      // instead.
+      if (local == null || local.isEmpty) return;
+      _reportsSelectedPair = true;
+      _selectedPair = (local: local, remote: remote);
+      _iceRestartChanged.complete();
+    };
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
@@ -921,9 +900,3 @@ class Transport extends Disposable {
 /// The ICE username fragment of a session description, null when it has none.
 @internal
 String? iceUfragOf(String? sdp) => sdp == null ? null : RegExp(r'a=ice-ufrag:(\S+)').firstMatch(sdp)?.group(1);
-
-/// The username fragment of an ICE candidate line, which libwebrtc writes as `ufrag <value>`
-/// after the generation. Null when the line has none.
-@internal
-String? candidateUfragOf(String? candidate) =>
-    candidate == null ? null : RegExp(r'(?:^|\s)ufrag (\S+)').firstMatch(candidate)?.group(1);

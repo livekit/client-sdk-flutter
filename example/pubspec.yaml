@@ -31,6 +31,22 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
+# Temporary, until the releases with onSelectedCandidatePairChanged and
+# RTCIceCandidate.usernameFragment are out. Overrides do not reach the example from the package.
+dependency_overrides:
+  webrtc_interface:
+    git:
+      url: https://github.com/flutter-webrtc/webrtc-interface.git
+      ref: 7316af4
+  dart_webrtc:
+    git:
+      url: https://github.com/flutter-webrtc/dart-webrtc.git
+      ref: 1a8581b
+  flutter_webrtc:
+    git:
+      url: https://github.com/flutter-webrtc/flutter-webrtc.git
+      ref: 561c242
+
 # The following section is specific to Flutter.
 flutter:
   # Swift Package Manager is disabled for the example because this app lives inside the
