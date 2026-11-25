@@ -48,6 +48,32 @@ class _SlowTrack extends Track {
 }
 
 void main() {
+  tearDown(() => Track.statsMonitorEnabled = true);
+
+  testWidgets('statsMonitorEnabled decides whether tracks started afterwards poll', (tester) async {
+    await tester.pumpWidget(const SizedBox());
+    final running = _SlowTrack();
+    await running.start();
+    Track.statsMonitorEnabled = false;
+    final off = _SlowTrack();
+    await off.start();
+    await tester.pump(const Duration(seconds: 6));
+    expect(off.pending, isEmpty);
+    expect(running.pending.length, 1, reason: 'a track started before keeps its monitor');
+
+    Track.statsMonitorEnabled = true;
+    final on = _SlowTrack();
+    await on.start();
+    await tester.pump(const Duration(seconds: 2));
+    expect(on.pending.length, 1);
+    running.stopMonitor();
+    on.stopMonitor();
+    for (final pending in [...running.pending, ...on.pending]) {
+      pending.complete(true);
+    }
+    await tester.pump();
+  });
+
   testWidgets('a slow stats request does not overlap, and monitoring resumes and stops', (tester) async {
     await tester.pumpWidget(const SizedBox());
     final track = _SlowTrack();

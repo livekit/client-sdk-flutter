@@ -113,7 +113,7 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
     await startCapture();
 
     _active = true;
-    startMonitor();
+    if (statsMonitorEnabled) startMonitor();
     return true;
   }
 
@@ -166,6 +166,11 @@ abstract class Track extends DisposableChangeNotifier with EventsEmittable<Track
       logger.warning('[$objectId] set rtc.mediaStreamTrack.enabled did throw $e');
     }
   }
+
+  /// Whether tracks started from now on poll WebRTC stats every [monitorFrequency] ms.
+  /// Defaults to true. Disabling this stops automatic stats events and updates to
+  /// cached stats such as currentBitrate; it does not stop monitors already running.
+  static bool statsMonitorEnabled = true;
 
   Timer? _monitorTimer;
 
