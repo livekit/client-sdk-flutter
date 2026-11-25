@@ -669,6 +669,8 @@ class Room extends DisposableChangeNotifier with EventsEmittable<RoomEvent> {
     ..on<EngineRestartedEvent>((event) async {
       // re-publish all tracks
       await localParticipant?.rePublishAllTracks();
+      // The room may have closed or started another reconnect while the tracks were republished.
+      if (engine.isClosed || connectionState != ConnectionState.connected) return;
 
       for (var participant in _remoteParticipants.toList()) {
         for (var pub in participant.trackPublications.values.toList()) {

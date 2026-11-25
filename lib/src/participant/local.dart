@@ -638,14 +638,29 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
     final tracks = trackPublications.values.toList();
     trackPublications.clear();
     for (LocalTrackPublication track in tracks) {
-      if (track.track is LocalAudioTrack) {
-        await publishAudioTrack(track.track as LocalAudioTrack);
-      } else if (track.track is LocalVideoTrack) {
-        final videoTrack = track.track as LocalVideoTrack;
-        // a full reconnect replaced the peer connection, so any simulcast
-        // codec senders the track still holds belong to the old one
-        videoTrack.clearSimulcastState();
-        await publishVideoTrack(videoTrack);
+      // one track failing to republish must not leave the others unpublished
+      try {
+        if (track.track is LocalAudioTrack) {
+          await publishAudioTrack(track.track as LocalAudioTrack);
+        } else if (track.track is LocalVideoTrack) {
+          final videoTrack = track.track as LocalVideoTrack;
+          // a full reconnect replaced the peer connection, so any simulcast
+          // codec senders the track still holds belong to the old one
+          videoTrack.clearSimulcastState();
+          await publishVideoTrack(videoTrack);
+        }
+      } catch (error, stackTrace) {
+        logger.warning('Failed to re-publish ${track.source} track ${track.sid}: $error', error, stackTrace);
+        // The room closed while the track was republished: the disconnect ends the session, so neither this track
+        // nor the ones after it are reported or republished. Only a closed engine means that: the connection state
+        // also reads disconnected while a dropped signal socket reconnects, and the remaining tracks must still be
+        // republished then.
+        if (room.engine.isClosed) return;
+        // The publish failed after registering the replacement (a processor's onPublish threw, for example), so the
+        // track is still published.
+        if (trackPublications.values.any((pub) => pub.track == track.track)) continue;
+        // the publication is gone, so tell apps that track their tracks through events
+        [events, room.events].emit(LocalTrackUnpublishedEvent(participant: this, publication: track));
       }
     }
   }
