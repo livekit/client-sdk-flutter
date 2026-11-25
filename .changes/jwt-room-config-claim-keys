@@ -1,0 +1,1 @@
+patch type="fixed" "`RoomConfiguration` and `RoomAgentDispatch` now also read the camelCase keys of the `roomConfig` claim (`agentName`, `emptyTimeout`, and so on), so `TokenSourceResponse.jwtPayload?.roomConfiguration` returns the values of a real LiveKit token instead of null fields"
