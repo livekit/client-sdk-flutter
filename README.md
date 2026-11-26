@@ -208,6 +208,23 @@ On Windows [VS 2019](https://visualstudio.microsoft.com/thank-you-downloading-vi
 
 ## Usage
 
+### Initialization
+
+Call `LiveKitClient.initialize()` once at startup, before connecting to a room or using any other WebRTC API:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await LiveKitClient.initialize();
+  runApp(MyApp());
+}
+```
+
+It enables WARP (shorter connection setup) and zero playout delay by default on native platforms; pass
+`enableWARP: false` or `zeroPlayoutDelay: false` to opt out. These are WebRTC field trials that can only be set before
+WebRTC initializes. Without this call, or if it runs after another WebRTC call, WebRTC initializes with its own defaults
+and both stay off. It is also where `bypassVoiceProcessing` and Android's `initialAudioSessionOptions` are applied.
+
 ### Connecting to a room, publish video & audio
 
 ```dart
