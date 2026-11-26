@@ -81,7 +81,16 @@ class SignalClient extends Disposable with EventsEmittable<SignalEvent> {
   List<ConnectivityResult> _connectivityResult = [];
   StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
+  /// Test seam for the offline branch of `Engine.attemptReconnect`, which the
+  /// `lkPlatformIsTest()` short-circuit below otherwise makes unreachable.
+  @visibleForTesting
+  Future<bool> Function()? debugNetworkIsAvailable;
+
   Future<bool> networkIsAvailable() async {
+    final override = debugNetworkIsAvailable;
+    if (override != null) {
+      return override();
+    }
     // Skip check for web or flutter test
     if (kIsWeb || lkPlatformIsTest()) {
       return true;
