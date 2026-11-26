@@ -55,7 +55,7 @@ dependencies:
 
   # Fix version to avoid version conflicts between WebRTC-SDK pods, which both this package and flutter_webrtc depend on.
   flutter_webrtc: 1.6.3
-  dart_webrtc: ^1.8.0
+  dart_webrtc: ^1.9.0
 
   # Rust core (livekit-ffi), delivered as a bundled cdylib via Native Assets.
   # Native platforms only, see lib/src/ffi/.
@@ -78,21 +78,13 @@ import_sorter:
     # Ignore proto files
     - \/lib\/src\/proto\/*
 
-# Temporary, until the releases with onSelectedCandidatePairChanged and
-# RTCIceCandidate.usernameFragment are out. Remove with the version bump above.
+# Temporary, until flutter_webrtc is released with onSelectedCandidatePairChanged and
+# WebRTC-SDK 150.7871.09. Remove with the version bump above.
 dependency_overrides:
-  webrtc_interface:
-    git:
-      url: https://github.com/flutter-webrtc/webrtc-interface.git
-      ref: 7316af4
-  dart_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/dart-webrtc.git
-      ref: "85255038"
   flutter_webrtc:
     git:
       url: https://github.com/flutter-webrtc/flutter-webrtc.git
-      ref: 561c242
+      ref: 18c2cff
 
 flutter:
   plugin:
