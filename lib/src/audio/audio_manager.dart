@@ -501,8 +501,9 @@ class AudioManager {
   /// reconfigures the session underneath an active call.
   ///
   /// Like [setMicrophoneMuteMode] this reaches the audio device module, which
-  /// exists once `LiveKitClient.initialize()` has run (connecting a room runs
-  /// it too). Calling either of these before that throws
+  /// exists once WebRTC has initialized: through `LiveKitClient.initialize()`,
+  /// or lazily on the first WebRTC call, such as when a room connects. Calling
+  /// either of these before that throws
   /// `rejectedPlatformUnavailable`, so an app setting this at startup should
   /// await `LiveKitClient.initialize()` first.
   ///
