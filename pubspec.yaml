@@ -88,7 +88,7 @@ dependency_overrides:
   dart_webrtc:
     git:
       url: https://github.com/flutter-webrtc/dart-webrtc.git
-      ref: 1a8581b
+      ref: "85255038"
   flutter_webrtc:
     git:
       url: https://github.com/flutter-webrtc/flutter-webrtc.git
