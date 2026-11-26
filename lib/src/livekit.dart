@@ -48,11 +48,15 @@ class LiveKitClient {
   /// [AudioManager.setAudioSessionOptions]. A future SDK/WebRTC integration may
   /// make those Android playout attributes runtime-updatable; for now, pass them
   /// here before WebRTC initializes.
+  ///
+  /// [enableWARP] and [zeroPlayoutDelay] are enabled by default on native
+  /// platforms. Pass `false` to opt out. They are applied only through this
+  /// call, so an app that never calls [initialize] keeps WebRTC's defaults.
   static Future<void> initialize({
     bool bypassVoiceProcessing = false,
     AudioSessionOptions? initialAudioSessionOptions,
-    bool enableWARP = false,
-    bool zeroPlayoutDelay = false,
+    bool enableWARP = true,
+    bool zeroPlayoutDelay = true,
   }) async {
     if (lkPlatformIsMobile()) {
       // bypassVoiceProcessing controls only WebRTC voice processing. Android
