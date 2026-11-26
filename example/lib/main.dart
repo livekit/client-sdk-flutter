@@ -28,10 +28,7 @@ void main() async {
   /// await LiveKitClient.initialize(
   ///  bypassVoiceProcessing: lkPlatformIsMobile(),
   /// );
-  await LiveKitClient.initialize(
-    zeroPlayoutDelay: true,
-    enableWARP: true,
-  );
+  await LiveKitClient.initialize();
   // Smoke test the Rust core with one synchronous FFI call at startup.
   Logger('LiveKitExample').info(rustCoreVersionLabel());
   runApp(const LiveKitExampleApp());
