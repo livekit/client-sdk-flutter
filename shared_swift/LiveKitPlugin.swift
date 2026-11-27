@@ -379,12 +379,16 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // engine lifecycle events. In automatic mode the delegate owns
         // activation timing (configure + activate on engine enable), so here we
         // only apply immediately if the engine is already running. Manual mode
-        // (or no `automatic` flag) applies immediately.
-        let automatic = args["automatic"] as? Bool ?? false
+        // applies immediately.
+        guard let managementMode = (args["managementMode"] as? String).flatMap(LKAudioSessionManagementMode.init(rawValue:)) else {
+            result(FlutterError(code: "configure", message: "Unknown audio session management mode", details: args["managementMode"] ?? nil))
+            return
+        }
+        let automatic = managementMode.configuresSessionFromEngine
         let selectCategoryByEngineState = args["selectCategoryByEngineState"] as? Bool ?? false
         let forceSpeakerOutput = args["forceSpeakerOutput"] as? Bool ?? false
         audioEngineObserver?.updatePolicy(configuration,
-                                          automaticManagementEnabled: automatic,
+                                          managementMode: managementMode,
                                           selectCategoryByEngineState: selectCategoryByEngineState,
                                           forceSpeakerOutput: forceSpeakerOutput)
 
@@ -406,13 +410,15 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         #endif
     }
 
-    public func handleSetAppleAudioSessionAutomaticManagementEnabled(args: [String: Any?], result: @escaping FlutterResult) {
+    public func handleSetAppleAudioSessionManagementMode(args: [String: Any?], result: @escaping FlutterResult) {
         #if os(macOS)
         result(FlutterMethodNotImplemented)
         #else
-        let enabled = (args["enabled"] as? Bool) ?? true
-        let sessionActivationEnabled = (args["sessionActivationEnabled"] as? Bool) ?? true
-        audioEngineObserver?.setAutomaticManagementEnabled(enabled, sessionActivationEnabled: sessionActivationEnabled)
+        guard let mode = (args["mode"] as? String).flatMap(LKAudioSessionManagementMode.init(rawValue:)) else {
+            result(FlutterError(code: "managementMode", message: "Unknown audio session management mode", details: args["mode"] ?? nil))
+            return
+        }
+        audioEngineObserver?.setManagementMode(mode)
         result(true)
         #endif
     }
@@ -937,8 +943,8 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         switch call.method {
         case "configureNativeAudio":
             handleConfigureNativeAudio(args: args, result: result)
-        case "setAppleAudioSessionAutomaticManagementEnabled":
-            handleSetAppleAudioSessionAutomaticManagementEnabled(args: args, result: result)
+        case "setAppleAudioSessionManagementMode":
+            handleSetAppleAudioSessionManagementMode(args: args, result: result)
         case "deactivateAppleAudioSession":
             handleDeactivateAppleAudioSession(result: result)
         case "startVisualizer":
@@ -1158,11 +1164,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     // override or manual mode, where the config is applied verbatim.
     private var selectCategoryByEngineState = false
     private var forceSpeakerOutput = false
-    private var isAutomaticManagementEnabled = true
-    // False when an external call system (CallKit) owns session activation:
-    // configurations are applied without activating, and the session is never
-    // deactivated from engine lifecycle. CallKit activates/deactivates.
-    private var isSessionActivationEnabled = true
+    // Under an external call system (CallKit) configurations are applied
+    // without activating, and the session is never deactivated from engine
+    // lifecycle. CallKit activates/deactivates.
+    private var managementMode = LKAudioSessionManagementMode.automatic
     // True when cached policy changes should apply immediately. This includes
     // an engine already running under manual mode, because switching back to
     // automatic should configure the live session without waiting for another
@@ -1213,23 +1218,22 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         return sessionActive
     }
 
-    func setAutomaticManagementEnabled(_ enabled: Bool, sessionActivationEnabled: Bool = true) {
+    func setManagementMode(_ mode: LKAudioSessionManagementMode) {
         lock.lock()
-        isAutomaticManagementEnabled = enabled
-        isSessionActivationEnabled = sessionActivationEnabled
+        managementMode = mode
         lock.unlock()
     }
 
     /// Stores the audio session policy pushed from Dart. Pure cache, where the
     /// delegate callbacks apply it. Callers decide whether to apply immediately.
     func updatePolicy(_ configuration: RTCAudioSessionConfiguration,
-                      automaticManagementEnabled: Bool,
+                      managementMode: LKAudioSessionManagementMode,
                       selectCategoryByEngineState: Bool,
                       forceSpeakerOutput: Bool) {
         let cachedConfiguration = copyConfiguration(configuration)
         lock.lock()
         self.cachedConfiguration = cachedConfiguration
-        self.isAutomaticManagementEnabled = automaticManagementEnabled
+        self.managementMode = managementMode
         self.selectCategoryByEngineState = selectCategoryByEngineState
         self.forceSpeakerOutput = forceSpeakerOutput
         lock.unlock()
@@ -1242,7 +1246,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         lock.lock()
         let resolved = effectiveConfigurationLocked(isRecordingEnabled: lastIsRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
-        let ownsActivation = isSessionActivationEnabled
+        let ownsActivation = managementMode.ownsActivation
         lock.unlock()
         guard let resolved else { return nil }
         return apply(resolved.configuration, forceSpeakerOutput: forceSpeakerOutput, ownsActivation: ownsActivation)
@@ -1294,10 +1298,10 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
 
     private func applyManagedConfiguration(isRecordingEnabled: Bool) -> Error? {
         lock.lock()
-        let shouldManageSession = isAutomaticManagementEnabled
+        let shouldManageSession = managementMode.configuresSessionFromEngine
         let resolved = effectiveConfigurationLocked(isRecordingEnabled: isRecordingEnabled)
         let forceSpeakerOutput = self.forceSpeakerOutput
-        let ownsActivation = isSessionActivationEnabled
+        let ownsActivation = managementMode.ownsActivation
         let appliedExpectation = isPlatformVoiceProcessingExpected
         lock.unlock()
 
@@ -1348,7 +1352,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         let update = LKAudioSessionPolicyResolver.voiceProcessingSessionUpdate(
             expectationChanged: isPlatformVoiceProcessingExpected != expected,
             isUpdatePending: needsVoiceProcessingSessionUpdate,
-            isAutomaticManagementEnabled: isAutomaticManagementEnabled,
+            isAutomaticManagementEnabled: managementMode.configuresSessionFromEngine,
             isSessionActive: sessionActive
         )
         isPlatformVoiceProcessingExpected = expected
@@ -1398,7 +1402,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     {
         let usesDefaultPreset = cachedConfiguration == nil
         guard let configuration = cachedConfiguration
-            ?? (isAutomaticManagementEnabled ? defaultRecordingConfigurationLocked() : nil)
+            ?? (managementMode.configuresSessionFromEngine ? defaultRecordingConfigurationLocked() : nil)
         else { return nil }
 
         // The default preset is always resolved by engine state, like the Dart
@@ -1524,7 +1528,7 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
             }
         } else {
             lock.lock()
-            let shouldManageSession = isAutomaticManagementEnabled && isSessionActivationEnabled
+            let shouldManageSession = managementMode.releasesSessionAtFullStop
             lock.unlock()
 
             if shouldManageSession, let error = deactivateSession() {

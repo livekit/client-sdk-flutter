@@ -117,8 +117,6 @@ class AudioManager {
   // the native side never activates/deactivates the session.
   bool get _isAutomaticConfigurationEnabled => _managementMode != AudioSessionManagementMode.manual;
 
-  bool get _isSessionActivationEnabled => _managementMode != AudioSessionManagementMode.externalCallSystem;
-
   @visibleForTesting
   void resetForTest() {
     _options = const AudioSessionOptions.communication();
@@ -316,7 +314,7 @@ class AudioManager {
         // is already running. Category is resolved natively from engine state.
         await Native.configureAudio(
           policy.appleConfiguration,
-          automatic: true,
+          managementMode: _managementMode,
           selectCategoryByEngineState: true,
           forceSpeakerOutput: policy.forceSpeakerOutput,
         );
@@ -367,10 +365,7 @@ class AudioManager {
 
   Future<void> _syncAppleAudioSessionManagementMode() async {
     if (lkPlatformIs(PlatformType.iOS)) {
-      await Native.setAppleAudioSessionAutomaticManagementEnabled(
-        _isAutomaticConfigurationEnabled,
-        sessionActivationEnabled: _isSessionActivationEnabled,
-      );
+      await Native.setAppleAudioSessionManagementMode(_managementMode);
     }
   }
 
@@ -384,7 +379,7 @@ class AudioManager {
     // mode applies the resolved config immediately and verbatim.
     await Native.configureAudio(
       config,
-      automatic: _isAutomaticConfigurationEnabled,
+      managementMode: _managementMode,
       selectCategoryByEngineState: _isAutomaticConfigurationEnabled,
       forceSpeakerOutput: policy.forceSpeakerOutput,
     );

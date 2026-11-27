@@ -151,6 +151,51 @@ final class EngineLifecycleRecordingTests: XCTestCase {
     }
 }
 
+final class ManagementModeTests: XCTestCase {
+    func testTheRawValuesAreTheNamesDartSends() {
+        XCTAssertEqual(LKAudioSessionManagementMode(rawValue: "automatic"), .automatic)
+        XCTAssertEqual(LKAudioSessionManagementMode(rawValue: "manual"), .manual)
+        XCTAssertEqual(LKAudioSessionManagementMode(rawValue: "externalCallSystem"), .externalCallSystem)
+        XCTAssertEqual(LKAudioSessionManagementMode.allCases.count, 3)
+        XCTAssertNil(LKAudioSessionManagementMode(rawValue: "other"))
+    }
+
+    func testAutomaticDrivesTheWholeSession() {
+        let mode = LKAudioSessionManagementMode.automatic
+        XCTAssertTrue(mode.configuresSessionFromEngine)
+        XCTAssertTrue(mode.ownsActivation)
+        XCTAssertTrue(mode.releasesSessionAtFullStop)
+    }
+
+    func testManualOnlyAppliesWhatTheAppPushes() {
+        // An explicit apply still activates. The engine lifecycle neither
+        // configures nor releases.
+        let mode = LKAudioSessionManagementMode.manual
+        XCTAssertFalse(mode.configuresSessionFromEngine)
+        XCTAssertTrue(mode.ownsActivation)
+        XCTAssertFalse(mode.releasesSessionAtFullStop)
+    }
+
+    func testAnExternalCallSystemKeepsTheActivation() {
+        let mode = LKAudioSessionManagementMode.externalCallSystem
+        XCTAssertTrue(mode.configuresSessionFromEngine)
+        XCTAssertFalse(mode.ownsActivation)
+        XCTAssertFalse(mode.releasesSessionAtFullStop)
+    }
+
+    func testAnExternalCallSystemNeverRequestsAnActivation() {
+        for holds in [false, true] {
+            for active in [false, true] {
+                XCTAssertFalse(LKAudioSessionPolicyResolver.requestsActivation(
+                    ownsActivation: LKAudioSessionManagementMode.externalCallSystem.ownsActivation,
+                    holdsActivation: holds,
+                    isSessionActive: active
+                ))
+            }
+        }
+    }
+}
+
 final class VoiceProcessingSessionUpdateTests: XCTestCase {
     private func update(
         expectationChanged: Bool = true,

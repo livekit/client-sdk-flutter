@@ -20,6 +20,29 @@ import Foundation
 /// not exist on macOS, and keeping the decision free of platform types is what
 /// lets `test/native/` unit test it. `LKAudioEngineObserver` maps each case onto
 /// a concrete `RTCAudioSessionConfiguration`.
+/// Who drives the audio session. Mirrors Dart's `AudioSessionManagementMode`,
+/// and the raw values are the names sent over the method channel.
+enum LKAudioSessionManagementMode: String, Equatable, CaseIterable {
+    /// The plugin configures, activates and releases the session from the
+    /// engine lifecycle.
+    case automatic
+    /// The app owns the session. The plugin only applies a configuration the
+    /// app pushes explicitly.
+    case manual
+    /// An external call system activates and deactivates the session. The
+    /// plugin configures it from the engine lifecycle and never activates it.
+    case externalCallSystem
+
+    /// Whether the engine lifecycle configures the session.
+    var configuresSessionFromEngine: Bool { self != .manual }
+
+    /// Whether applying a configuration also activates the session.
+    var ownsActivation: Bool { self != .externalCallSystem }
+
+    /// Whether a full engine stop releases the session.
+    var releasesSessionAtFullStop: Bool { self == .automatic }
+}
+
 enum LKAudioSessionDecision: Equatable {
     /// Apply the configuration pushed from Dart verbatim. Either the app owns
     /// the session (manual mode / an explicit per-platform override), or the
