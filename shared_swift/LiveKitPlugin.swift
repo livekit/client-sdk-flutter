@@ -980,8 +980,10 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
 
 extension LiveKitPlugin {
     /// SDK-side audio engine error code (mirrors client-sdk-swift): returned
-    /// from a delegate callback to make WebRTC abort / roll back the engine
-    /// operation when the audio session cannot be configured.
+    /// from a delegate callback when the audio session cannot be configured.
+    /// From a setup hook (`willEnableEngine`) it makes WebRTC roll the engine
+    /// operation back. From a teardown hook (`didDisableEngine`) WebRTC only
+    /// logs it and the operation completes.
     static let kAudioEngineErrorFailedToConfigureAudioSession = -4100
 
     /// Error codes originating from the WebRTC AudioEngineDevice. Keep in sync
@@ -1087,10 +1089,12 @@ extension LiveKitPlugin {
 /// state to Dart (keeping engine state the single source of truth there too).
 ///
 /// The engine-lifecycle methods are invoked synchronously on WebRTC's worker
-/// thread. The engine blocks on the return value (`0` = proceed, non-zero =
-/// abort / roll back), so the session work here is synchronous and never calls
-/// back into the audio device module. The Dart notification is dispatched
-/// asynchronously and is purely informational. It never blocks the engine.
+/// thread, and the engine blocks on the return value, so the session work
+/// here is synchronous and never calls back into the audio device module.
+/// Non-zero from a setup hook (`willEnableEngine`) rolls the operation back,
+/// and from a teardown hook (`didDisableEngine`) it is only logged. The Dart
+/// notification is dispatched asynchronously and is purely informational. It
+/// never blocks the engine.
 @available(iOS 13.0, macOS 10.15, *)
 class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private let lock = NSLock()
@@ -1392,17 +1396,32 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
                 print("[LiveKit] AudioEngine willEnable: failed to configure audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
             }
-            if resultCode == 0 {
+            if LKAudioSessionPolicyResolver.recordsEngineState(after: .willEnable,
+                                                              sessionUpdateSucceeded: resultCode == 0)
+            {
                 recordEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
             }
         }
         #endif
+        // A failed willEnable rolls the operation back and no didDisable
+        // follows, so Dart must not hear about an engine state that never
+        // happened.
         if resultCode == 0 {
             notifyEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
         }
         return resultCode
     }
 
+    /// Teardown hook. The engine has already been disabled when this fires, and
+    /// the audio device module only logs a non-zero result, so the engine state
+    /// is recorded and reported to Dart even when the session update fails.
+    ///
+    /// Also called as compensation when an enable fails after a successful
+    /// `willEnableEngine`, with the state from before that enable. That state
+    /// replaces what `willEnableEngine` recorded, and when it is a full stop
+    /// the session that `willEnableEngine` activated is deactivated. When the
+    /// earlier state still has playout, the session keeps the configuration it
+    /// got for recording until the next full stop.
     func audioDeviceModule(_: RTCAudioDeviceModule,
                            didDisableEngine _: AVAudioEngine,
                            isPlayoutEnabled: Bool,
@@ -1423,21 +1442,23 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
             lock.unlock()
 
             if shouldManageSession, let error = LiveKitPlugin.deactivateAudioSession() {
-                // Leave sessionActive unchanged (still true) so cached state
-                // keeps reflecting the live session. Flipping it to false here
-                // would make a later configureNativeAudio(automatic:) cache-only
-                // while the session is in fact still active.
+                // The engine has stopped regardless, so the state below still
+                // goes to idle. A later policy change is then cached for the
+                // next engine enable instead of reactivating a session with no
+                // engine behind it, and that enable configures the session
+                // again. The next full stop retries the deactivation.
                 print("[LiveKit] AudioEngine didDisable: failed to deactivate audio session: \(error)")
                 resultCode = LiveKitPlugin.kAudioEngineErrorFailedToConfigureAudioSession
             }
         }
-        if resultCode == 0 {
+        if LKAudioSessionPolicyResolver.recordsEngineState(after: .didDisable,
+                                                          sessionUpdateSucceeded: resultCode == 0)
+        {
             recordEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
         }
         #endif
-        if resultCode == 0 {
-            notifyEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
-        }
+        notifyEngineState(isPlayoutEnabled: isPlayoutEnabled, isRecordingEnabled: isRecordingEnabled)
+        // Non-zero is only logged by the audio device module.
         return resultCode
     }
 

@@ -59,7 +59,16 @@ private struct ObserverModel {
     }
 
     /// `recordEngineState` plus the engine-lifecycle configuration that follows.
+    ///
+    /// A transition that enables either side arrives as `willEnable`, anything
+    /// else as `didDisable`, which is also how the audio device module reports
+    /// the compensation for a rolled back enable. `applySucceeds` is whether the
+    /// session work in that callback succeeded.
     mutating func engineTransition(playout: Bool, recording: Bool, applySucceeds: Bool) {
+        let enables = (playout && !isPlayoutEnabled) || (recording && !isRecordingEnabled)
+        let event: LKEngineLifecycleEvent = enables ? .willEnable : .didDisable
+        guard LKAudioSessionPolicyResolver.recordsEngineState(after: event, sessionUpdateSucceeded: applySucceeds)
+        else { return }
         let appliedExpectation = isPlatformVoiceProcessingExpected
         isPlayoutEnabled = playout
         isRecordingEnabled = recording
@@ -267,6 +276,55 @@ final class AudioSessionPolicyStressTests: XCTestCase {
         XCTAssertFalse(model.needsVoiceProcessingSessionUpdate, "success must settle it")
 
         XCTAssertFalse(model.setExpected(false, applySucceeds: true), "a settled expectation is a no-op")
+    }
+
+    /// A failed deactivation used to leave the observer in the running state
+    /// after the engine stopped. The audio device module completes the disable
+    /// anyway, so the observer must return to idle with it.
+    func testAFailedDeactivationStillReturnsToIdle() {
+        var model = ObserverModel()
+        model.engineTransition(playout: true, recording: true, applySucceeds: true)
+        model.engineTransition(playout: false, recording: false, applySucceeds: false)
+
+        XCTAssertFalse(model.sessionActive, "the engine stopped, so no live session is tracked")
+        XCTAssertFalse(model.hasRecorded, "the next engine must start from the playback preset")
+        XCTAssertEqual(model.decision, .playbackPreset)
+    }
+
+    /// A failed session update while one side keeps running still records the
+    /// side that was disabled.
+    func testAFailedReconfigurationOnPartialDisableRecordsTheNewState() {
+        var model = ObserverModel()
+        model.engineTransition(playout: true, recording: true, applySucceeds: true)
+        model.engineTransition(playout: true, recording: false, applySucceeds: false)
+
+        XCTAssertTrue(model.isPlayoutEnabled)
+        XCTAssertFalse(model.isRecordingEnabled)
+        XCTAssertTrue(model.hasRecorded, "a muted call keeps its capturing session shape")
+    }
+
+    /// A failed willEnable is rolled back with no compensating call, so it must
+    /// leave nothing recorded.
+    func testAFailedEnableRecordsNothing() {
+        var model = ObserverModel()
+        model.engineTransition(playout: true, recording: true, applySucceeds: false)
+
+        XCTAssertFalse(model.sessionActive)
+        XCTAssertFalse(model.hasRecorded)
+    }
+
+    /// An enable that fails after a successful willEnable gets a didDisable
+    /// with the state from before it. The observer must end where it started,
+    /// whether or not the deactivation in that compensation succeeds.
+    func testACompensatedEnableReturnsToThePreviousState() {
+        for deactivationSucceeds in [true, false] {
+            var model = ObserverModel()
+            model.engineTransition(playout: true, recording: true, applySucceeds: true)
+            model.engineTransition(playout: false, recording: false, applySucceeds: deactivationSucceeds)
+
+            XCTAssertFalse(model.sessionActive, "deactivationSucceeds=\(deactivationSucceeds)")
+            XCTAssertFalse(model.hasRecorded, "deactivationSucceeds=\(deactivationSucceeds)")
+        }
     }
 
     /// Work deferred by manual mode is not lost: it applies when LiveKit takes
