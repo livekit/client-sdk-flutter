@@ -1416,9 +1416,11 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     /// is recorded and reported to Dart even when the session update fails.
     ///
     /// Also called as compensation when an enable fails after a successful
-    /// `willEnableEngine`, with the state from before that enable. Recording
-    /// that state releases what `willEnableEngine` recorded, and a full stop
-    /// deactivates the session it activated.
+    /// `willEnableEngine`, with the state from before that enable. That state
+    /// replaces what `willEnableEngine` recorded, and when it is a full stop
+    /// the session that `willEnableEngine` activated is deactivated. When the
+    /// earlier state still has playout, the session keeps the configuration it
+    /// got for recording until the next full stop.
     func audioDeviceModule(_: RTCAudioDeviceModule,
                            didDisableEngine _: AVAudioEngine,
                            isPlayoutEnabled: Bool,
