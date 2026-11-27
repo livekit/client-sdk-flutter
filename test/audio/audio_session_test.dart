@@ -701,11 +701,22 @@ void main() {
       expect(calls.single.arguments, {'mode': 'inputMixer'});
     });
 
-    test('passes session activation ownership to Apple management method', () async {
-      await Native.setAppleAudioSessionAutomaticManagementEnabled(true, sessionActivationEnabled: false);
+    test('passes the management mode by name to the Apple management method', () async {
+      // The iOS plugin parses these exact names.
+      const names = {
+        AudioSessionManagementMode.automatic: 'automatic',
+        AudioSessionManagementMode.manual: 'manual',
+        AudioSessionManagementMode.externalCallSystem: 'externalCallSystem',
+      };
+      expect(names.keys, AudioSessionManagementMode.values);
 
-      expect(calls.single.method, 'setAppleAudioSessionAutomaticManagementEnabled');
-      expect(calls.single.arguments, {'enabled': true, 'sessionActivationEnabled': false});
+      for (final entry in names.entries) {
+        calls.clear();
+        await Native.setAppleAudioSessionManagementMode(entry.key);
+
+        expect(calls.single.method, 'setAppleAudioSessionManagementMode');
+        expect(calls.single.arguments, {'mode': entry.value});
+      }
     });
 
     test('passes engine availability to platform method', () async {
@@ -756,13 +767,14 @@ void main() {
           appleAudioCategory: AppleAudioCategory.playAndRecord,
           appleAudioMode: AppleAudioMode.videoChat,
         ),
-        automatic: true,
+        managementMode: AudioSessionManagementMode.externalCallSystem,
         selectCategoryByEngineState: true,
         forceSpeakerOutput: true,
       );
 
       expect(result, isTrue);
       expect(calls.single.method, 'configureNativeAudio');
+      expect(calls.single.arguments, containsPair('managementMode', 'externalCallSystem'));
       expect(
         calls.single.arguments,
         containsPair('forceSpeakerOutput', true),

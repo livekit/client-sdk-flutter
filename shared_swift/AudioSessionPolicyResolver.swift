@@ -20,6 +20,29 @@ import Foundation
 /// not exist on macOS, and keeping the decision free of platform types is what
 /// lets `test/native/` unit test it. `LKAudioEngineObserver` maps each case onto
 /// a concrete `RTCAudioSessionConfiguration`.
+/// Who drives the audio session. Mirrors Dart's `AudioSessionManagementMode`,
+/// and the raw values are the names sent over the method channel.
+enum LKAudioSessionManagementMode: String, Equatable, CaseIterable {
+    /// The plugin configures, activates and releases the session from the
+    /// engine lifecycle.
+    case automatic
+    /// The app owns the session. The plugin only applies a configuration the
+    /// app pushes explicitly.
+    case manual
+    /// An external call system activates and deactivates the session. The
+    /// plugin configures it from the engine lifecycle and never activates it.
+    case externalCallSystem
+
+    /// Whether the engine lifecycle configures the session.
+    var configuresSessionFromEngine: Bool { self != .manual }
+
+    /// Whether applying a configuration also activates the session.
+    var ownsActivation: Bool { self != .externalCallSystem }
+
+    /// Whether a full engine stop releases the session.
+    var releasesSessionAtFullStop: Bool { self == .automatic }
+}
+
 enum LKAudioSessionDecision: Equatable {
     /// Apply the configuration pushed from Dart verbatim. Either the app owns
     /// the session (manual mode / an explicit per-platform override), or the
@@ -64,6 +87,15 @@ enum LKEngineLifecycleEvent: Equatable, CaseIterable {
     /// non-zero result is only logged. Also delivered as compensation after a
     /// rolled back enable, carrying the state from before that enable.
     case didDisable
+}
+
+/// The outcome of applying a configuration for the plugin's activation.
+struct LKActivationSettlement: Equatable {
+    /// The apply took an activation on top of the one already held, and that
+    /// extra one has to be given back.
+    let givesOneBack: Bool
+    /// Whether the plugin holds its activation afterwards.
+    let holdsActivation: Bool
 }
 
 /// What to do with a voice-processing expectation change: whether the session
@@ -137,6 +169,59 @@ enum LKAudioSessionPolicyResolver {
         case .willEnable: return sessionUpdateSucceeded
         case .didDisable: return true
         }
+    }
+
+    // MARK: Activation
+
+    // RTCAudioSession counts every activation and releases the session only
+    // when the last one is given back, and it decrements on every
+    // deactivation, also below zero. So the plugin holds at most one
+    // activation, and gives back exactly what it took.
+
+    /// Whether applying a configuration also asks to activate the session.
+    ///
+    /// It does when the plugin holds no activation yet. It also does when it
+    /// holds one for a session that went inactive, as during an interruption:
+    /// waiting for the interruption end is not enough, it can fail to
+    /// reactivate or never arrive.
+    static func requestsActivation(ownsActivation: Bool, holdsActivation: Bool, isSessionActive: Bool) -> Bool {
+        guard ownsActivation else { return false }
+        return !holdsActivation || !isSessionActive
+    }
+
+    /// What follows an apply, from the activation count before and after it.
+    ///
+    /// An activation that was taken while one was already held and counted is
+    /// given back, which leaves the session active and the count unchanged.
+    /// The held activation is never given up first: when the attempt takes
+    /// none, the one already held stays, for the interruption end or the full
+    /// stop to use.
+    ///
+    /// An apply that requested no activation took none. A count that rose
+    /// during it belongs to an external call system, which reports its
+    /// activations outside the configuration lock.
+    static func settleActivation(requested: Bool,
+                                 heldBefore: Bool,
+                                 activationsBefore: Int,
+                                 activationsAfter: Int) -> LKActivationSettlement
+    {
+        guard requested, activationsAfter > activationsBefore else {
+            return LKActivationSettlement(givesOneBack: false, holdsActivation: heldBefore)
+        }
+        return LKActivationSettlement(givesOneBack: heldBefore && activationsBefore >= 1, holdsActivation: true)
+    }
+
+    /// Whether a full stop gives an activation back: only one the plugin
+    /// holds. Giving back more would take the count below zero, and the next
+    /// call would then end without releasing the session.
+    static func givesActivationBackAtFullStop(holdsActivation: Bool) -> Bool {
+        holdsActivation
+    }
+
+    /// Whether an explicit deactivation from the app reaches the session: when
+    /// the plugin holds an activation, or someone else's is counted.
+    static func forwardsExplicitDeactivation(holdsActivation: Bool, activations: Int) -> Bool {
+        holdsActivation || activations > 0
     }
 
     /// Whether a runtime processing request should move the session's voice

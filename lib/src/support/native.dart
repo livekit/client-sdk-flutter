@@ -19,6 +19,7 @@ import 'package:flutter/services.dart' show MethodChannel, MethodCall, MissingPl
 import 'package:meta/meta.dart';
 
 import '../audio/audio_manager.dart';
+import '../audio/audio_session.dart';
 import '../logger.dart';
 import '../managers/broadcast_manager.dart';
 import 'native_audio.dart';
@@ -39,15 +40,14 @@ class Native {
 
   /// Configures (and caches) the Apple audio session.
   ///
-  /// When [automatic] is true, the native audio-engine delegate owns activation
-  /// timing: the configuration is cached and (re)applied on engine lifecycle
-  /// events, and only applied immediately here if the engine is already
-  /// running. When false (manual mode / explicit apply) it is applied
-  /// immediately.
+  /// Outside [AudioSessionManagementMode.manual] the native audio-engine
+  /// delegate owns the timing: the configuration is cached and (re)applied on
+  /// engine lifecycle events, and only applied immediately here if the engine
+  /// is already running. In manual mode it is applied immediately.
   @internal
   static Future<bool> configureAudio(
     NativeAudioConfiguration configuration, {
-    bool automatic = false,
+    required AudioSessionManagementMode managementMode,
     bool selectCategoryByEngineState = false,
     bool forceSpeakerOutput = false,
   }) async {
@@ -56,7 +56,7 @@ class Native {
         'configureNativeAudio',
         <String, dynamic>{
           ...configuration.toMap(),
-          'automatic': automatic,
+          'managementMode': managementMode.name,
           'selectCategoryByEngineState': selectCategoryByEngineState,
           'forceSpeakerOutput': forceSpeakerOutput,
         },
@@ -239,27 +239,18 @@ class Native {
     }
   }
 
-  /// Enable or disable LiveKit's automatic iOS audio-session management from
-  /// native WebRTC audio-engine lifecycle callbacks.
-  ///
-  /// [sessionActivationEnabled] controls whether LiveKit may activate or
-  /// deactivate the session at all. When false, LiveKit only configures the
-  /// category/mode and an external system (CallKit) owns activation timing.
+  /// Tells the iOS plugin who drives the audio session. The mode is sent by
+  /// name, and the plugin derives from it whether the audio-engine lifecycle
+  /// configures the session and whether LiveKit activates and deactivates it.
   @internal
-  static Future<void> setAppleAudioSessionAutomaticManagementEnabled(
-    bool enabled, {
-    bool sessionActivationEnabled = true,
-  }) async {
+  static Future<void> setAppleAudioSessionManagementMode(AudioSessionManagementMode mode) async {
     try {
       await channel.invokeMethod<void>(
-        'setAppleAudioSessionAutomaticManagementEnabled',
-        <String, dynamic>{
-          'enabled': enabled,
-          'sessionActivationEnabled': sessionActivationEnabled,
-        },
+        'setAppleAudioSessionManagementMode',
+        <String, dynamic>{'mode': mode.name},
       );
     } catch (error) {
-      logger.warning('setAppleAudioSessionAutomaticManagementEnabled did throw $error');
+      logger.warning('setAppleAudioSessionManagementMode did throw $error');
     }
   }
 
