@@ -1632,10 +1632,9 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
   }
 
-  // The fallback for a peer connection that does not report its selected pair: flutter_webrtc
-  // 1.6.3 and older, Windows, Linux and browsers without the event. The stats of the selected pair
-  // name the username fragments of its candidates on libwebrtc and recent Chrome, and those are
-  // compared as the pair reports are. Without fragments, a pair other than the one from before the
+  // The fallback for a peer connection that does not report its selected pair, such as a browser
+  // without the event. The stats of the selected pair name the username fragments of its
+  // candidates on libwebrtc and recent Chrome, and those are compared as the pair reports are. Without fragments, a pair other than the one from before the
   // restart offer has to do. A pair id is only two candidate ids, so this also passes on a pair
   // picked for another reason. Where the stats name no selected pair at all, as in some browsers,
   // there is nothing to check, and the applied answer and the connected state end the wait rather

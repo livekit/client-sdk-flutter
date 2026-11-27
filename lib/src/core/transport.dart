@@ -681,8 +681,8 @@ class Transport extends Disposable {
   }
 
   /// Whether the peer connection reports changes of its selected candidate pair, with the ICE
-  /// username fragments of its candidates. False until the first report, and on a flutter_webrtc
-  /// or a platform that does not report them.
+  /// username fragments of its candidates. False until the first report, and on a platform
+  /// that does not report them.
   @internal
   bool get reportsSelectedPair => _reportsSelectedPair;
 

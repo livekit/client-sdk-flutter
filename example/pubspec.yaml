@@ -31,14 +31,6 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
 
-# Temporary, until flutter_webrtc is released with onSelectedCandidatePairChanged and
-# WebRTC-SDK 150.7871.09. Overrides do not reach the example from the package.
-dependency_overrides:
-  flutter_webrtc:
-    git:
-      url: https://github.com/flutter-webrtc/flutter-webrtc.git
-      ref: 18c2cff
-
 # The following section is specific to Flutter.
 flutter:
   # Swift Package Manager is disabled for the example because this app lives inside the
