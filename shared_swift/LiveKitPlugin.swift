@@ -1054,11 +1054,12 @@ extension LiveKitPlugin {
         let activate = LKAudioSessionPolicyResolver.requestsActivation(ownsActivation: ownsActivation,
                                                                        holdsActivation: holdsActivation,
                                                                        isSessionActive: rtcSession.isActive)
-        // Activations only change under the configuration lock, so the count
-        // tells whether this call took one.
+        // This plugin's activations only change under the configuration lock,
+        // so the count tells whether a requested one was taken.
         let activationsBefore = Int(rtcSession.activationCount)
         func settle() -> Bool {
             let settlement = LKAudioSessionPolicyResolver.settleActivation(
+                requested: activate,
                 heldBefore: holdsActivation,
                 activationsBefore: activationsBefore,
                 activationsAfter: Int(rtcSession.activationCount)

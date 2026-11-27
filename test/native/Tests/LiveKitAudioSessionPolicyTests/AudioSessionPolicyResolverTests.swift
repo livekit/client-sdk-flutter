@@ -403,21 +403,21 @@ final class ActivationTests: XCTestCase {
 
     func testTheFirstActivationIsKept() {
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: false, activationsBefore: 0, activationsAfter: 1),
+            Resolver.settleActivation(requested: true, heldBefore: false, activationsBefore: 0, activationsAfter: 1),
             LKActivationSettlement(givesOneBack: false, holdsActivation: true)
         )
     }
 
     func testAReconfigurationTakesNothing() {
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 1),
+            Resolver.settleActivation(requested: true, heldBefore: true, activationsBefore: 1, activationsAfter: 1),
             LKActivationSettlement(givesOneBack: false, holdsActivation: true)
         )
     }
 
     func testARecoveryThatActivatesGivesTheExtraOneBack() {
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 2),
+            Resolver.settleActivation(requested: true, heldBefore: true, activationsBefore: 1, activationsAfter: 2),
             LKActivationSettlement(givesOneBack: true, holdsActivation: true)
         )
     }
@@ -425,14 +425,14 @@ final class ActivationTests: XCTestCase {
     func testARecoveryThatFailsKeepsTheActivationItHeld() {
         // The interruption end or the full stop still has it to use.
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 1),
+            Resolver.settleActivation(requested: true, heldBefore: true, activationsBefore: 1, activationsAfter: 1),
             LKActivationSettlement(givesOneBack: false, holdsActivation: true)
         )
     }
 
     func testAFailedFirstActivationHoldsNothing() {
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: false, activationsBefore: 0, activationsAfter: 0),
+            Resolver.settleActivation(requested: true, heldBefore: false, activationsBefore: 0, activationsAfter: 0),
             LKActivationSettlement(givesOneBack: false, holdsActivation: false)
         )
     }
@@ -441,8 +441,16 @@ final class ActivationTests: XCTestCase {
         // Someone else deactivated in between. Giving one back from a count of
         // one would deactivate the session that was just activated.
         XCTAssertEqual(
-            Resolver.settleActivation(heldBefore: true, activationsBefore: 0, activationsAfter: 1),
+            Resolver.settleActivation(requested: true, heldBefore: true, activationsBefore: 0, activationsAfter: 1),
             LKActivationSettlement(givesOneBack: false, holdsActivation: true)
+        )
+    }
+
+    func testAnActivationThatWasNotRequestedIsNotClaimed() {
+        // An external call system activated the session during the apply.
+        XCTAssertEqual(
+            Resolver.settleActivation(requested: false, heldBefore: false, activationsBefore: 0, activationsAfter: 1),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: false)
         )
     }
 
@@ -466,12 +474,11 @@ final class ActivationTests: XCTestCase {
 
             func apply(sessionActive: Bool, activationSucceeds: Bool) {
                 let before = count
-                if Resolver.requestsActivation(ownsActivation: true, holdsActivation: holds, isSessionActive: sessionActive),
-                   activationSucceeds
-                {
+                let request = Resolver.requestsActivation(ownsActivation: true, holdsActivation: holds, isSessionActive: sessionActive)
+                if request, activationSucceeds {
                     count += 1
                 }
-                let settlement = Resolver.settleActivation(heldBefore: holds, activationsBefore: before, activationsAfter: count)
+                let settlement = Resolver.settleActivation(requested: request, heldBefore: holds, activationsBefore: before, activationsAfter: count)
                 if settlement.givesOneBack { count -= 1 }
                 holds = settlement.holdsActivation
             }

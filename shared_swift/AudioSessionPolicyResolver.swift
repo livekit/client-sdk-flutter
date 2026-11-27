@@ -173,11 +173,16 @@ enum LKAudioSessionPolicyResolver {
     /// The held activation is never given up first: when the attempt takes
     /// none, the one already held stays, for the interruption end or the full
     /// stop to use.
-    static func settleActivation(heldBefore: Bool,
+    ///
+    /// An apply that requested no activation took none. A count that rose
+    /// during it belongs to an external call system, which reports its
+    /// activations outside the configuration lock.
+    static func settleActivation(requested: Bool,
+                                 heldBefore: Bool,
                                  activationsBefore: Int,
                                  activationsAfter: Int) -> LKActivationSettlement
     {
-        guard activationsAfter > activationsBefore else {
+        guard requested, activationsAfter > activationsBefore else {
             return LKActivationSettlement(givesOneBack: false, holdsActivation: heldBefore)
         }
         return LKActivationSettlement(givesOneBack: heldBefore && activationsBefore >= 1, holdsActivation: true)
