@@ -27,6 +27,7 @@ import '../logger.dart';
 import '../options.dart';
 import '../support/disposable.dart';
 import '../support/platform.dart';
+import '../support/reusable_completer.dart';
 import '../types/other.dart';
 import '../utils.dart';
 
@@ -327,6 +328,35 @@ class Transport extends Disposable {
   /// mid-apply is recognised as a duplicate too.
   int? _answerInFlight;
 
+  /// Id of the offer the local description holds, the offer an answer without an id answers.
+  int _localOfferId = 0;
+
+  /// Id of the last ICE restart offer sent, 0 before the first one.
+  int _iceRestartOfferId = 0;
+
+  /// An answer to the last ICE restart offer, or to an offer after it, has been applied.
+  bool _iceRestartAnswered = false;
+
+  /// Local ICE username fragment of the last ICE restart offer.
+  String? _iceRestartLocalUfrag;
+
+  /// Remote ICE username fragment of the latest answer applied since the last ICE restart offer.
+  String? _iceRestartRemoteUfrag;
+
+  /// Whether the peer connection reports changes of its selected candidate pair with the ICE
+  /// username fragments of its candidates. Set by the first such report, which comes when the
+  /// connection first selects a pair.
+  bool _reportsSelectedPair = false;
+
+  /// Username fragments of the selected candidate pair from the latest report.
+  ({String? local, String? remote})? _selectedPair;
+
+  rtc.RTCPeerConnectionState? _reportedConnectionState;
+
+  /// Completed whenever [iceRestartAnswered], [reportedConnectionState] or the reported selected
+  /// candidate pair changes, and on dispose.
+  final ReusableCompleter<void> _iceRestartChanged = ReusableCompleter<void>();
+
   /// Builds one offer at a time. A call that overlaps another waits for it, then finds that
   /// offer waiting for its answer and defers to [renegotiate] instead of sending a second one.
   /// Only an ICE restart replaces a waiting offer.
@@ -339,8 +369,11 @@ class Transport extends Disposable {
 
   // private constructor
   Transport._(this.pc, this.connectOptions) {
+    _listenForSelectedCandidatePair();
     //
     onDispose(() async {
+      // wake a wait for the ICE restart, it sees the transport disposed
+      _iceRestartChanged.complete();
       _cancelDebounce?.call();
       _cancelDebounce = null;
 
@@ -350,6 +383,7 @@ class Transport extends Disposable {
       pc.onConnectionState = null;
       pc.onIceConnectionState = null;
       pc.onTrack = null;
+      pc.onSelectedCandidatePairChanged = null;
 
       // Remove all senders
       List<rtc.RTCRtpSender> senders = [];
@@ -446,6 +480,15 @@ class Transport extends Disposable {
       await pc.setRemoteDescription(sd);
       // only a successfully applied answer makes later copies duplicates
       if (sd.type == 'answer' && offerId > 0) _answeredOfferId = offerId;
+      // An answer to the restart offer, or to a later offer that carries the same new ICE
+      // credentials, gives the connection what it needs to finish the restart.
+      final answers = offerId > 0 ? offerId : _localOfferId;
+      if (sd.type == 'answer' && _iceRestartOfferId > 0 && answers >= _iceRestartOfferId) {
+        // the latest answer names the remote credentials the restarted connection uses
+        _iceRestartRemoteUfrag = iceUfragOf(sd.sdp);
+        _iceRestartAnswered = true;
+        _iceRestartChanged.complete();
+      }
     } catch (e) {
       logger.warning('[$objectId] setRemoteDescription() failed with error: $e');
     } finally {
@@ -601,7 +644,83 @@ class Transport extends Disposable {
     if (appliedVideoStartBitrate && offer.sdp == mungedSdp) {
       _hasAppliedVideoStartBitrate = true;
     }
+    _localOfferId = offerId;
+    if (options?.iceRestart ?? false) {
+      _iceRestartOfferId = offerId;
+      _iceRestartLocalUfrag = iceUfragOf(offer.sdp);
+      _iceRestartRemoteUfrag = null;
+      _iceRestartAnswered = false;
+      _iceRestartChanged.complete();
+    }
     onOffer?.call(offer, offerId);
+  }
+
+  /// Id of the last ICE restart offer sent, 0 before the first one. A caller compares it before
+  /// and after [createAndSendOffer] to know whether its restart offer went out.
+  @internal
+  int get iceRestartOfferId => _iceRestartOfferId;
+
+  /// Whether an answer to the last ICE restart offer, or to a later offer, has been applied.
+  @internal
+  bool get iceRestartAnswered => _iceRestartAnswered;
+
+  /// The last state passed to [updateConnectionState].
+  @internal
+  rtc.RTCPeerConnectionState? get reportedConnectionState => _reportedConnectionState;
+
+  /// Completes on the next change of [iceRestartAnswered] or [reportedConnectionState], and on
+  /// dispose. Read [isDisposed] first, the future is not available after dispose.
+  @internal
+  Future<void> get iceRestartChanged => _iceRestartChanged.future;
+
+  /// Called by the owner of `pc.onConnectionState` with every connection state change.
+  @internal
+  void updateConnectionState(rtc.RTCPeerConnectionState state) {
+    _reportedConnectionState = state;
+    _iceRestartChanged.complete();
+  }
+
+  /// Whether the peer connection reports changes of its selected candidate pair, with the ICE
+  /// username fragments of its candidates. False until the first report, and on a platform
+  /// that does not report them.
+  @internal
+  bool get reportsSelectedPair => _reportsSelectedPair;
+
+  /// Whether the candidate pair with these username fragments was set up by the last ICE
+  /// restart: its local fragment is the one of the restart offer, and its remote one is the one
+  /// of the applied answer. Both are new in every restart, so a pair from before the restart, or
+  /// one picked for another reason such as a network change, does not match. An empty remote
+  /// fragment is accepted, a peer reflexive candidate may not carry one, and the remote can only
+  /// have answered the checks of the new local fragment once it applied the restart offer.
+  @internal
+  bool isIceRestartPair(String? localUfrag, String? remoteUfrag) {
+    final restartUfrag = _iceRestartLocalUfrag;
+    if (restartUfrag == null || localUfrag != restartUfrag) return false;
+    return remoteUfrag == null || remoteUfrag.isEmpty || remoteUfrag == _iceRestartRemoteUfrag;
+  }
+
+  /// Whether the latest reported selected candidate pair was set up by the last ICE restart.
+  @internal
+  bool get selectedPairIsFromIceRestart {
+    final pair = _selectedPair;
+    return pair != null && isIceRestartPair(pair.local, pair.remote);
+  }
+
+  // A platform that never reports a pair, or reports candidates without their username fragment,
+  // is told apart by [reportsSelectedPair] staying false.
+  void _listenForSelectedCandidatePair() {
+    pc.onSelectedCandidatePairChanged = (rtc.RTCIceCandidatePair pair) {
+      if (isDisposed) return;
+      final local = pair.local.usernameFragment;
+      final remote = pair.remote.usernameFragment;
+      logger.fine('[$objectId] selected candidate pair changed, ufrag local: $local, remote: $remote');
+      // A report without the local fragment cannot be tied to a restart, the stats are read
+      // instead.
+      if (local == null || local.isEmpty) return;
+      _reportsSelectedPair = true;
+      _selectedPair = (local: local, remote: remote);
+      _iceRestartChanged.complete();
+    };
   }
 
   Future<void> addIceCandidate(rtc.RTCIceCandidate candidate) async {
@@ -777,3 +896,7 @@ class Transport extends Disposable {
     }
   }
 }
+
+/// The ICE username fragment of a session description, null when it has none.
+@internal
+String? iceUfragOf(String? sdp) => sdp == null ? null : RegExp(r'a=ice-ufrag:(\S+)').firstMatch(sdp)?.group(1);

@@ -514,6 +514,10 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     if (_isReconnecting) await _waitUntil(() => !_isReconnecting);
   }
 
+  /// Last reliable sequence the server received, from the reconnect response of the resume in
+  /// progress. Messages after it are resent when the resume is done.
+  int? _resumeLastMessageSeq;
+
   Future<void> _resendReliableMessagesForResume(int lastMessageSeq) async {
     logger.fine('Resending reliable messages from sequence $lastMessageSeq');
 
@@ -996,6 +1000,7 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     publisher?.negotiateOpusNack = _singlePCMode;
 
     publisher?.pc.onConnectionState = (state) async {
+      publisher?.updateConnectionState(state);
       if ([
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed,
         rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed,
@@ -1470,6 +1475,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
     }
 
     events.emit(const EngineResumingEvent());
+    // from this resume's reconnect response only
+    _resumeLastMessageSeq = null;
 
     // wait for socket to connect rtc server
     await signalClient.connect(
@@ -1491,14 +1498,32 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
 
     logger.fine('resumeConnection: reason: ${reason.name}');
 
+    // Only a publisher that is restarted has an ICE restart to wait for. In dual PC mode that is a
+    // publisher negotiated before the resume, so a client that never published resumes as fast as
+    // before. In single PC mode the publisher is the only peer connection and carries everything,
+    // so it is always restarted and always waited for.
+    Transport? restartingPublisher;
+    String? pairBeforeRestart;
     if (_publisherRequired) {
       logger.fine('resumeConnection: negotiating publisher...');
-      await publisher!.createAndSendOffer(
+      final publisher = this.publisher!;
+      // only the stats fallback compares with the pair from before the restart
+      if (!publisher.reportsSelectedPair) {
+        pairBeforeRestart = (await _selectedCandidatePairFromStats(publisher.pc))?.id;
+      }
+      final previousRestart = publisher.iceRestartOfferId;
+      await publisher.createAndSendOffer(
         const RTCOfferOptions(
           iceRestart: true,
         ),
       );
+      if (publisher.iceRestartOfferId != previousRestart) {
+        restartingPublisher = publisher;
+      } else {
+        logger.warning('resumeConnection: the publisher ICE restart offer was not sent, not waiting for it');
+      }
     }
+    final publisherWait = Stopwatch()..start();
 
     final isConnected = (await primary?.pc.getConnectionState())?.isConnected() ?? false;
 
@@ -1518,6 +1543,20 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       logger.fine('resumeConnection: primary connected');
     }
 
+    // The primary check above passes on a publisher or subscriber that still reports connected over
+    // its old candidate pair, which after a migration leads to the old media node. Until the
+    // publisher has finished its ICE restart, reliable data sent now would be lost, so the resume
+    // is not done before that. Both waits count from the restart offer.
+    if (restartingPublisher != null) {
+      logger.fine('resumeConnection: waiting for the publisher to finish its ICE restart...');
+      await _waitForPublisherIceRestart(
+        restartingPublisher,
+        pairBeforeRestart,
+        connectOptions.timeouts.peerConnection - publisherWait.elapsed,
+      );
+      logger.fine('resumeConnection: publisher reconnected after ${publisherWait.elapsedMilliseconds} ms');
+    }
+
     // The socket can drop while the peer connections were being restored. A
     // resume that ends with a dead signal connection is a failure, not a
     // success: throwing here lets the retry path run another resume instead of
@@ -1530,8 +1569,127 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       );
     }
 
+    // Resent only now: before the publisher finished its ICE restart they could take the old
+    // candidate pair, after a migration to the old node, and be lost again. Sends held during the
+    // reconnect go out after these, once _isReconnecting is cleared.
+    final lastMessageSeq = _resumeLastMessageSeq;
+    _resumeLastMessageSeq = null;
+    if (lastMessageSeq != null) {
+      await _resendReliableMessagesForResume(lastMessageSeq);
+    }
+
     _isReconnecting = false;
     events.emit(const EngineResumedEvent());
+  }
+
+  // A restart is finished once its answer is applied, the publisher is connected and its selected
+  // candidate pair was set up by this restart. Neither the state nor the answer is enough on its
+  // own: the publisher keeps reporting connected over its old pair, and a resume on the same node
+  // changes no state at all. The pair moves to the new ICE generation in both cases, and never
+  // moves when the publisher cannot reach the server.
+  //
+  // Where the peer connection reports its selected pair, the pair is told apart by the ICE
+  // username fragments of the restart offer and its answer, which are new in every restart.
+  // Elsewhere the stats are read every 100 ms, see [_statsShowIceRestartPair].
+  //
+  // Fails with a MediaConnectException when the restart does not finish in time or the publisher
+  // fails, so the next attempt is a full reconnect. Fails with a ConnectException as soon as the
+  // engine closes, which ends the attempt without a resumed event.
+  Future<void> _waitForPublisherIceRestart(Transport publisher, String? pairBefore, Duration timeout) async {
+    final waited = Stopwatch()..start();
+    while (true) {
+      if (_isClosed || isDisposed || publisher.isDisposed) {
+        throw ConnectException(
+          'resumeConnection: engine closed while waiting for the publisher',
+          reason: ConnectionErrorReason.InternalError,
+        );
+      }
+      final state = publisher.reportedConnectionState;
+      final reportsPair = publisher.reportsSelectedPair;
+      if (publisher.iceRestartAnswered && state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+        if (reportsPair
+            ? publisher.selectedPairIsFromIceRestart
+            : await _statsShowIceRestartPair(publisher, pairBefore)) {
+          return;
+        }
+      }
+      if (state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateFailed ||
+          state == rtc.RTCPeerConnectionState.RTCPeerConnectionStateClosed) {
+        throw MediaConnectException('resumeConnection: publisher $state during its ICE restart');
+      }
+      final remaining = timeout - waited.elapsed;
+      if (remaining <= Duration.zero) {
+        throw MediaConnectException('resumeConnection: Timed out waiting for the publisher ICE restart');
+      }
+      if (_isClosed || publisher.isDisposed) continue;
+      // _sendStateChanged fires when the engine closes. Stats have no change event, so without
+      // pair reports they are read again on a short interval.
+      await Future.any([
+        publisher.iceRestartChanged,
+        _sendStateChanged.future,
+        if (!reportsPair) Future<void>.delayed(const Duration(milliseconds: 100)),
+      ]).timeout(remaining, onTimeout: () {});
+    }
+  }
+
+  // The fallback for a peer connection that does not report its selected pair, such as a browser
+  // without the event. The stats of the selected pair name the username fragments of its
+  // candidates on libwebrtc and recent Chrome, and those are compared as the pair reports are. Without fragments, a pair other than the one from before the
+  // restart offer has to do. A pair id is only two candidate ids, so this also passes on a pair
+  // picked for another reason. Where the stats name no selected pair at all, as in some browsers,
+  // there is nothing to check, and the applied answer and the connected state end the wait rather
+  // than making every resume a full reconnect.
+  Future<bool> _statsShowIceRestartPair(Transport publisher, String? pairBefore) async {
+    final pair = await _selectedCandidatePairFromStats(publisher.pc);
+    if (pair != null && pair.localUfrag != null) {
+      final done = publisher.isIceRestartPair(pair.localUfrag, pair.remoteUfrag);
+      if (done) logger.fine('resumeConnection: the stats name a selected pair of the ICE restart');
+      return done;
+    }
+    if (pair != null && pairBefore != null) {
+      final done = pair.id != pairBefore;
+      if (done) logger.fine('resumeConnection: the stats name a selected pair other than the one before the restart');
+      return done;
+    }
+    if (pair == null && pairBefore != null) return false;
+    logger.warning('resumeConnection: no selected candidate pair to check, the publisher ICE restart is taken as done');
+    return true;
+  }
+
+  // The selected candidate pair in the stats, with the username fragments of its candidates where
+  // the stats have them. Null when the stats do not say.
+  Future<({String id, String? localUfrag, String? remoteUfrag})?> _selectedCandidatePairFromStats(
+    rtc.RTCPeerConnection pc,
+  ) async {
+    try {
+      final reports = await pc.getStats();
+      final byId = {for (final report in reports) report.id: report};
+      String? pairId;
+      for (final report in reports) {
+        if (report.type == 'transport' && report.values['selectedCandidatePairId'] is String) {
+          pairId = report.values['selectedCandidatePairId'] as String;
+          break;
+        }
+        // where transport stats are missing, the pair itself says whether it is selected
+        if (report.type == 'candidate-pair' && report.values['selected'] == true) pairId = report.id;
+      }
+      if (pairId == null) return null;
+      String? ufrag(Object? candidateId) {
+        final value = byId[candidateId]?.values['usernameFragment'];
+        return value is String && value.isNotEmpty ? value : null;
+      }
+
+      final pair = byId[pairId]?.values;
+      final localUfrag = ufrag(pair?['localCandidateId']);
+      return (
+        id: pairId,
+        localUfrag: localUfrag,
+        remoteUfrag: localUfrag == null ? null : ufrag(pair?['remoteCandidateId']),
+      );
+    } catch (e) {
+      logger.fine('could not read the selected candidate pair: $e');
+    }
+    return null;
   }
 
   @internal
@@ -1742,10 +1900,8 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         await negotiate();
       }
 
-      // Handle reliable message resending
-      if (event.response.hasLastMessageSeq()) {
-        await _resendReliableMessagesForResume(event.response.lastMessageSeq);
-      }
+      // the resume resends unacknowledged reliable messages once the publisher is back
+      _resumeLastMessageSeq = event.response.hasLastMessageSeq() ? event.response.lastMessageSeq : null;
 
       events.emit(const SignalReconnectedEvent());
     })

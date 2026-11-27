@@ -130,6 +130,27 @@ final class StickyHasRecordedTests: XCTestCase {
     }
 }
 
+final class EngineLifecycleRecordingTests: XCTestCase {
+    func testASuccessfulCallbackAlwaysRecords() {
+        for event in LKEngineLifecycleEvent.allCases {
+            XCTAssertTrue(
+                LKAudioSessionPolicyResolver.recordsEngineState(after: event, sessionUpdateSucceeded: true),
+                "event \(event)"
+            )
+        }
+    }
+
+    func testAFailedEnableRecordsNothing() {
+        // The operation rolls back and no didDisable follows.
+        XCTAssertFalse(LKAudioSessionPolicyResolver.recordsEngineState(after: .willEnable, sessionUpdateSucceeded: false))
+    }
+
+    func testAFailedDisableStillRecords() {
+        // The engine is disabled whatever the callback returns.
+        XCTAssertTrue(LKAudioSessionPolicyResolver.recordsEngineState(after: .didDisable, sessionUpdateSucceeded: false))
+    }
+}
+
 final class VoiceProcessingSessionUpdateTests: XCTestCase {
     private func update(
         expectationChanged: Bool = true,

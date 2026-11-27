@@ -54,6 +54,18 @@ enum LKAudioProcessingRequestOutcome: Equatable, CaseIterable {
     case rejected
 }
 
+/// The two audio device module callbacks that move the observer's engine
+/// bookkeeping.
+enum LKEngineLifecycleEvent: Equatable, CaseIterable {
+    /// A setup hook. A non-zero result rolls the engine operation back, and no
+    /// compensating call follows.
+    case willEnable
+    /// A teardown hook. The engine has already changed when it fires, and a
+    /// non-zero result is only logged. Also delivered as compensation after a
+    /// rolled back enable, carrying the state from before that enable.
+    case didDisable
+}
+
 /// What to do with a voice-processing expectation change: whether the session
 /// still needs reconfiguring for it, and whether that can happen right now.
 struct LKVoiceProcessingSessionUpdate: Equatable {
@@ -107,6 +119,24 @@ enum LKAudioSessionPolicyResolver {
         // too means the engine stopped and the next one starts fresh.
         if !isPlayoutEnabled { return false }
         return previous
+    }
+
+    /// Whether an engine lifecycle callback records its engine state, given
+    /// whether the session work it did succeeded.
+    ///
+    /// This follows the audio device module's observer contract (WebRTC
+    /// 150.7871.08). A failed `willEnable` rolls the operation back and gets no
+    /// `didDisable` afterwards, so it must not record anything. A `didDisable`
+    /// cannot fail the operation: the engine is disabled whatever it returns.
+    /// Keeping the earlier state after a failed session update would leave the
+    /// observer believing in an engine that is gone (a stale `hasRecorded`, and
+    /// policy changes applied to an idle session), which is the state a
+    /// failed deactivation used to leave behind.
+    static func recordsEngineState(after event: LKEngineLifecycleEvent, sessionUpdateSucceeded: Bool) -> Bool {
+        switch event {
+        case .willEnable: return sessionUpdateSucceeded
+        case .didDisable: return true
+        }
     }
 
     /// Whether a runtime processing request should move the session's voice
