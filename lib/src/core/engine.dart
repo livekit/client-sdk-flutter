@@ -1372,21 +1372,11 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
       return;
     }
 
-    // Reason based escalation is decided in handleReconnect. The server side
-    // switch is checked here so the latest ClientConfiguration wins.
-    if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
-      fullReconnectOnNext = true;
-    }
-
-    // Consume the flag up front: this attempt's mode is now fixed, and from
-    // here a `true` value unambiguously means a *new* full-reconnect request
-    // arrived while we were running (e.g. a server RECONNECT leave during a
-    // resume), which the finally block dispatches. Mirrors client-sdk-js.
-    final fullReconnect = fullReconnectOnNext;
-    fullReconnectOnNext = false;
-    _attemptIsFullReconnect = fullReconnect;
-
     var succeeded = false;
+    // Declared before the try so the catch can read it. An exception thrown by the
+    // connectivity wait below leaves it false and leaves `fullReconnectOnNext`
+    // unconsumed, so a pending full-reconnect request survives into the retry.
+    var fullReconnect = false;
     try {
       _attemptingReconnect = true;
 
@@ -1401,6 +1391,38 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
           ),
         );
       }
+
+      // Everything below decides this attempt's mode, and it has to run *after* the
+      // wait above, not before it. That wait is unbounded in practice — up to ten
+      // connection timeouts — and the state it waits on is exactly the state the mode
+      // depends on. Deciding first meant acting on a snapshot taken minutes earlier:
+      // in particular a peer connection that failed partway through the outage raises
+      // a full-reconnect request (`handleReconnect`, `peerConnectionFailed`) that the
+      // attempt coming out of the wait could not act on, so one resume went out first.
+      //
+      // Deliberately nothing here infers a lost session from the transport's state.
+      // `resumeConnection` is built for a peer that is *not* connected — it sends an
+      // ICE restart and waits for the peer to come back — so a transport that merely
+      // went away with the network is still resumable, and escalating on that would
+      // trade a recoverable session for a certain loss: a full reconnect resets
+      // `_reliableDataSequence` and clears `_reliableMessageBuffer`, discarding
+      // reliable packets a resume would have replayed from `lastMessageSeq`.
+      // A transport that is terminally gone reports it through `peerConnectionFailed`,
+      // which is escalated above and now takes effect on this attempt.
+
+      // Reason based escalation is decided in handleReconnect. The server side
+      // switch is checked here so the latest ClientConfiguration wins.
+      if (_clientConfiguration?.resumeConnection == lk_models.ClientConfigSetting.DISABLED) {
+        fullReconnectOnNext = true;
+      }
+
+      // Consume the flag: this attempt's mode is now fixed, and from here a `true`
+      // value unambiguously means a *new* full-reconnect request arrived while we were
+      // running (e.g. a server RECONNECT leave during a resume), which the finally
+      // block dispatches. Mirrors client-sdk-js.
+      fullReconnect = fullReconnectOnNext;
+      fullReconnectOnNext = false;
+      _attemptIsFullReconnect = fullReconnect;
 
       if (fullReconnect) {
         await restartConnection();
