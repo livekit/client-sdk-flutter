@@ -1027,26 +1027,37 @@ extension LiveKitPlugin {
     /// Applies an `RTCAudioSessionConfiguration` to the shared `RTCAudioSession`.
     /// Safe to call on any thread.
     ///
-    /// `activate` asks for the session to be activated as well. `RTCAudioSession`
-    /// counts every activation and only releases the session when the last one
-    /// is given back, so a caller that already holds its activation passes
-    /// false and only reconfigures. `ownsActivation` is false when an external
-    /// call system activates the session.
+    /// `RTCAudioSession` counts every activation and only releases the session
+    /// when the last one is given back, so this plugin holds at most one.
+    /// `holdsActivation` says whether it holds it now. `ownsActivation` is false
+    /// when an external call system activates the session, and then this only
+    /// configures.
     ///
-    /// Returns the thrown error, if any, and whether an activation was taken.
-    /// The two are independent: the configuration can fail after the session
-    /// was activated.
+    /// Returns the thrown error, if any, and whether the activation is held
+    /// afterwards. The two are independent: the configuration can fail after
+    /// the session was activated.
     static func applyAudioSessionConfiguration(_ configuration: RTCAudioSessionConfiguration,
                                                forceSpeakerOutput: Bool,
                                                ownsActivation: Bool,
-                                               activate: Bool) -> (error: Error?, activated: Bool) {
+                                               holdsActivation: Bool) -> (error: Error?, holdsActivation: Bool) {
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
+        defer { rtcSession.unlockForConfiguration() }
+        var holds = holdsActivation
+        if ownsActivation, holds, !rtcSession.isActive {
+            // The session went inactive underneath the activation, as it does
+            // when an interruption begins. Give the activation back and take
+            // it again below, so the session is activated again and the count
+            // stays at one. Waiting for the interruption end is not enough,
+            // it can fail to reactivate or never arrive.
+            try? rtcSession.setActive(false)
+            holds = false
+        }
+        let activate = ownsActivation && !holds
         // Activations only change under the configuration lock, so the count
         // tells whether this call took one.
         let activationsBefore = rtcSession.activationCount
-        var activated: Bool { rtcSession.activationCount > activationsBefore }
-        defer { rtcSession.unlockForConfiguration() }
+        var holdsAfter: Bool { holds || rtcSession.activationCount > activationsBefore }
         do {
             if activate {
                 try rtcSession.setConfiguration(configuration, active: true)
@@ -1078,9 +1089,9 @@ extension LiveKitPlugin {
                     print("[LiveKit] overrideOutputAudioPort skipped, session not active yet: \(error)")
                 }
             }
-            return (nil, activated)
+            return (nil, holdsAfter)
         } catch {
-            return (error, activated)
+            return (error, holdsAfter)
         }
     }
 
@@ -1224,23 +1235,22 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         return apply(resolved.configuration, forceSpeakerOutput: forceSpeakerOutput, ownsActivation: ownsActivation)
     }
 
-    /// Applies a configuration, taking this plugin's activation only when it
-    /// owns activation and does not hold one yet.
+    /// Applies a configuration, taking this plugin's activation when it owns
+    /// activation and does not hold one, or holds one for a session that went
+    /// inactive.
     private func apply(_ configuration: RTCAudioSessionConfiguration,
                        forceSpeakerOutput: Bool,
                        ownsActivation: Bool) -> Error? {
         lock.lock()
-        let activate = ownsActivation && !holdsActivation
+        let holds = holdsActivation
         lock.unlock()
         let outcome = LiveKitPlugin.applyAudioSessionConfiguration(configuration,
                                                                  forceSpeakerOutput: forceSpeakerOutput,
                                                                  ownsActivation: ownsActivation,
-                                                                 activate: activate)
-        if outcome.activated {
-            lock.lock()
-            holdsActivation = true
-            lock.unlock()
-        }
+                                                                 holdsActivation: holds)
+        lock.lock()
+        holdsActivation = outcome.holdsActivation
+        lock.unlock()
         return outcome.error
     }
 
