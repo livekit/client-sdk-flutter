@@ -83,7 +83,7 @@ Include this package to your `pubspec.yaml`
 ```yaml
 ---
 dependencies:
-  livekit_client: ^2.14.0
+  livekit_client: ^2.15.0
 ```
 
 ### iOS
