@@ -421,7 +421,15 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         #if os(macOS)
         result(FlutterMethodNotImplemented)
         #else
-        if let error = audioEngineObserver?.deactivateSession() ?? LiveKitPlugin.deactivateAudioSession() {
+        // Not `observer?.deactivateSession() ?? ...`: a successful deactivation
+        // returns nil, which would run the fallback and deactivate twice.
+        let error: Error?
+        if let audioEngineObserver {
+            error = audioEngineObserver.deactivateSession()
+        } else {
+            error = LiveKitPlugin.deactivateAudioSession()
+        }
+        if let error {
             print("[LiveKit] Deactivate audio session error: ", error)
             result(FlutterError(code: "deactivateAudioSession", message: error.localizedDescription, details: nil))
         } else {
