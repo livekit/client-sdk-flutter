@@ -14,6 +14,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart' show PlatformException;
 
 import 'package:collection/collection.dart';
@@ -26,6 +27,7 @@ import '../../events.dart';
 import '../../internal/events.dart';
 import '../../logger.dart';
 import '../../options.dart';
+import '../../proto/livekit_models.pb.dart' as lk_models;
 import '../../stats/audio_source_stats.dart';
 import '../../stats/stats.dart';
 import '../../support/native.dart';
@@ -48,12 +50,75 @@ track_options.AudioProcessingOptions resolveCaptureProcessingOptions(
   track_options.AudioCaptureOptions options,
 ) => Native.bypassVoiceProcessing ? const track_options.AudioProcessingOptions.noProcessing() : options.processing;
 
+/// The voice-processing features reported to the server for a local audio track.
+///
+/// Matches Swift (`AudioCaptureOptions.toFeatures`) and Android
+/// (`LocalAudioTrack.getOptionsFeatures`): an effect is reported when it is
+/// enabled, whatever its [track_options.AudioProcessingMode]; the mode only
+/// picks the implementation.
+///
+/// [sourceSettings] are the capture settings the browser reports
+/// (`MediaStreamTrack.getSettings()`). When given, a boolean setting wins over
+/// the requested option, as in the JS SDK, because the browser may not honor
+/// the request, and a `channelCount` above one reports
+/// [lk_models.AudioTrackFeature.TF_STEREO].
+@internal
+Set<lk_models.AudioTrackFeature> audioProcessingFeatures(
+  track_options.AudioProcessingOptions processing, {
+  Map<String, dynamic>? sourceSettings,
+}) {
+  bool resolve(String key, bool requested) {
+    final value = sourceSettings?[key];
+    return value is bool ? value : requested;
+  }
+
+  final channelCount = sourceSettings?['channelCount'];
+  return {
+    if (resolve('echoCancellation', processing.echoCancellation)) lk_models.AudioTrackFeature.TF_ECHO_CANCELLATION,
+    if (resolve('noiseSuppression', processing.noiseSuppression)) lk_models.AudioTrackFeature.TF_NOISE_SUPPRESSION,
+    if (resolve('autoGainControl', processing.autoGainControl)) lk_models.AudioTrackFeature.TF_AUTO_GAIN_CONTROL,
+    if (channelCount is num && channelCount > 1) lk_models.AudioTrackFeature.TF_STEREO,
+  };
+}
+
+/// The audio features [publishOptions] contribute to a published track.
+@internal
+Set<lk_models.AudioTrackFeature> audioPublishFeatures(AudioPublishOptions publishOptions) => {
+  if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
+  if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
+};
+
 class LocalAudioTrack extends LocalTrack with AudioTrack, LocalAudioManagementMixin {
   // Options used for this track
   @override
   covariant track_options.AudioCaptureOptions currentOptions;
 
   AudioPublishOptions? lastPublishOptions;
+
+  /// The audio features to report to the server for this track when published
+  /// with [publishOptions].
+  ///
+  /// Processing features follow [currentOptions] as resolved for capture, so
+  /// `bypassVoiceProcessing` reports none, and a runtime
+  /// [setAudioProcessingOptions] is reflected only once it succeeded. On web
+  /// they follow the settings the browser applied.
+  @internal
+  Set<lk_models.AudioTrackFeature> audioFeatures(AudioPublishOptions publishOptions) => {
+    ...audioProcessingFeatures(
+      resolveCaptureProcessingOptions(currentOptions),
+      sourceSettings: kIsWeb ? _sourceSettings() : null,
+    ),
+    ...audioPublishFeatures(publishOptions),
+  };
+
+  Map<String, dynamic>? _sourceSettings() {
+    try {
+      return mediaStreamTrack.getSettings();
+    } catch (error) {
+      logger.warning('failed to read audio track settings: $error');
+      return null;
+    }
+  }
 
   Future<void> setDeviceId(String deviceId) async {
     if (currentOptions.deviceId == deviceId) {

@@ -185,11 +185,10 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
         encryption: room.roomOptions.lkEncryptionType,
       );
 
-      // Populate audio features (e.g., TF_NO_DTX, TF_PRECONNECT_BUFFER)
-      req.audioFeatures.addAll([
-        if (!publishOptions.dtx) lk_models.AudioTrackFeature.TF_NO_DTX,
-        if (publishOptions.preConnect) lk_models.AudioTrackFeature.TF_PRECONNECT_BUFFER,
-      ]);
+      // Voice processing (echo cancellation, noise suppression, auto gain
+      // control), stereo on web, TF_NO_DTX and TF_PRECONNECT_BUFFER.
+      final publishedFeatures = track.audioFeatures(publishOptions);
+      req.audioFeatures.addAll(publishedFeatures);
 
       Future<lk_models.TrackInfo> negotiate(AudioPublishOptions options) async {
         track.transceiver = await room.engine.createTransceiverRTCRtpSender(track, options, encodings);
@@ -237,6 +236,21 @@ class LocalParticipant extends Participant<LocalTrackPublication> {
       listener.on((TrackEndedEvent event) async {
         logger.fine('TrackEndedEvent: ${event.track}');
         await removePublishedTrack(pub.sid);
+      });
+
+      // Report feature changes, e.g. after setAudioProcessingOptions, for as
+      // long as this publication is the one published for the track.
+      final featurePublishOptions = publishOptions;
+      var reportedFeatures = publishedFeatures;
+      final featuresListener = track.createListener();
+      pub.onDispose(() => featuresListener.dispose());
+      featuresListener.on((LocalTrackOptionsUpdatedEvent event) {
+        if (!identical(trackPublications[pub.sid], pub)) return;
+        final features = track.audioFeatures(featurePublishOptions);
+        if (features.length == reportedFeatures.length && features.containsAll(reportedFeatures)) return;
+        reportedFeatures = features;
+        logger.fine('updating audio features of ${pub.sid}: $features');
+        room.engine.signalClient.sendUpdateLocalAudioTrack(pub.sid, features);
       });
 
       [events, room.events].emit(

@@ -628,6 +628,17 @@ extension SignalClientRequests on SignalClient {
     ),
   );
 
+  /// Replaces the audio features the server holds for a published local audio track.
+  @internal
+  void sendUpdateLocalAudioTrack(String trackSid, Iterable<lk_models.AudioTrackFeature> features) => _sendRequest(
+    lk_rtc.SignalRequest(
+      updateAudioTrack: lk_rtc.UpdateLocalAudioTrack(
+        trackSid: trackSid,
+        features: features,
+      ),
+    ),
+  );
+
   @internal
   int sendUpdateLocalMetadata(lk_rtc.UpdateParticipantMetadata metadata) {
     final requestId = getNextRequestId();
