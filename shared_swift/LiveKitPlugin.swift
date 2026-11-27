@@ -425,7 +425,7 @@ public class LiveKitPlugin: NSObject, FlutterPlugin {
         // returns nil, which would run the fallback and deactivate twice.
         let error: Error?
         if let audioEngineObserver {
-            error = audioEngineObserver.deactivateSession()
+            error = audioEngineObserver.deactivateSessionExplicitly()
         } else {
             error = LiveKitPlugin.deactivateAudioSession()
         }
@@ -1051,21 +1051,25 @@ extension LiveKitPlugin {
         let rtcSession = RTCAudioSession.sharedInstance()
         rtcSession.lockForConfiguration()
         defer { rtcSession.unlockForConfiguration() }
-        var holds = holdsActivation
-        if ownsActivation, holds, !rtcSession.isActive {
-            // The session went inactive underneath the activation, as it does
-            // when an interruption begins. Give the activation back and take
-            // it again below, so the session is activated again and the count
-            // stays at one. Waiting for the interruption end is not enough,
-            // it can fail to reactivate or never arrive.
-            try? rtcSession.setActive(false)
-            holds = false
-        }
-        let activate = ownsActivation && !holds
+        let activate = LKAudioSessionPolicyResolver.requestsActivation(ownsActivation: ownsActivation,
+                                                                       holdsActivation: holdsActivation,
+                                                                       isSessionActive: rtcSession.isActive)
         // Activations only change under the configuration lock, so the count
         // tells whether this call took one.
-        let activationsBefore = rtcSession.activationCount
-        var holdsAfter: Bool { holds || rtcSession.activationCount > activationsBefore }
+        let activationsBefore = Int(rtcSession.activationCount)
+        func settle() -> Bool {
+            let settlement = LKAudioSessionPolicyResolver.settleActivation(
+                heldBefore: holdsActivation,
+                activationsBefore: activationsBefore,
+                activationsAfter: Int(rtcSession.activationCount)
+            )
+            if settlement.givesOneBack {
+                // The count is above one here, so this only lowers it and the
+                // session stays active.
+                try? rtcSession.setActive(false)
+            }
+            return settlement.holdsActivation
+        }
         do {
             if activate {
                 try rtcSession.setConfiguration(configuration, active: true)
@@ -1097,9 +1101,9 @@ extension LiveKitPlugin {
                     print("[LiveKit] overrideOutputAudioPort skipped, session not active yet: \(error)")
                 }
             }
-            return (nil, holdsAfter)
+            return (nil, settle())
         } catch {
-            return (error, holdsAfter)
+            return (error, settle())
         }
     }
 
@@ -1262,15 +1266,29 @@ class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
         return outcome.error
     }
 
-    /// Gives this plugin's activation back. `RTCAudioSession` drops it whether
-    /// or not deactivating the session succeeds, so it is no longer held either
-    /// way.
+    /// Gives this plugin's activation back at a full stop, when it holds one.
+    /// `RTCAudioSession` drops it whether or not deactivating the session
+    /// succeeds, so it is no longer held either way.
     func deactivateSession() -> Error? {
-        let error = LiveKitPlugin.deactivateAudioSession()
         lock.lock()
+        let holds = holdsActivation
         holdsActivation = false
         lock.unlock()
-        return error
+        guard LKAudioSessionPolicyResolver.givesActivationBackAtFullStop(holdsActivation: holds) else { return nil }
+        return LiveKitPlugin.deactivateAudioSession()
+    }
+
+    /// An explicit deactivation from the app. It also reaches the session when
+    /// this plugin holds nothing but another activation is counted.
+    func deactivateSessionExplicitly() -> Error? {
+        lock.lock()
+        let holds = holdsActivation
+        holdsActivation = false
+        lock.unlock()
+        let activations = Int(RTCAudioSession.sharedInstance().activationCount)
+        guard LKAudioSessionPolicyResolver.forwardsExplicitDeactivation(holdsActivation: holds, activations: activations)
+        else { return nil }
+        return LiveKitPlugin.deactivateAudioSession()
     }
 
     private func applyManagedConfiguration(isRecordingEnabled: Bool) -> Error? {

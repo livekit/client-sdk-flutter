@@ -380,3 +380,116 @@ final class ReportedScenarioTests: XCTestCase {
         XCTAssertEqual(engine.decision(platformVoiceProcessing: true), .playbackPreset)
     }
 }
+
+final class ActivationTests: XCTestCase {
+    private typealias Resolver = LKAudioSessionPolicyResolver
+
+    func testAnExternalCallSystemIsNeverAskedToActivate() {
+        for holds in [false, true] {
+            for active in [false, true] {
+                XCTAssertFalse(Resolver.requestsActivation(ownsActivation: false, holdsActivation: holds, isSessionActive: active))
+            }
+        }
+    }
+
+    func testActivatesOnceAndThenOnlyReconfigures() {
+        XCTAssertTrue(Resolver.requestsActivation(ownsActivation: true, holdsActivation: false, isSessionActive: false))
+        XCTAssertFalse(Resolver.requestsActivation(ownsActivation: true, holdsActivation: true, isSessionActive: true))
+    }
+
+    func testActivatesAgainWhenTheSessionWentInactiveUnderneath() {
+        XCTAssertTrue(Resolver.requestsActivation(ownsActivation: true, holdsActivation: true, isSessionActive: false))
+    }
+
+    func testTheFirstActivationIsKept() {
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: false, activationsBefore: 0, activationsAfter: 1),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: true)
+        )
+    }
+
+    func testAReconfigurationTakesNothing() {
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 1),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: true)
+        )
+    }
+
+    func testARecoveryThatActivatesGivesTheExtraOneBack() {
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 2),
+            LKActivationSettlement(givesOneBack: true, holdsActivation: true)
+        )
+    }
+
+    func testARecoveryThatFailsKeepsTheActivationItHeld() {
+        // The interruption end or the full stop still has it to use.
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: true, activationsBefore: 1, activationsAfter: 1),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: true)
+        )
+    }
+
+    func testAFailedFirstActivationHoldsNothing() {
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: false, activationsBefore: 0, activationsAfter: 0),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: false)
+        )
+    }
+
+    func testAnActivationTakenWhenTheCountWasLostIsKept() {
+        // Someone else deactivated in between. Giving one back from a count of
+        // one would deactivate the session that was just activated.
+        XCTAssertEqual(
+            Resolver.settleActivation(heldBefore: true, activationsBefore: 0, activationsAfter: 1),
+            LKActivationSettlement(givesOneBack: false, holdsActivation: true)
+        )
+    }
+
+    func testAFullStopOnlyGivesBackWhatIsHeld() {
+        XCTAssertTrue(Resolver.givesActivationBackAtFullStop(holdsActivation: true))
+        XCTAssertFalse(Resolver.givesActivationBackAtFullStop(holdsActivation: false))
+    }
+
+    func testAnExplicitDeactivationReachesACountedSession() {
+        XCTAssertTrue(Resolver.forwardsExplicitDeactivation(holdsActivation: true, activations: 1))
+        XCTAssertTrue(Resolver.forwardsExplicitDeactivation(holdsActivation: false, activations: 1))
+        XCTAssertFalse(Resolver.forwardsExplicitDeactivation(holdsActivation: false, activations: 0))
+    }
+
+    /// The count over a whole call, for every way an apply can go.
+    func testTheCountNeverLeavesZeroOrOneAndEndsAtZero() {
+        // took: whether RTCAudioSession counted an activation for a request.
+        for tookOnRecovery in [false, true] {
+            var count = 0
+            var holds = false
+
+            func apply(sessionActive: Bool, activationSucceeds: Bool) {
+                let before = count
+                if Resolver.requestsActivation(ownsActivation: true, holdsActivation: holds, isSessionActive: sessionActive),
+                   activationSucceeds
+                {
+                    count += 1
+                }
+                let settlement = Resolver.settleActivation(heldBefore: holds, activationsBefore: before, activationsAfter: count)
+                if settlement.givesOneBack { count -= 1 }
+                holds = settlement.holdsActivation
+            }
+
+            apply(sessionActive: false, activationSucceeds: true) // engine enables
+            XCTAssertEqual(count, 1)
+            apply(sessionActive: true, activationSucceeds: true) // policy push
+            XCTAssertEqual(count, 1)
+            apply(sessionActive: false, activationSucceeds: tookOnRecovery) // during an interruption
+            XCTAssertEqual(count, 1)
+            XCTAssertTrue(holds)
+
+            if Resolver.givesActivationBackAtFullStop(holdsActivation: holds) { count -= 1 }
+            holds = false
+            XCTAssertEqual(count, 0)
+            // a second full stop gives nothing back
+            if Resolver.givesActivationBackAtFullStop(holdsActivation: holds) { count -= 1 }
+            XCTAssertEqual(count, 0)
+        }
+    }
+}
