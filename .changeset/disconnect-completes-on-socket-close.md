@@ -1,5 +1,0 @@
----
-livekit_client: patch
----
-
-disconnect() tears the room down locally after sending the Leave instead of waiting for the server to echo it, so it no longer stalls 10 s when the echo is lost. A disconnect() call while one is already tearing down returns at once, so one Leave is sent and one disconnect reported

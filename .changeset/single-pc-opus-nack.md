@@ -1,5 +1,0 @@
----
-livekit_client: patch
----
-
-Negotiate Opus NACK on every audio section in single peer connection mode, including send-only offers created before any subscriptions, enabling retransmission of lost audio in both publish and subscribe directions when RED is disabled, such as with end-to-end encryption. Accept server-offered Opus NACK in dual peer connection subscriber answers, with fallback if the modified answer is rejected

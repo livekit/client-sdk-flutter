@@ -1,5 +1,0 @@
----
-livekit_client: patch
----
-
-Offers and answers now carry offer ids, so a late answer to an offer that an ICE restart or a newer offer replaced is ignored instead of being applied to the wrong offer
