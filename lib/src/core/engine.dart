@@ -165,7 +165,17 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
   /// reconnect attempt, so it is false while an attempt runs unless a new
   /// request arrived mid-attempt — use [isFullReconnectInProgress] to ask
   /// what the running attempt is doing.
-  bool fullReconnectOnNext = false;
+  bool get fullReconnectOnNext => _fullReconnectOnNext;
+  set fullReconnectOnNext(bool value) {
+    final requested = value && !_fullReconnectOnNext;
+    _fullReconnectOnNext = value;
+    // A resume that is waiting for a peer connection stops waiting, see resumeConnection.
+    if (requested && _attemptingReconnect && !_attemptIsFullReconnect) {
+      events.emit(const EngineFullReconnectRequestedEvent());
+    }
+  }
+
+  bool _fullReconnectOnNext = false;
 
   bool _attemptIsFullReconnect = false;
 
@@ -1509,12 +1519,23 @@ class Engine extends Disposable with EventsEmittable<EngineEvent> {
         subscriber!.restartingIce = true;
       }
       logger.fine('resumeConnection: Waiting for primary to connect...');
-      await events.waitFor<EnginePeerStateUpdatedEvent>(
-        filter: (event) => event.isPrimary && event.state.isConnected(),
+      // A full reconnect requested while this resume runs, such as a server Leave with the
+      // RECONNECT action, ends the wait. The server has given up on the session this resume
+      // would restore, so the primary would only be waited for until the timeout.
+      if (fullReconnectOnNext) {
+        throw MediaConnectException('resumeConnection: a full reconnect was requested during the resume');
+      }
+      final event = await events.waitFor<EngineEvent>(
+        filter: (event) =>
+            event is EngineFullReconnectRequestedEvent ||
+            (event is EnginePeerStateUpdatedEvent && event.isPrimary && event.state.isConnected()),
         duration: connectOptions.timeouts.peerConnection,
         onTimeout: () =>
             throw MediaConnectException('resumeConnection: Timed out waiting for EnginePeerStateUpdatedEvent'),
       );
+      if (event is EngineFullReconnectRequestedEvent) {
+        throw MediaConnectException('resumeConnection: a full reconnect was requested during the resume');
+      }
       logger.fine('resumeConnection: primary connected');
     }
 
