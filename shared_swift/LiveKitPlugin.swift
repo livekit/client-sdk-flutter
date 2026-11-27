@@ -1089,11 +1089,12 @@ extension LiveKitPlugin {
 /// state to Dart (keeping engine state the single source of truth there too).
 ///
 /// The engine-lifecycle methods are invoked synchronously on WebRTC's worker
-/// thread. The engine blocks on the return value. Non-zero from a setup hook
-/// (`willEnableEngine`) rolls the operation back, and from a teardown hook
-/// (`didDisableEngine`) it is only logged. So the session work here is
-/// synchronous and never calls back into the audio device module. The Dart notification is dispatched
-/// asynchronously and is purely informational. It never blocks the engine.
+/// thread, and the engine blocks on the return value, so the session work
+/// here is synchronous and never calls back into the audio device module.
+/// Non-zero from a setup hook (`willEnableEngine`) rolls the operation back,
+/// and from a teardown hook (`didDisableEngine`) it is only logged. The Dart
+/// notification is dispatched asynchronously and is purely informational. It
+/// never blocks the engine.
 @available(iOS 13.0, macOS 10.15, *)
 class LKAudioEngineObserver: NSObject, RTCAudioDeviceModuleDelegate {
     private let lock = NSLock()
