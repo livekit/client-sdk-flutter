@@ -14,6 +14,7 @@
 
 import 'package:collection/collection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart' as rtc;
+import 'package:meta/meta.dart';
 
 import '../../events.dart';
 import '../../internal/events.dart';
@@ -75,6 +76,7 @@ class RemoteAudioTrack extends RemoteTrack with AudioTrack, RemoteAudioManagemen
     _deviceId = deviceId;
   }
 
+  @internal
   AudioReceiverStats? prevStats;
 
   num? _currentBitrate;

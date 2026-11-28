@@ -64,6 +64,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
   num? _currentBitrate;
   num? get currentBitrate => _currentBitrate;
 
+  @internal
   Map<String, VideoSenderStats>? prevStats;
   final Map<String, num> _bitrateFoLayers = {};
 
@@ -72,6 +73,7 @@ class LocalVideoTrack extends LocalTrack with VideoTrack {
 
   DegradationPreference? _degradationPreference;
 
+  @internal
   List<lk_rtc.SubscribedCodec> subscribedCodecs = [];
 
   @override
@@ -352,6 +354,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
   /// being applied, for a caller re-asserting a pause the sender lost without
   /// being told. It is narrowed per codec: one with every layer subscribed has
   /// nothing to re-assert, so its sender is left alone.
+  @internal
   Future<List<String>> setPublishingCodecs(
     List<lk_rtc.SubscribedCodec> codecs,
     LocalTrack track, {
@@ -445,6 +448,7 @@ extension LocalVideoTrackExt on LocalVideoTrack {
     }
   }
 
+  @internal
   Future<void> setPublishingLayersForSender(
     rtc.RTCRtpSender sender,
     List<rtc.RTCRtpEncoding> encodings,

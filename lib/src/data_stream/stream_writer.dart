@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:fixnum/fixnum.dart';
+import 'package:meta/meta.dart';
 
 import '../core/engine.dart';
 import '../proto/livekit_models.pb.dart' as lk_models;
@@ -72,6 +73,7 @@ class WritableStream<T> implements StreamWriter<T> {
   String streamId;
   int chunkId = 0;
   List<String>? destinationIdentities;
+  @internal
   Engine engine;
 
   WritableStream({

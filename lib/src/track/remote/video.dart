@@ -37,6 +37,7 @@ class RemoteVideoTrack extends RemoteTrack with VideoTrack {
          receiver: receiver,
        );
 
+  @internal
   VideoReceiverStats? prevStats;
   num? _currentBitrate;
   num? get currentBitrate => _currentBitrate;

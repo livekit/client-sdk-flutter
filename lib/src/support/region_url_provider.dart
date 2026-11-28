@@ -1,6 +1,7 @@
 import 'dart:convert' show json;
 
 import 'package:fixnum/fixnum.dart';
+import 'package:meta/meta.dart';
 
 import '../exceptions.dart';
 import '../logger.dart';
@@ -9,6 +10,7 @@ import '../proto/livekit_rtc.pb.dart' as lk_models;
 import 'http_client.dart';
 import 'websocket.dart' show WebSocketException;
 
+@internal
 class RegionUrlProvider {
   Uri serverUrl;
 
