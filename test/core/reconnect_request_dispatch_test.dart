@@ -30,6 +30,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart' show RTCPeerConnectionState;
 
 import 'package:livekit_client/livekit_client.dart';
 import 'package:livekit_client/src/proto/livekit_models.pb.dart' as lk_models;
@@ -145,6 +146,42 @@ void main() {
     expect(restartUri.queryParameters['reconnect'], isNull, reason: 'the peer failure must still force a re-join');
     expect(roomEvents.whereType<RoomReconnectingEvent>(), isNotEmpty);
     expect(container.engine.fullReconnectOnNext, isFalse, reason: 'the request must be consumed, not left stale');
+  });
+
+  test('a RECONNECT leave ends a resume that is waiting for the primary connection', () async {
+    final roomEvents = <RoomEvent>[];
+    final cancel = room.events.listen(roomEvents.add);
+
+    final firstHandlers = ws.handlers;
+    ws.onDispose();
+    final resumeUri = await awaitNewSocket(firstHandlers);
+    expect(resumeUri.queryParameters['reconnect'], '1', reason: 'cycle 1 must be a resume');
+
+    // The primary peer connection is down, so the resume has to wait for it.
+    (container.engine.primary!.pc as MockPeerConnection).connectionState =
+        RTCPeerConnectionState.RTCPeerConnectionStateDisconnected;
+
+    final resumeHandlers = ws.handlers;
+    ws.onData(lk_rtc.SignalResponse(reconnect: lk_rtc.ReconnectResponse()).writeToBuffer());
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(roomEvents.whereType<RoomReconnectedEvent>(), isEmpty, reason: 'the resume must still be waiting');
+
+    // The server gives up on the session. The resume used to keep waiting for
+    // the primary until its timeout, 10 seconds by default.
+    ws.onData(
+      lk_rtc.SignalResponse(
+        leave: lk_rtc.LeaveRequest(
+          action: lk_rtc.LeaveRequest_Action.RECONNECT,
+          reason: lk_models.DisconnectReason.STATE_MISMATCH,
+        ),
+      ).writeToBuffer(),
+    );
+
+    final restartUri = await awaitNewSocket(resumeHandlers);
+    await cancel();
+
+    expect(restartUri.queryParameters['reconnect'], isNull, reason: 'the next attempt must re-join');
+    expect(roomEvents.whereType<RoomReconnectedEvent>(), isEmpty, reason: 'the resume must not be reported done');
   });
 
   test('a RECONNECT leave arriving mid-restart is not lost', () async {

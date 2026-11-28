@@ -238,6 +238,15 @@ class EngineSubscribedCodecRefreshRequestedEvent with InternalEvent, EngineEvent
   String toString() => '${runtimeType}()';
 }
 
+/// A full reconnect was requested while a resume attempt is running.
+@internal
+class EngineFullReconnectRequestedEvent with InternalEvent, EngineEvent {
+  const EngineFullReconnectRequestedEvent();
+
+  @override
+  String toString() => '${runtimeType}()';
+}
+
 @internal
 class EngineFullRestartingEvent with InternalEvent, EngineEvent {
   const EngineFullRestartingEvent();
