@@ -35,12 +35,12 @@ If the files disagree, `scripts/check_version.dart` fails CI.
 `publish.yaml` is a workflow of its own because pub.dev accepts trusted
 publishing only from a run on a tag. It runs `dart pub publish --force`.
 The exact `flutter_webrtc` pin always gives one pub validation warning,
-and `--force` lets the publish continue past it. The check that the
-package can publish is `dart pub publish --dry-run --ignore-warnings`:
-it fails on a pub error and ignores warnings, like the publish. It runs
-on every PR, as the publish dry run on the release PR, and in the
-`validate` job of `release.yaml` before the tag. A new pub warning
-shows only in the log.
+and `--force` lets the publish continue past it. `--force` lets every
+warning through, so the check that the package can publish is
+`scripts/validate_publish.sh`: a dry run that passes only when the pin
+warning is the single validation issue. It runs on every PR, as the
+publish dry run on the release PR, and in the `validate` job of
+`release.yaml` before the tag. A new pub warning or error fails it.
 
 ## Release
 

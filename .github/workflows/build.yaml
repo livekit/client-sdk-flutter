@@ -64,10 +64,10 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v6
       - uses: ./.github/actions/setup-flutter
-      # Warnings are ignored: the exact flutter_webrtc pin always gives one,
-      # and the publish runs with --force. Errors fail the job.
+      # The exact flutter_webrtc pin always gives one warning, and the publish
+      # runs with --force. Any other warning or an error fails the job.
       - name: Validate package
-        run: dart pub publish --dry-run --ignore-warnings
+        run: scripts/validate_publish.sh
 
   dart-analyze-check:
     name: Dart Analyze
